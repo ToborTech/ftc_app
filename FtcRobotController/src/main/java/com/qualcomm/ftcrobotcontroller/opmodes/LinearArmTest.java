@@ -83,7 +83,6 @@ public class LinearArmTest extends LinearOpMode {
   double slider_dir;
   double elbow_dir;
 
-
   DcMotor elbow;
   Servo shoulder;
   Servo wrist;

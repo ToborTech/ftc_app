@@ -69,8 +69,6 @@ public class ArmTest extends OpMode {
 	final static double LEVELER_UP = 0.4;
 	final static double LEVELER_LEFT = 0.9;
 
-
-
 	// amount to change the arm servo position.
 	double armDelta = 0.1;
  	int slider_counter = 0;
