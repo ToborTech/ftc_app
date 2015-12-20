@@ -70,7 +70,7 @@ public class TobotHardware extends LinearOpMode {
 	final static double LEVELER_UP = 0.4;
 	final static double LEVELER_LEFT = 0.9;
 	final static int    ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
-	final static double  RROBOT = 9;  // number of wheel turns to get chassis 360-degree turn
+	final static double  RROBOT = 11;  // number of wheel turns to get chassis 360-degree turn
 	int numOpLoops = 1;
 
 	//
@@ -154,14 +154,14 @@ public class TobotHardware extends LinearOpMode {
 		}
 		catch (Exception p_exeception)
 		{
-			m_warning_message ("tape_slider");
+			m_warning_message("tape_slider");
 			DbgLog.msg (p_exeception.getLocalizedMessage ());
 			tape_slider = null;
 		}
 		tape_slider.setDirection(DcMotor.Direction.REVERSE);
 
-		try {
-			tape_rotator = hardwareMap.dcMotor.get("tape_rotator");
+			try {
+				tape_rotator = hardwareMap.dcMotor.get("tape_rotator");
 		}
 		catch (Exception p_exeception)
 		{
@@ -316,6 +316,12 @@ public class TobotHardware extends LinearOpMode {
 			float right = gamepad1.left_stick_y;
 			float left = gamepad1.right_stick_y;
 
+			elbow_pos = elbow.getCurrentPosition();
+			tape_slider_pos = tape_slider.getCurrentPosition();
+			tape_rotator_pos = tape_rotator.getCurrentPosition();
+			shoulder_dir = -gamepad2.left_stick_x;
+			elbow_dir = -gamepad2.right_stick_y;
+			// gate_dir = gamepad2.right_stick_x;
 			// clip the right/left values so that the values never exceed +/- 1
 			right = Range.clip(right, -1, 1);
 			left = Range.clip(left, -1, 1);
@@ -340,10 +346,10 @@ public class TobotHardware extends LinearOpMode {
 				StraightR(0.8, 2);
 			}
 			if (gamepad1.dpad_left) { //left spot turn 90 Degrees
-				TurnLeftD(0.8, 90, true);
+				TurnLeftD(0.95, 90, true);
 			}
 			if (gamepad1.dpad_right) { //right spot turn 90 Degrees
-				TurnRightD(0.8, 90, true);
+				TurnRightD(0.95, 90, true);
 			}
 			if (gamepad1.right_trigger>0.1) { // Sweeper Forward
 				SW_power = (float)-1.0;
@@ -367,12 +373,7 @@ public class TobotHardware extends LinearOpMode {
 				if (speedScale < 1)
 					speedScale += 0.01;
 			}
-			elbow_pos = elbow.getCurrentPosition();
-			tape_slider_pos = tape_slider.getCurrentPosition();
-			tape_rotator_pos = tape_rotator.getCurrentPosition();
-			shoulder_dir = -gamepad2.left_stick_x;
-			elbow_dir = -gamepad2.right_stick_y;
-			// gate_dir = gamepad2.right_stick_x;
+
 			if (slider_counter>0)
 				slider_counter --;
 			else
@@ -593,7 +594,7 @@ public class TobotHardware extends LinearOpMode {
 		set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
 		//motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
 		//motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-		int leftEncode = motorFL.getCurrentPosition();
+		int leftEncode = motorBL.getCurrentPosition();
 		int rightEncode = motorFR.getCurrentPosition();
 		if (spotTurn) { // use both motors for spot turn
 			leftCnt = (int) (-ONE_ROTATION * RROBOT * degree / 720.0);
@@ -617,7 +618,7 @@ public class TobotHardware extends LinearOpMode {
 		set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
 		//motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
 		//motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-		int leftEncode = motorFL.getCurrentPosition();
+		int leftEncode = motorBL.getCurrentPosition();
 		int rightEncode = motorFR.getCurrentPosition();
 		if (spotTurn) { // use both motors for spot turn
 			leftCnt = (int) (ONE_ROTATION * RROBOT * degree / 720.0);
@@ -663,6 +664,7 @@ public class TobotHardware extends LinearOpMode {
 				// && motorBR.getCurrentPosition()!=0) && motorFL.getCurrentPosition()!=0) {
 			waitOneFullHardwareCycle();
 		}
+		leftCnt = 0; rightCnt = 0;
 	}
 	void reset_motors() throws InterruptedException {
 		reset_chassis();
@@ -675,10 +677,10 @@ public class TobotHardware extends LinearOpMode {
 	boolean has_left_drive_encoder_reached (double p_count) {
 		if (leftPower<0) {
 			//return (Math.abs(motorFL.getCurrentPosition()) < p_count);
-			return (motorBL.getCurrentPosition() < p_count);
+			return (motorBL.getCurrentPosition() <= p_count);
 		} else {
 			//return (Math.abs(motorFL.getCurrentPosition()) > p_count);
-			return (motorBL.getCurrentPosition() > p_count);
+			return (motorBL.getCurrentPosition() >= p_count);
 		}
 	} // has_left_drive_encoder_reached
 

@@ -282,8 +282,8 @@ public class TeleOp extends ArmTest {
         int leftEncode = motorFL.getCurrentPosition();
         int rightEncode = motorFR.getCurrentPosition();
         if (spotTurn) { // use both motors for spot turn
-            leftCnt = (int) (-ONE_ROTATION * RROBOT * degree / 720.0);
-            rightCnt = (int) (ONE_ROTATION * RROBOT * degree / 720.0);
+            leftCnt = (int) (-ONE_ROTATION * RROBOT * degree / 700.0);
+            rightCnt = (int) (ONE_ROTATION * RROBOT * degree / 700.0);
             leftPower = (float) -power;
             satisfyBothEnc = false;
         } else { // swing turn. only use right motor
@@ -309,8 +309,8 @@ public class TeleOp extends ArmTest {
         int leftEncode = motorFL.getCurrentPosition();
         int rightEncode = motorFR.getCurrentPosition();
         if (spotTurn) { // use both motors for spot turn
-            leftCnt = (int) (ONE_ROTATION * RROBOT * degree / 720.0);
-            rightCnt = (int) (-ONE_ROTATION * RROBOT * degree / 720.0);
+            leftCnt = (int) (ONE_ROTATION * RROBOT * degree / 700.0);
+            rightCnt = (int) (-ONE_ROTATION * RROBOT * degree / 700.0);
             rightPower = (float) -power;
             satisfyBothEnc = false;
         } else { // swing turn. only use right motor
