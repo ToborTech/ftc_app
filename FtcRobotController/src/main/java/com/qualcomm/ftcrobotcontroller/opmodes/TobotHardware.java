@@ -709,7 +709,7 @@ public class TobotHardware extends LinearOpMode {
 	 */
 	boolean have_drive_encoders_reached( double p_left_count, double p_right_count) {
 		boolean l_return = false;
-		if (has_left_drive_encoder_reached (p_left_count) &&
+		if (has_left_drive_encoder_reached (p_left_count) ||
 				has_right_drive_encoder_reached (p_right_count)) {
 			l_return = true;
 		}

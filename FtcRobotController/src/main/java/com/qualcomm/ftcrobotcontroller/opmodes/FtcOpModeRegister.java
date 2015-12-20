@@ -71,6 +71,7 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("TeleOp", TeleOp.class);
     manager.register("TobotHardware", TobotHardware.class);
     manager.register("ColorSensor01", ColorSensor01.class);
+    manager.register("AutoRedOut", LinearAutoRedOut.class);
 
     //manager.register("PushBotManual", PushBotManual.class);
     //manager.register("PushBotAuto", PushBotAuto.class);
