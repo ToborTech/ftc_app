@@ -213,8 +213,32 @@ public class LinearArmTest extends LinearOpMode {
     }
   }
 
-  void release_arm() {
+  void release_arm() throws InterruptedException {
+    arm_slider.setPosition(SLIDER_SHORTEN);
+    wait(500);
+    elbow_pos = 990;
+    while (elbow.getCurrentPosition()<elbow_pos) {
+      elbow.setPower(.5);
+    }
+    elbow.setPower(0);
+    arm_slider.setPosition(SLIDER_LENGHTEN);
+    wait(500);
+    elbow_pos = 1100;
+    while (elbow.getCurrentPosition()<elbow_pos) {
+      elbow.setPower(0.25);
+    }
+    elbow.setPower(0);
+  }
 
+  void arm_down() {
+    elbow_pos = 2;
+    while (elbow.getCurrentPosition()>elbow_pos) {
+      elbow.setPower(-0.2);
+    }
+    elbow.setPower(0);
+  }
+  void arm_front() {
+    // shoulder.setPosition();
   }
   void arm_collection_mode() {
 
@@ -231,6 +255,7 @@ public class LinearArmTest extends LinearOpMode {
   void slider_in() {
 
   }
+
   void m_warning_message (String p_exception_message)
 
   {

@@ -323,7 +323,7 @@ public class TobotHardware extends LinearOpMode {
 		//Instantiate ToborTech Nav object
 		nav = new TT_Nav( motorFR, motorFL, opSensor, true , LL, LR); // Not using Follow line
 		colorPicker = new TT_ColorPicker(coSensor);
-	}
+	} // end of tobot_init
 
 	@Override
 	public void runOpMode() throws InterruptedException {
@@ -530,7 +530,7 @@ public class TobotHardware extends LinearOpMode {
 			} else { // Auto state, test the arm routines
 				// release arm
 				if (gamepad2.right_bumper) {
-					//release_arm();
+					release_arm();
 				}
 				if (gamepad2.right_trigger > 0.1) {
 					//arm_collection_mode();
@@ -569,6 +569,9 @@ public class TobotHardware extends LinearOpMode {
 		telemetry.addData("9. ods:", String.format("%.2f",opSensor.getLightDetected()));
 	}
 
+	public void release_arm() {
+
+	}
 	public void StraightR(double power, double n_rotations) throws InterruptedException {
 		reset_chassis();
 		set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
