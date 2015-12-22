@@ -38,50 +38,60 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 /**
  * Linear Tele Op Mode
- * <p>
+ * <p/>
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
 public class LinearAutoRedOut extends TobotHardware {
-  // CONSTANT VALUES.
-  // CONSTANT VALUES.
-  /**
-   * Constructor
-   */
+    // CONSTANT VALUES.
+    // CONSTANT VALUES.
+
+    /**
+     * Constructor
+     */
 
 
+    @Override
+    public void runOpMode() throws InterruptedException {
 
-  @Override
-  public void runOpMode() throws InterruptedException {
+        tobot_init(State.STATE_AUTO);
 
-   tobot_init(State.STATE_AUTO);
-
-    waitForStart();
+        waitForStart();
 
 
-      StraightR(0.75, 7.5);
+        StraightR(0.75, 7.5);
 
         StraightR(-0.5, 2);
         TurnLeftD(0.5, 60, true);
         StraightR(0.5, 1);
-        //Follow line
-        //Hit Beacon
-      //  StraightR(0.5,0.1);
-      //  TurnRightD(0.5,90,true);
-      //  StraightR(0.6,3.33);
+
+        // Follow line until optical distance sensor detect 0.2 value to the wall (about 4cm)
+        nav.followLineTillOp(0.2);
+
+        // Detect Beacon color and hit the right side
+        if (colorPicker.getColor()==TT_ColorPicker.BLUE) {
+            hit_left_button();
+        } else if (colorPicker.getColor()==TT_ColorPicker.RED) {
+            hit_right_button();
+        } else { // unknown, better not do anything than giving the credit to the opponent
+            // doing nothing. May print out the message for debugging
+        }
+
+        // dump two climbers, please Kevin!!
+
+        //  StraightR(0.5,0.1);
+        //  TurnRightD(0.5,90,true);
+        //  StraightR(0.6,3.33);
         stop_tobot();
 
+        telemetry.addData("shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
+        telemetry.addData("elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
+        telemetry.addData("wrist", "pos(dir): " + String.format("%.2f (%.2f)", wrist_pos, wrist_dir));
+        telemetry.addData("gate", "pos(dir): " + String.format("%.2f (%.2f)", gate_pos, gate_dir));
+        telemetry.addData("arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 
+        waitOneFullHardwareCycle();
 
-
-      telemetry.addData("shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
-      telemetry.addData("elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power,elbow_pos));
-      telemetry.addData("wrist",  "pos(dir): " + String.format("%.2f (%.2f)", wrist_pos, wrist_dir));
-      telemetry.addData("gate", "pos(dir): " + String.format("%.2f (%.2f)", gate_pos, gate_dir));
-      telemetry.addData("arm_slider",  "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
-
-      waitOneFullHardwareCycle();
-
-  }
+    }
 
 }

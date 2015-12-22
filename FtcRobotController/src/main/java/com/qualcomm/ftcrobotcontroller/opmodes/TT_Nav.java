@@ -2,6 +2,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.LightSensor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 // import org.swerverobotics.library.interfaces.IBNO055IMU;
 
@@ -24,14 +25,16 @@ public class TT_Nav {
 
     private DcMotor _motorLeft ;
     private DcMotor _motorRight ;
+    private OpticalDistanceSensor _op;
     // private IBNO055IMU _imu ;
     private LightSensor _reflectedLightLeft, _reflectedLightRight ;
 
     final static double LIGHT_THRESHOLD = 0.4;
 
-    TT_Nav(DcMotor motorR, DcMotor motorL, boolean enableFollowLine, LightSensor reflectedLightLeft,LightSensor reflectedLightRight){
+    TT_Nav(DcMotor motorR, DcMotor motorL, OpticalDistanceSensor op, boolean enableFollowLine, LightSensor reflectedLightLeft,LightSensor reflectedLightRight){
         _motorLeft  = motorL ;
         _motorRight = motorR ;
+        _op = op;
         // _imu = imu ;
         if (enableFollowLine) {
             _reflectedLightLeft = reflectedLightLeft;
@@ -142,38 +145,51 @@ public class TT_Nav {
         }
     }
 
-// ********************  //
-//  Follow Line Methods
-// ********************  //
-public int getFollowLineDirection(){
-    double random = Math.random(); // user this to flip a coin
-    int direction = FORWARD ;
-    int left_on  = 0 ;
-    int right_on = 0 ;
-    int dir = 0 ;
+    // ********************  //
+    //  Follow Line Methods
+    // ********************  //
+    public int getFollowLineDirection() {
+        double random = Math.random(); // user this to flip a coin
+        int direction = FORWARD;
+        int left_on = 0;
+        int right_on = 0;
+        int dir = 0;
 
-    if ( _reflectedLightLeft.getLightDetected() > LIGHT_THRESHOLD ){
-        left_on = 1 ;
+        if (_reflectedLightLeft.getLightDetected() > LIGHT_THRESHOLD) {
+            left_on = 1;
+        }
+        if (_reflectedLightRight.getLightDetected() > LIGHT_THRESHOLD) {
+            right_on = 1;
+        }
+        dir = left_on * 10 + right_on; // gives 0,1,10,11
+        switch (dir) {
+            case 11:
+                direction = FORWARD;
+                break;
+            case 01:
+                direction = LEFT;
+                break;
+            case 10:
+                direction = RIGHT;
+                break;
+            case 00:
+                if (random < 0.50) {
+                    direction = LEFT;
+                } else {
+                    direction = RIGHT;
+                }
+                break;
+        }
+        return direction;
     }
-    if ( _reflectedLightRight.getLightDetected() > LIGHT_THRESHOLD ){
-        right_on = 1 ;
-    }
-    dir = left_on * 10 + right_on  ; // gives 0,1,10,11
-    switch (dir){
-        case 11: direction = FORWARD ; break;
-        case 01: direction = LEFT    ; break;
-        case 10: direction = RIGHT   ; break;
-        case 00 :
-            if ( random < 0.50 ){
-                direction = LEFT ;
-            }
-            else{
-                direction = RIGHT ;
-            }
-            break;
-    }
-    return direction ;
-}
 
-
+    public void followLineTillOp(double op_stop_val){
+        while (_op.getLightDetected()<op_stop_val) {
+            //follow the line , using getDirection and drive methods
+            int direction2go;
+            direction2go = getFollowLineDirection();
+            drive(direction2go, MIN_PWR);
+        }
+        drive(BRAKE, 0); // Make sure robot is stopped
+    }
 }

@@ -38,6 +38,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.LightSensor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
@@ -119,11 +120,14 @@ public class TobotHardware extends LinearOpMode {
 	Servo light_sensor_sv;
 
 	// variables for sensors
-	ColorSensor colorSensor;
+	ColorSensor coSensor;
 	DeviceInterfaceModule cdim;
-	TouchSensor t;
+	TouchSensor tSensor;
+	OpticalDistanceSensor opSensor;
 	LightSensor LL, LR ;
 	// IBNO055IMU imu;
+	TT_Nav nav;
+	TT_ColorPicker colorPicker;
 
 
 	// following variables are used by Chassis
@@ -308,16 +312,17 @@ public class TobotHardware extends LinearOpMode {
 
 		// initialize sensores
 		cdim = hardwareMap.deviceInterfaceModule.get("dim");
-		colorSensor = hardwareMap.colorSensor.get("mr");
+		coSensor = hardwareMap.colorSensor.get("co");
 
-		t = hardwareMap.touchSensor.get("t");
+		tSensor = hardwareMap.touchSensor.get("to");
+		opSensor = hardwareMap.opticalDistanceSensor.get("op");
 
-		LL = hardwareMap.lightSensor.get("light_sensor_l");
-		LR = hardwareMap.lightSensor.get("light_sensor_r");
+		LL = hardwareMap.lightSensor.get("ll");
+		LR = hardwareMap.lightSensor.get("lr");
 
 		//Instantiate ToborTech Nav object
-		TT_Nav nav = new TT_Nav( motorFR, motorFL, true , LL, LR); // Not using Follow line
-
+		nav = new TT_Nav( motorFR, motorFL, opSensor, true , LL, LR); // Not using Follow line
+		colorPicker = new TT_ColorPicker(coSensor);
 	}
 
 	@Override
@@ -550,17 +555,18 @@ public class TobotHardware extends LinearOpMode {
 	}
 
 	public void show_telemetry() {
+		telemetry.addData("0. State: ", state.toString());
 		telemetry.addData("1. shoulder:", "pos= " + String.format("%.2f, dir=%.2f)", shoulder_pos, shoulder_dir));
 		telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d", arm_power,elbow_pos));
 		telemetry.addData("3. wrist/gate",  "pos= " + String.format("%.2f / %.2f", wrist_pos, gate_pos));
 		telemetry.addData("4. arm_slider",  "pos (dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 		telemetry.addData("5. tape_rotator",  "pos= " + String.format("%2d", tape_rotator_pos));
-		telemetry.addData("0. State: ", state.toString());
 		telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower) + "(mode=" + motorFR.getMode().toString() + ")");
 		//telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + motorBL.getTargetPosition());
 		//telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + motorFR.getTargetPosition());
 		telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
 		telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + rightCnt);
+		telemetry.addData("9. ods:", String.format("%.2f",opSensor.getLightDetected()));
 	}
 
 	public void StraightR(double power, double n_rotations) throws InterruptedException {
@@ -762,17 +768,34 @@ public class TobotHardware extends LinearOpMode {
 		return dScale;
 	}
 
-	void levler_right() {
+	void leveler_right() {
 		leveler_pos = LEVELER_RIGHT;
 		leveler.setPosition(leveler_pos);
 	}
 
-	void levler_left() {
+	void leveler_left() {
 		leveler_pos = LEVELER_LEFT;
 		leveler.setPosition(leveler_pos);
 	}
-	void levler_down(){
+	void leveler_down(){
 		leveler_pos = LEVELER_DOWN;
+		leveler.setPosition(leveler_pos);
+	}
+
+	void hit_right_button() throws InterruptedException {
+		leveler_right();
+		TurnLeftD(0.3, 10, false);
+		wait(100);
+		TurnLeftD(-0.3, 10, false);
+		wait(100);
+	}
+
+	void hit_left_button() throws InterruptedException {
+		leveler_left();
+		TurnRightD(0.3, 10, false);
+		wait(100);
+		TurnRightD(-0.3, 10, false);
+		wait(100);
 	}
 
 	void m_warning_message (String p_exception_message)
