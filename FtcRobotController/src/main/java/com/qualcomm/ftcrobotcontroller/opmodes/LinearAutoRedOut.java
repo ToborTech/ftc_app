@@ -60,6 +60,7 @@ public class LinearAutoRedOut extends TobotHardware {
 
 
       StraightR(0.75, 7.5);
+
         StraightR(-0.5, 2);
         TurnLeftD(0.5, 60, true);
         StraightR(0.5, 1);

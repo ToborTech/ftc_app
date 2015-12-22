@@ -33,9 +33,13 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
+import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -66,9 +70,9 @@ public class TobotHardware extends LinearOpMode {
 	final static double TAPE_SLIDER = 0.75;
 	final static double LIGHT_SENSOR_UP = 0.4;
 	final static double LIGHT_SENSOR_DOWN = 0.9;
-	final static double LEVELER_RIGHT = 0.0;
-	final static double LEVELER_UP = 0.4;
-	final static double LEVELER_LEFT = 0.9;
+	final static double LEVELER_RIGHT = 0.9;
+	final static double LEVELER_DOWN = 0.5;
+	final static double LEVELER_LEFT = 0.0;
 	final static int    ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
 	final static double  RROBOT = 11;  // number of wheel turns to get chassis 360-degree turn
 	int numOpLoops = 1;
@@ -113,6 +117,14 @@ public class TobotHardware extends LinearOpMode {
 	Servo arm_slider;
 	Servo leveler;
 	Servo light_sensor_sv;
+
+	// variables for sensors
+	ColorSensor colorSensor;
+	DeviceInterfaceModule cdim;
+	TouchSensor t;
+	LightSensor LL, LR ;
+	// IBNO055IMU imu;
+
 
 	// following variables are used by Chassis
 	State state;
@@ -293,6 +305,19 @@ public class TobotHardware extends LinearOpMode {
 		} else { // State.STATE_TELEOP
 			set_drive_modes(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
 		}
+
+		// initialize sensores
+		cdim = hardwareMap.deviceInterfaceModule.get("dim");
+		colorSensor = hardwareMap.colorSensor.get("mr");
+
+		t = hardwareMap.touchSensor.get("t");
+
+		LL = hardwareMap.lightSensor.get("light_sensor_l");
+		LR = hardwareMap.lightSensor.get("light_sensor_r");
+
+		//Instantiate ToborTech Nav object
+		TT_Nav nav = new TT_Nav( motorFR, motorFL, true , LL, LR); // Not using Follow line
+
 	}
 
 	@Override
@@ -716,9 +741,9 @@ public class TobotHardware extends LinearOpMode {
 		return l_return;
 	} // have_encoders_reached
 
-	double scaleInput(double dVal)  {
-		double[] scaleArray = { 0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
-				0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00 };
+	double scaleInput(double dVal) {
+		double[] scaleArray = {0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
+				0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00};
 
 		// get the corresponding index for the scaleInput array.
 		int index = (int) (dVal * 16.0);
@@ -734,11 +759,23 @@ public class TobotHardware extends LinearOpMode {
 		} else {
 			dScale = scaleArray[index];
 		}
-
 		return dScale;
 	}
-	void m_warning_message (String p_exception_message)
 
+	void levler_right() {
+		leveler_pos = LEVELER_RIGHT;
+		leveler.setPosition(leveler_pos);
+	}
+
+	void levler_left() {
+		leveler_pos = LEVELER_LEFT;
+		leveler.setPosition(leveler_pos);
+	}
+	void levler_down(){
+		leveler_pos = LEVELER_DOWN;
+	}
+
+	void m_warning_message (String p_exception_message)
 	{
 		if (v_warning_generated)
 		{
