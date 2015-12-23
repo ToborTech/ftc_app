@@ -71,7 +71,7 @@ public class TobotHardware extends LinearOpMode {
 	final static double TAPE_SLIDER = 0.75;
 	final static double LIGHT_SENSOR_UP = 0.4;
 	final static double LIGHT_SENSOR_DOWN = 0.9;
-	final static double LEVELER_RIGHT = 0.9;
+	final static double LEVELER_RIGHT = 0.95;
 	final static double LEVELER_DOWN = 0.5;
 	final static double LEVELER_LEFT = 0.0;
 	final static int    ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
@@ -259,7 +259,7 @@ public class TobotHardware extends LinearOpMode {
 		gate.setPosition(gate_pos);
 		slider_pos = SLIDER_STOP;
 		arm_slider.setPosition(slider_pos);
-		leveler_pos = LEVELER_RIGHT;
+		leveler_pos = LEVELER_DOWN;
 		leveler.setPosition(leveler_pos);
 		light_sensor_sv_pos = LIGHT_SENSOR_DOWN;
 		light_sensor_sv.setPosition(light_sensor_sv_pos);
@@ -609,7 +609,7 @@ public class TobotHardware extends LinearOpMode {
 		waitOneFullHardwareCycle();
 		//while (motorFR.isBusy() || motorBL.isBusy()) {
 		while (!have_drive_encoders_reached(leftCnt,rightCnt)) {
-			driveTT(leftPower,rightPower);
+			driveTT(leftPower, rightPower);
 			show_telemetry();
 			waitOneFullHardwareCycle();
 		}
@@ -771,34 +771,50 @@ public class TobotHardware extends LinearOpMode {
 		return dScale;
 	}
 
-	void leveler_right() {
+	void leveler_right() throws InterruptedException {
 		leveler_pos = LEVELER_RIGHT;
 		leveler.setPosition(leveler_pos);
+		sleep(500);
 	}
 
-	void leveler_left() {
+	void leveler_left() throws InterruptedException {
 		leveler_pos = LEVELER_LEFT;
 		leveler.setPosition(leveler_pos);
+		sleep(500);
 	}
-	void leveler_down(){
+	void leveler_down() throws InterruptedException {
 		leveler_pos = LEVELER_DOWN;
 		leveler.setPosition(leveler_pos);
+		sleep(100);
 	}
 
 	void hit_right_button() throws InterruptedException {
 		leveler_right();
-		TurnLeftD(0.3, 10, false);
-		wait(100);
-		TurnLeftD(-0.3, 10, false);
-		wait(100);
+		TurnLeftD(0.3, 15, true);
+		sleep(300);
+		TurnLeftD(-0.3, 15, true);
+		sleep(300);
 	}
 
 	void hit_left_button() throws InterruptedException {
 		leveler_left();
-		TurnRightD(0.3, 10, false);
-		wait(100);
-		TurnRightD(-0.3, 10, false);
-		wait(100);
+		TurnRightD(0.3, 15, true);
+		sleep(300);
+		TurnRightD(-0.3, 15, true);
+		sleep(300);
+	}
+
+	public void followLineTillOp(double op_stop_val){
+		double op_val = 0;
+		while ((op_val=opSensor.getLightDetected())<op_stop_val) {
+			//follow the line , using getDirection and drive methods
+			int direction2go;
+			direction2go = nav.getFollowLineDirection();
+			nav.drive(direction2go, 0.3);
+			telemetry.addData("1. ods:", String.format("%.2f", op_val));
+			telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(),LR.getLightDetected()));
+		}
+		nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
 	}
 
 	void m_warning_message (String p_exception_message)

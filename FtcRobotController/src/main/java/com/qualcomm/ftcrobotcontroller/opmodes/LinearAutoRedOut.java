@@ -65,8 +65,13 @@ public class LinearAutoRedOut extends TobotHardware {
       //  TurnLeftD(0.5, 60, true);
       // StraightR(0.5, 1);
 
-        // Follow line until optical distance sensor detect 0.2 value to the wall (about 4cm)
-        nav.followLineTillOp(0.2);
+        // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
+        followLineTillOp(0.1);
+        hit_left_button();
+        sleep(1000);
+        hit_right_button();
+        sleep(1000);
+        leveler_down();
 
         // Detect Beacon color and hit the right side
         if (colorPicker.getColor()==TT_ColorPicker.BLUE) {
@@ -78,6 +83,7 @@ public class LinearAutoRedOut extends TobotHardware {
         }
 
         // dump two climbers, please Kevin!!
+        sleep(5000);
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);

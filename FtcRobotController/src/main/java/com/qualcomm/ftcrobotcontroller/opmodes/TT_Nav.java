@@ -34,7 +34,9 @@ public class TT_Nav {
     final static double LIGHT_THRESHOLD = 0.4;
 
 
-    TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2, OpticalDistanceSensor op, boolean enableFollowLine, LightSensor reflectedLightLeft,LightSensor reflectedLightRight){
+    TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2,
+           OpticalDistanceSensor op, boolean enableFollowLine,
+           LightSensor reflectedLightLeft,LightSensor reflectedLightRight){
         _motorLeft1  = motorL1 ;
         _motorLeft2  = motorL2 ;
         _motorRight1 = motorR1 ;
@@ -180,13 +182,5 @@ public class TT_Nav {
         return direction;
     }
 
-    public void followLineTillOp(double op_stop_val){
-        while (_op.getLightDetected()<op_stop_val) {
-            //follow the line , using getDirection and drive methods
-            int direction2go;
-            direction2go = getFollowLineDirection();
-            drive(direction2go, MIN_PWR);
-        }
-        drive(BRAKE, 0); // Make sure robot is stopped
-    }
+
 }
