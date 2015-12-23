@@ -314,14 +314,14 @@ public class TobotHardware extends LinearOpMode {
 		cdim = hardwareMap.deviceInterfaceModule.get("dim");
 		coSensor = hardwareMap.colorSensor.get("co");
 
-		tSensor = hardwareMap.touchSensor.get("to");
+		//tSensor = hardwareMap.touchSensor.get("to");
 		opSensor = hardwareMap.opticalDistanceSensor.get("op");
 
 		LL = hardwareMap.lightSensor.get("ll");
 		LR = hardwareMap.lightSensor.get("lr");
 
 		//Instantiate ToborTech Nav object
-		nav = new TT_Nav( motorFR, motorFL, opSensor, true , LL, LR); // Not using Follow line
+		nav = new TT_Nav( motorFR, motorBR, motorFL, motorBL, opSensor, true , LL, LR); // Not using Follow line
 		colorPicker = new TT_ColorPicker(coSensor);
 	} // end of tobot_init
 
@@ -566,7 +566,7 @@ public class TobotHardware extends LinearOpMode {
 		//telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + motorFR.getTargetPosition());
 		telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
 		telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + rightCnt);
-		telemetry.addData("9. ods:", String.format("%.2f",opSensor.getLightDetected()));
+		telemetry.addData("9. ods:", String.format("%.2f", opSensor.getLightDetected()));
 	}
 
 	public void release_arm() {
@@ -593,23 +593,23 @@ public class TobotHardware extends LinearOpMode {
 		run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
 	}
 
+	public void driveTT(double lp, double rp) {
+		motorFR.setPower(rp);
+		motorFL.setPower(lp);
+		motorBR.setPower(rp);
+		motorBL.setPower(lp);
+	}
 	public void run_until_encoder(int leftCnt, double leftPower, int rightCnt, double rightPower) throws InterruptedException {
 		//motorFR.setTargetPosition(rightCnt);
 		//motorBL.setTargetPosition(leftCnt);
 		//motorBL.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
 		//motorFR.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
 		//waitOneFullHardwareCycle();
-		motorFR.setPower(rightPower);
-		motorFL.setPower(leftPower);
-		motorBR.setPower(rightPower);
-		motorBL.setPower(leftPower);
+		driveTT(leftPower, rightPower);
 		waitOneFullHardwareCycle();
 		//while (motorFR.isBusy() || motorBL.isBusy()) {
 		while (!have_drive_encoders_reached(leftCnt,rightCnt)) {
-			motorFR.setPower(rightPower);
-			motorFL.setPower(leftPower);
-			motorBR.setPower(rightPower);
-			motorBL.setPower(leftPower);
+			driveTT(leftPower,rightPower);
 			show_telemetry();
 			waitOneFullHardwareCycle();
 		}

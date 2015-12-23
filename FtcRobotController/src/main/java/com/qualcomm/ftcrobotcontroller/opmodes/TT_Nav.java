@@ -16,24 +16,29 @@ public class TT_Nav {
     final static int BRAKE      = 4 ;
 
     //final static double MOTOR_POWER = 0.2;// Higher values will cause the robot to move faster
-    final static double MIN_PWR = 0.15 ;
+    final static double MIN_PWR = 0.3 ;
     final static double MAX_PWR = 0.99 ;
     final static double ERR_MRGN = 0.05 ;
 
     final static double P = 0.0045;
     double cntAcc;
 
-    private DcMotor _motorLeft ;
-    private DcMotor _motorRight ;
+    private DcMotor _motorLeft1 ;
+    private DcMotor _motorLeft2 ;
+    private DcMotor _motorRight1;
+    private DcMotor _motorRight2 ;
     private OpticalDistanceSensor _op;
     // private IBNO055IMU _imu ;
     private LightSensor _reflectedLightLeft, _reflectedLightRight ;
 
     final static double LIGHT_THRESHOLD = 0.4;
 
-    TT_Nav(DcMotor motorR, DcMotor motorL, OpticalDistanceSensor op, boolean enableFollowLine, LightSensor reflectedLightLeft,LightSensor reflectedLightRight){
-        _motorLeft  = motorL ;
-        _motorRight = motorR ;
+
+    TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2, OpticalDistanceSensor op, boolean enableFollowLine, LightSensor reflectedLightLeft,LightSensor reflectedLightRight){
+        _motorLeft1  = motorL1 ;
+        _motorLeft2  = motorL2 ;
+        _motorRight1 = motorR1 ;
+        _motorRight2 = motorR2 ;
         _op = op;
         // _imu = imu ;
         if (enableFollowLine) {
@@ -44,44 +49,34 @@ public class TT_Nav {
         }
     }
 
-    // The setter functions
-    public void set_motorRight ( DcMotor motor) {
-            _motorRight = motor;
-        }
-    public void set_motorLeft ( DcMotor motor) {
-        _motorLeft = motor;
-    }
     // public void set_imu (IBNO055IMU imu ){
     //    _imu = imu ;
     //}
 
+    public void TT_drive(double lp, double rp) {
+        _motorLeft1.setPower(lp);
+        _motorLeft2.setPower(lp);
+        _motorRight1.setPower(rp);
+        _motorRight2.setPower(rp);
+    }
 
     public void drive (int direction , double power ){
 
         switch (direction) {
             case FORWARD :
-                _motorRight.setDirection(DcMotor.Direction.FORWARD);
-                _motorLeft.setDirection(DcMotor.Direction.REVERSE);
-                _motorRight.setPower(power);
-                _motorLeft.setPower(power);
+                TT_drive(power, power);
                 break;
             case BACKWARD:
-                _motorRight.setDirection(DcMotor.Direction.REVERSE);
-                _motorLeft.setDirection(DcMotor.Direction.FORWARD);
-                _motorRight.setPower(power);
-                _motorLeft.setPower(power);
+                TT_drive(-power, -power);
                 break;
             case LEFT:
-                _motorRight.setPower(0);
-                _motorLeft.setPower(power);
+                TT_drive(-power, power);
                 break;
             case RIGHT:
-                _motorRight.setPower(power);
-                _motorLeft.setPower(0);
+                TT_drive(power, -power);
                 break;
             case BRAKE:
-                _motorRight.setPower(0);
-                _motorLeft.setPower(0);
+                TT_drive(0, 0);
                 break;
         }
     }
@@ -111,8 +106,10 @@ public class TT_Nav {
         }
         leftPower  = - rightPower;
 
-        _motorRight.setPower(rightPower);
-        _motorLeft.setPower(leftPower);
+        _motorRight1.setPower(rightPower);
+        _motorRight2.setPower(rightPower);
+        _motorLeft1.setPower(leftPower);
+        _motorLeft2.setPower(leftPower);
     }
 
 
