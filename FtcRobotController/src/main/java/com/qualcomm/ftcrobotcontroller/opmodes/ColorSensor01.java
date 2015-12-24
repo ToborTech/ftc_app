@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.LightSensor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
@@ -48,13 +49,13 @@ import com.qualcomm.robotcore.util.Range;
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
 
-public class ColorSensor01 extends LinearOpMode {
+public class ColorSensor01 extends TobotHardware {
 
   final static double LIGHT_THRESHOLD = 0.5;
 
   ColorSensor colorSensor;
   DeviceInterfaceModule cdim;
-  TouchSensor t;
+  OpticalDistanceSensor op;
   LightSensor ls1;
   LightSensor ls2;
 
@@ -63,19 +64,21 @@ public class ColorSensor01 extends LinearOpMode {
     hardwareMap.logDevices();
 
     cdim = hardwareMap.deviceInterfaceModule.get("dim");
-    colorSensor = hardwareMap.colorSensor.get("mr");
+    colorSensor = hardwareMap.colorSensor.get("co");
 
-    ls1 = hardwareMap.lightSensor.get("ls1");
-    ls2 = hardwareMap.lightSensor.get("ls2");
+    ls1 = hardwareMap.lightSensor.get("ll");
+    ls2 = hardwareMap.lightSensor.get("lr");
 
     // turn on LED of light sensor.
     ls1.enableLed(true);
     ls2.enableLed(true);
 
-    t = hardwareMap.touchSensor.get("t");
+    op = hardwareMap.opticalDistanceSensor.get("op");
+
+    tobot_init(State.STATE_AUTO);
 
     waitForStart();
-
+    int detectwhite = 0;
     int count = 0;
     float red_acc = 0 , blue_acc = 0 , red_final = 0 , blue_final = 0;
     while (opModeIsActive()) {
@@ -91,10 +94,18 @@ public class ColorSensor01 extends LinearOpMode {
         red_acc = 0;
         blue_acc = 0;
         count = 0;
+        if(detectWhite()){
+          detectwhite = 1;
+        }
+        else{
+          detectwhite = 0;
+        }
         telemetry.addData("Red", red_final);
         telemetry.addData("Blue", blue_final);
-        telemetry.addData("LS1", ls1.getLightDetected());
-        telemetry.addData("LS2", ls2.getLightDetected());
+        telemetry.addData("LL", ls1.getLightDetected());
+        telemetry.addData("LR", ls2.getLightDetected());
+        telemetry.addData("op", op.getLightDetected());
+        telemetry.addData("White",detectwhite);
       }
     }
   }

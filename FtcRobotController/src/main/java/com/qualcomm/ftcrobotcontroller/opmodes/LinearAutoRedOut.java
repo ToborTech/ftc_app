@@ -59,14 +59,16 @@ public class LinearAutoRedOut extends TobotHardware {
         waitForStart();
 
 
-      //   StraightR(0.75, 7.5);
+        StraightR(0.75, 8);
 
-      //  StraightR(-0.5, 2);
-      //  TurnLeftD(0.5, 60, true);
-      // StraightR(0.5, 1);
+        //StraightR(-0.5, 2);
+        TurnRightD(0.5, 35, true);
+        //StraightR(0.5, 1);
+        goUntilWhite(-0.15);
+        TurnLeftD(0.5,90, true);
 
         // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-        followLineTillOp(0.1);
+        followLineTillOp(0.03, true);
         hit_left_button();
         sleep(1000);
         hit_right_button();

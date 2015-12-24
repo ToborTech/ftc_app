@@ -31,7 +31,7 @@ public class TT_Nav {
     // private IBNO055IMU _imu ;
     private LightSensor _reflectedLightLeft, _reflectedLightRight ;
 
-    final static double LIGHT_THRESHOLD = 0.4;
+    final static double LIGHT_THRESHOLD = 0.8;
 
 
     TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2,
@@ -147,8 +147,8 @@ public class TT_Nav {
     // ********************  //
     //  Follow Line Methods
     // ********************  //
-    public int getFollowLineDirection() {
-        double random = Math.random(); // user this to flip a coin
+    public int getFollowLineDirection(boolean leftFirst) {
+        // double random = Math.random(); // user this to flip a coin
         int direction = FORWARD;
         int left_on = 0;
         int right_on = 0;
@@ -172,7 +172,7 @@ public class TT_Nav {
                 direction = RIGHT;
                 break;
             case 00:
-                if (random < 0.50) {
+                if (leftFirst) {
                     direction = LEFT;
                 } else {
                     direction = RIGHT;

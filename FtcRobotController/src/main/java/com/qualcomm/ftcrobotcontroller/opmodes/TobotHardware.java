@@ -804,17 +804,30 @@ public class TobotHardware extends LinearOpMode {
 		sleep(300);
 	}
 
-	public void followLineTillOp(double op_stop_val){
+	public void followLineTillOp(double op_stop_val, boolean leftFirst){
 		double op_val = 0;
 		while ((op_val=opSensor.getLightDetected())<op_stop_val) {
 			//follow the line , using getDirection and drive methods
 			int direction2go;
-			direction2go = nav.getFollowLineDirection();
+			direction2go = nav.getFollowLineDirection(leftFirst);
 			nav.drive(direction2go, 0.3);
 			telemetry.addData("1. ods:", String.format("%.2f", op_val));
 			telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(),LR.getLightDetected()));
 		}
 		nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
+	}
+	public void goUntilWhite(double power) {
+		while (!detectWhite()) {
+			driveTT(power, power);
+		}
+		stop_chassis();
+	}
+
+	public boolean detectWhite(){
+		if(LL.getLightDetected() < 0.6 || LL.getLightDetected()>0.8) {
+			return false;
+		}
+		return true;
 	}
 
 	void m_warning_message (String p_exception_message)
