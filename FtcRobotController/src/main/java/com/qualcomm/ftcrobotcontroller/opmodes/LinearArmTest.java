@@ -43,141 +43,40 @@ import com.qualcomm.robotcore.util.Range;
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-public class LinearArmTest extends LinearOpMode {
-  // CONSTANT VALUES.
-  // CONSTANT VALUES.
-  final static double ARM_MIN_RANGE  = 0.20;
-  final static double ARM_MAX_RANGE  = 0.90;
-  final static double CLAW_MIN_RANGE  = 0.20;
-  final static double CLAW_MAX_RANGE  = 0.7;
-  final static double THRESHOLD = 0.01;
-  final static double SERVO_SCALE = 0.001;
-  final static double GATE_CLOSED = 0.01;
-  final static double GATE_OPEN = 0.8;
-  final static double WRIST_UP = 0.99;
-  final static double WRIST_COLLECT = 0.82;
-  final static double SHOULDER_START = 0.5;
-  final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
-  final static double SHOULDER_SCORE = 0.795;     // position to outside score position
-  final static double SLIDER_LENGHTEN = 0.0;
-  final static double SLIDER_SHORTEN = 1.0;
-  final static double SLIDER_STOP = 0.5;
-  
-
-  // amount to change the arm servo position.
-  double armDelta = 0.1;
-  int slider_counter = 0;
-
-  // position of servos
-  double shoulder_pos;
-  double wrist_pos;
-  double gate_pos;
-  double slider_pos;
-  // amount to change the claw servo position by
-  double arm_r;
-  double arm_power;
-  int elbow_pos;
-  double shoulder_dir;
-  double wrist_dir;
-  double gate_dir;
-  double slider_dir;
-  double elbow_dir;
-
-  DcMotor elbow;
-  Servo shoulder;
-  Servo wrist;
-  Servo gate;
-  Servo arm_slider;
-  /**
-   * Constructor
-   */
-
-  public void init_robot() {
-    v_warning_generated = false;
-    v_warning_message = "Can't map; ";
-    try {
-      elbow = hardwareMap.dcMotor.get("elbow");
-    }
-    catch (Exception p_exeception)
-    {
-      m_warning_message ("elbow");
-      DbgLog.msg(p_exeception.getLocalizedMessage());
-      elbow = null;
-    }
-
-    //elbow.setDirection(DcMotor.Direction.REVERSE);
-    try {
-      shoulder = hardwareMap.servo.get("shoulder");
-    }
-    catch (Exception p_exeception)
-    {
-      m_warning_message ("shoulder");
-      DbgLog.msg (p_exeception.getLocalizedMessage ());
-      shoulder = null;
-    }
-    try {
-      gate = hardwareMap.servo.get("gate");
-    }
-    catch (Exception p_exeception)
-    {
-      m_warning_message ("gate");
-      DbgLog.msg (p_exeception.getLocalizedMessage ());
-      gate = null;
-    }
-    try {
-      wrist = hardwareMap.servo.get("wrist");
-    }
-    catch (Exception p_exeception)
-    {
-      m_warning_message ("wrist");
-      DbgLog.msg (p_exeception.getLocalizedMessage ());
-      wrist = null;
-    }
-    try {
-      arm_slider = hardwareMap.servo.get("arm_slider");
-    }
-    catch (Exception p_exeception)
-    {
-      m_warning_message ("arm_slider");
-      DbgLog.msg (p_exeception.getLocalizedMessage ());
-      arm_slider = null;
-    }
-    // assign the starting position of the wrist and claw
-    shoulder_pos = SHOULDER_START;
-    shoulder.setPosition(shoulder_pos);
-    wrist_pos = WRIST_UP;
-    wrist.setPosition(wrist_pos);
-    gate_pos = GATE_CLOSED;
-    gate.setPosition(gate_pos);
-    slider_pos = SLIDER_STOP;
-    arm_slider.setPosition(slider_pos);
-    arm_r = 0.25; // initial arm power
-    arm_power = arm_r;
-    shoulder_dir = 0;
-    elbow_pos = elbow.getCurrentPosition();
-    elbow_dir = 0;
-    wrist_dir = 0;
-    gate_dir = 0;
-    slider_dir = 0;
-    slider_counter = 0;
-  }
+public class LinearArmTest extends TobotHardware {
 
   @Override
   public void runOpMode() throws InterruptedException {
 
-    init_robot();
+    tobot_init(State.STATE_TELEOP);
 
     waitForStart();
 
     while (opModeIsActive()) {
-      // throttle:  left_stick_y ranges from -1 to 1, where -1 is full up,  and 1 is full down
-      // direction: left_stick_x ranges from -1 to 1, where -1 is full left and 1 is full right
-      float throttle  = -gamepad2.left_stick_y;
-      float direction =  gamepad2.left_stick_x;
-      float right = throttle - direction;
-      float left  = throttle + direction;
+      shoulder_dir = -gamepad2.left_stick_x;
+      elbow_dir = -gamepad2.right_stick_y;
 
-      // clip the right/left values so that the values never exceed +/- 1
+      if (shoulder_dir > THRESHOLD) {
+        shoulder_pos += (SERVO_SCALE/3.0);
+        if (shoulder_pos > 1) {
+          shoulder_pos = 0.99;
+        }
+      } else if (shoulder_dir < THRESHOLD * -1) {
+        shoulder_pos -= (SERVO_SCALE/3.0);
+        if (shoulder_pos < 0) {
+          shoulder_pos = 0.01;
+        }
+      }
+      shoulder.setPosition(shoulder_pos);
+
+      if (elbow_dir < -THRESHOLD) { // arm down 20% of power
+        elbow.setPower(-arm_power * 0.2);
+      }
+      else if (elbow_dir > THRESHOLD) { // arm up
+        elbow.setPower(arm_power);
+      } else {
+        elbow.setPower(0);
+      }
 
       // release arm
       if (gamepad2.right_bumper) {
@@ -189,8 +88,20 @@ public class LinearArmTest extends LinearOpMode {
       if (gamepad2.left_bumper) {
         open_gate();
       }
+      if (gamepad2.x) {
+        arm_slider_in_for_n_sec(0.1);
+      }
+      if (gamepad2.b) {
+        arm_slider_out_for_n_sec(0.1);
+      }
       if (gamepad2.left_trigger > 0.1) {
         close_gate();
+      }
+      if (gamepad2.y) {
+        arm_front();
+      }
+      if (gamepad2.a) {
+        arm_back();
       }
 
       if (gamepad2.dpad_up) {
@@ -199,74 +110,17 @@ public class LinearArmTest extends LinearOpMode {
       if (gamepad2.dpad_down) {
         slider_in();
       }
+      show_telemetry();
 
 
-
-
-      telemetry.addData("shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
-      telemetry.addData("elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power,elbow_pos));
-      telemetry.addData("wrist",  "pos(dir): " + String.format("%.2f (%.2f)", wrist_pos, wrist_dir));
-      telemetry.addData("gate", "pos(dir): " + String.format("%.2f (%.2f)", gate_pos, gate_dir));
-      telemetry.addData("arm_slider",  "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
+      //telemetry.addData("shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
+      //telemetry.addData("elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
+      //telemetry.addData("wrist", "pos(dir): " + String.format("%.2f (%.2f)", wrist_pos, wrist_dir));
+      //telemetry.addData("gate", "pos(dir): " + String.format("%.2f (%.2f)", gate_pos, gate_dir));
+      //telemetry.addData("arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 
       waitOneFullHardwareCycle();
     }
   }
-
-  void release_arm() throws InterruptedException {
-    arm_slider.setPosition(SLIDER_SHORTEN);
-    wait(500);
-    elbow_pos = 990;
-    while (elbow.getCurrentPosition()<elbow_pos) {
-      elbow.setPower(.5);
-    }
-    elbow.setPower(0);
-    arm_slider.setPosition(SLIDER_LENGHTEN);
-    wait(500);
-    elbow_pos = 1100;
-    while (elbow.getCurrentPosition()<elbow_pos) {
-      elbow.setPower(0.25);
-    }
-    elbow.setPower(0);
-  }
-
-  void arm_down() {
-    elbow_pos = 2;
-    while (elbow.getCurrentPosition()>elbow_pos) {
-      elbow.setPower(-0.2);
-    }
-    elbow.setPower(0);
-  }
-  void arm_front() {
-    // shoulder.setPosition();
-  }
-  void arm_collection_mode() {
-
-  }
-  void open_gate() {
-
-  }
-  void close_gate() {
-
-  }
-  void slider_out() {
-
-  }
-  void slider_in() {
-
-  }
-
-  void m_warning_message (String p_exception_message)
-
-  {
-    if (v_warning_generated)
-    {
-      v_warning_message += ", ";
-    }
-    v_warning_generated = true;
-    v_warning_message += p_exception_message;
-
-  }
-  private boolean v_warning_generated = false;
-  private String v_warning_message;
 }
+
