@@ -79,12 +79,20 @@ public class LinearArmTest extends TobotHardware {
       }
 
       // release arm
-      if (gamepad2.right_bumper) {
-        release_arm();
-      }
+        if (gamepad2.right_bumper) {
+          if (arm_state==ArmState.ARM_INIT)
+            //release_arm();
+          climber_mission();
+          else if (arm_state==ArmState.ARM_COLLECT)
+            arm_collect_mode_to_up_back();
+        }
+
       if (gamepad2.right_trigger > 0.1) {
-        arm_collection_mode();
+        if (arm_state==ArmState.ARM_UP_BACK)
+          arm_collection_mode();
+
       }
+
       if (gamepad2.left_bumper) {
         open_gate();
       }
@@ -98,18 +106,20 @@ public class LinearArmTest extends TobotHardware {
         close_gate();
       }
       if (gamepad2.y) {
-        arm_front();
+        if (arm_state==ArmState.ARM_UP_BACK)
+           arm_front();
+        else if (arm_state==ArmState.ARM_DOWN_FRONT)
+          go_red_mid_zone();
+        else if (arm_state==ArmState.ARM_DOWN_BACK)
+          arm_collection_mode();
       }
       if (gamepad2.a) {
-        arm_back();
+         if (arm_state==ArmState.ARM_UP_FRONT)
+            arm_back();
+         else if (arm_state==ArmState.ARM_SCORE_MID_RED)
+           arm_back_from_goal();
       }
 
-      if (gamepad2.dpad_up) {
-        slider_out();
-      }
-      if (gamepad2.dpad_down) {
-        slider_in();
-      }
       show_telemetry();
 
 

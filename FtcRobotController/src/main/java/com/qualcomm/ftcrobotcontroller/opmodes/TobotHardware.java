@@ -60,10 +60,14 @@ public class TobotHardware extends LinearOpMode {
     final static double GATE_CLOSED = 0.05;
     final static double GATE_OPEN = 0.91;
     final static double WRIST_UP = 0.56;
-    final static double WRIST_COLLECT = 0.01;
-    final static double SHOULDER_START = 0.51;
+    final static double WRIST_MID = 0.4;
+    final static double WRIST_CLIMBER = 0.15;
+    final static double WRIST_COLLECT = 0.1;
+    final static double SHOULDER_START = 0.507;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
-    final static double SHOULDER_SCORE = 0.795;     // position to outside score position
+    final static double SHOULDER_SCORE = 0.8;     // position to outside score position
+    final static double SHOULDER_RED_MID_SCORE = 0.86; //position for scoring mid red zone basket
+    final static double SHOULDER_RED_HIGH_SCORE = 0.85; //position for scoring high red zone basket
     final static double SLIDER_LENGHTEN = 0.0;
     final static double SLIDER_SHORTEN = 1.0;
     final static double SLIDER_STOP = 0.5;
@@ -133,11 +137,27 @@ public class TobotHardware extends LinearOpMode {
 
     // following variables are used by Chassis
     State state;
+    ArmState arm_state;
 
     public enum State {
         STATE_TELEOP,    // state to test teleop
         STATE_AUTO,        // state to test auto routines
         STATE_TUNEUP    // state to manually tune up servo positions and arm positions
+    }
+
+    public enum ArmState {
+        ARM_INIT,       // arm at initial position
+        ARM_UP_BACK,    // arm at up back position
+        ARM_UP_FRONT,   // arm at up front position
+        ARM_COLLECT,    // arm at collection position
+        ARM_DOWN_BACK,  // arm at back down position
+        ARM_DOWN_FRONT, // arm at front down position
+        ARM_SCORE_HIGH_RED,
+        ARM_SCORE_MID_RED,
+        ARM_SCORE_LOW_RED,
+        ARM_SCORE_HIGH_BLUE,
+        ARM_SCORE_MID_BLUE,
+        ARM_SCORE_LOW_BLUE
     }
 
     float speedScale = (float) 0.7; // controlling the speed of the chassis in teleOp state
@@ -236,8 +256,7 @@ public class TobotHardware extends LinearOpMode {
             DbgLog.msg(p_exeception.getLocalizedMessage());
             light_sensor_sv = null;
         }
-        shoulder_pos = SHOULDER_START;
-        shoulder.setPosition(shoulder_pos);
+        set_shoulder_pos(SHOULDER_START);
         wrist_pos = WRIST_UP;
         wrist.setPosition(wrist_pos);
         gate_pos = GATE_CLOSED;
@@ -286,10 +305,13 @@ public class TobotHardware extends LinearOpMode {
         motorBL.setPower(0);
 
         state = st;
+        arm_state = ArmState.ARM_INIT;
 
         reset_motors();
         stop_tobot();
-
+        if (state == State.STATE_TELEOP) {
+            set_light_sensor(LIGHT_SENSOR_UP);
+        }
         if (state == State.STATE_AUTO || state == State.STATE_TELEOP) {
             set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
         } else { // State.STATE_TUNE
@@ -329,16 +351,15 @@ public class TobotHardware extends LinearOpMode {
                     state = State.STATE_AUTO;
                 gamepad2.reset();
             }
-            float right = gamepad1.left_stick_y;
-            float left = gamepad1.right_stick_y;
+            float left = -gamepad1.left_stick_y;
+            float right = -gamepad1.right_stick_y;
 
             elbow_pos = elbow.getCurrentPosition();
             tape_slider_pos = tape_slider.getCurrentPosition();
             tape_rotator_pos = tape_rotator.getCurrentPosition();
             shoulder_dir = -gamepad2.left_stick_x;
             elbow_dir = -gamepad2.right_stick_y;
-            // gate_dir = gamepad2.right_stick_x;
-            // clip the right/left values so that the values never exceed +/- 1
+
             right = Range.clip(right, -1, 1);
             left = Range.clip(left, -1, 1);
 
@@ -346,8 +367,8 @@ public class TobotHardware extends LinearOpMode {
             // the robot more precisely at slower speeds.
 
             // Use speedScale to control the speed
-            rightPower = (float) ((float) scaleInput(left * speedScale * -1));
-            leftPower = (float) ((float) scaleInput(right * speedScale * -1));
+            rightPower = (float) ((float) scaleInput(right * speedScale ));
+            leftPower = (float) ((float) scaleInput(left * speedScale ));
 
             // write the values to the motors
             motorFR.setPower(rightPower);
@@ -364,10 +385,10 @@ public class TobotHardware extends LinearOpMode {
                 StraightR(0.8, 2);
             }
             if (gamepad1.dpad_left) { //left spot turn 90 Degrees
-                TurnLeftD(0.95, 90, true);
+                TurnLeftD(0.8, 90, true);
             }
             if (gamepad1.dpad_right) { //right spot turn 90 Degrees
-                TurnRightD(0.95, 90, true);
+                TurnRightD(0.8, 90, true);
             }
             if (gamepad1.right_trigger > 0.1) { // Sweeper Forward
                 SW_power = (float) -1.0;
@@ -455,7 +476,7 @@ public class TobotHardware extends LinearOpMode {
             if (elbow_count > 0) {
                 elbow_count--;
             } else if (elbow_dir < -THRESHOLD) { // arm down 20% of power
-                cur_arm_power = arm_power * 0.2;
+                cur_arm_power = -arm_power * 0.2;
                 elbow_count = 10;
             } else if (elbow_dir > THRESHOLD) { // arm up
                 cur_arm_power = arm_power;
@@ -477,6 +498,18 @@ public class TobotHardware extends LinearOpMode {
             } else {
                 tape_rotator.setPower(0);
             }
+            if (shoulder_dir > THRESHOLD) {
+                shoulder_pos += (SERVO_SCALE);
+                if (shoulder_pos > 1) {
+                    shoulder_pos = 0.99;
+                }
+            } else if (shoulder_dir < THRESHOLD * -1) {
+                shoulder_pos -= (SERVO_SCALE);
+                if (shoulder_pos < 0) {
+                    shoulder_pos = 0.01;
+                }
+            }
+            shoulder.setPosition(shoulder_pos);
             if (state == State.STATE_TUNEUP) {
                 // manual adjust wrist position
                 if (gamepad2.left_trigger > 0.1) { // wrist servo down
@@ -517,7 +550,10 @@ public class TobotHardware extends LinearOpMode {
             } else { // Auto state, test the arm routines
                 // release arm
                 if (gamepad2.right_bumper) {
-                    release_arm();
+                    if (arm_state==ArmState.ARM_INIT)
+                        release_arm();
+                    else if (arm_state==ArmState.ARM_COLLECT)
+                        arm_collect_mode_to_up_back();
                 }
                 if (gamepad2.right_trigger > 0.1) {
                     //arm_collection_mode();
@@ -542,13 +578,13 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public void show_telemetry() {
-        telemetry.addData("0. State: ", state.toString() + "(elbow_mode=" + elbow.getMode().toString() + ")");
+        telemetry.addData("0. State: ", state.toString() + "(driver mode =" + motorFR.getMode().toString() + ")");
         telemetry.addData("1. shoulder:", "pos= " + String.format("%.2f, dir=%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, dir=%.2f", cur_arm_power, elbow_pos, elbow_dir));
         telemetry.addData("3. wrist/gate", "pos= " + String.format("%.2f / %.2f", wrist_pos, gate_pos));
         telemetry.addData("4. arm_slider", "pos (dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
         telemetry.addData("5. tape_rotator", "pos= " + String.format("%2d", tape_rotator_pos));
-        telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower) + "(mode=" + motorFR.getMode().toString() + ")");
+        telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         //telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + motorBL.getTargetPosition());
         //telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + motorFR.getTargetPosition());
         telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
@@ -591,54 +627,109 @@ public class TobotHardware extends LinearOpMode {
         arm_slider.setPosition(SLIDER_STOP);
     }
 
-    void arm_down() {
-        elbow_pos = 2;
-        while (elbow.getCurrentPosition() > elbow_pos) {
-            elbow.setPower(-0.2);
-        }
+    void arm_down() throws InterruptedException {
+        set_elbow_pos(1370, 0.25);
+        arm_slider_in_for_n_sec(0.5);
+        wrist.setPosition(WRIST_COLLECT);
+        set_elbow_pos(790, 0.25);
+        wrist.setPosition(WRIST_MID);
         elbow.setPower(0);
+        if (arm_state==ArmState.ARM_UP_FRONT)
+            arm_state=ArmState.ARM_DOWN_FRONT;
+        else
+            arm_state=ArmState.ARM_DOWN_BACK;
+    }
+
+    void set_shoulder_pos(double pos) {
+        shoulder_pos = pos;
+        shoulder.setPosition(shoulder_pos);
     }
 
     void arm_front() throws InterruptedException {
-        shoulder_pos = SHOULDER_SCORE;
-        shoulder.setPosition(shoulder_pos);
+        set_shoulder_pos(SHOULDER_SCORE);
         wait_arm_pos();
+        arm_state = ArmState.ARM_UP_FRONT;
     }
 
     void arm_back() throws InterruptedException {
-        shoulder_pos = SHOULDER_START;
+        set_shoulder_pos(SHOULDER_START);
         wait_arm_pos();
-
+        arm_state = ArmState.ARM_UP_BACK;
     }
 
     void wait_arm_pos() throws InterruptedException {
         double init_time = getRuntime();
         // the following loop will timeout in 10 sec
-        while (Math.abs(shoulder.getPosition() - shoulder_pos) > 0.1 && ((getRuntime() - init_time) < 10)) {
+        while (Math.abs(shoulder.getPosition() - shoulder_pos) > 0.05 && ((getRuntime() - init_time) < 10)) {
             waitForNextHardwareCycle();
         }
+    }
+    void climber_mission() throws InterruptedException {
+        release_arm();
+        arm_front();
+        wrist.setPosition(WRIST_CLIMBER);
+        sleep(3000);
+        open_gate();
+        sleep(2000);
+        close_gate();
+        arm_back();
+    }
+
+    void go_red_mid_zone() throws InterruptedException {
+        set_elbow_pos(900, 0.4);
+        set_shoulder_pos(SHOULDER_RED_MID_SCORE);
+        wrist.setPosition(WRIST_UP);
+        arm_slider_out_for_n_sec(5.0);
+        arm_state = ArmState.ARM_SCORE_MID_RED;
+    }
+
+    void arm_back_from_goal() throws InterruptedException {
+        wrist.setPosition(WRIST_UP);
+        arm_slider_in_for_n_sec(5.0);
+        set_shoulder_pos(SHOULDER_SCORE);
+        set_elbow_pos(1300, 0.4);
+        arm_back();
+        arm_state = ArmState.ARM_UP_BACK;
     }
 
     void release_arm() throws InterruptedException {
         set_elbow_pos(100, 0.5);
-        arm_slider_in_for_n_sec(0.7);
+        arm_slider_in_for_n_sec(1.0);
         wrist.setPosition(WRIST_UP);
         sleep(500);
+        set_elbow_pos(400, 0.5);
+        wrist.setPosition(WRIST_MID);
         set_elbow_pos(990, 0.5);
         wrist.setPosition(WRIST_COLLECT);
-        arm_slider_out_for_n_sec(0.5);
-        set_elbow_pos(1435, 0.25);
+        arm_slider_out_for_n_sec(0.7);
+        set_elbow_pos(1335, 0.25);
+        arm_state = ArmState.ARM_UP_BACK;
     }
 
     void arm_collection_mode() throws InterruptedException {
-        set_elbow_pos(1370, 0.25);
-        arm_slider_in_for_n_sec(0.5);wait_arm_pos();
+        if (arm_state==ArmState.ARM_UP_FRONT) {
+            arm_back();
+        }
+        if (arm_state==ArmState.ARM_UP_BACK) {
+            arm_down();
+        }
+        set_light_sensor(LIGHT_SENSOR_DOWN);
+        set_elbow_pos(200, 0.25);
+        arm_slider_out_for_n_sec(2);
         wrist.setPosition(WRIST_COLLECT);
-        set_elbow_pos(1000, 0.25);
-        wrist.setPosition(WRIST_UP);
-        set_elbow_pos(100, 0.25);
-        arm_slider_out_for_n_sec(8);
+        set_elbow_pos(90, 0.25);
+        arm_slider_out_for_n_sec(3.2);
+        arm_state = ArmState.ARM_COLLECT;
+    }
+
+    void arm_collect_mode_to_up_back() throws InterruptedException {
+        arm_slider_in_for_n_sec(3.2);
+        set_elbow_pos(200, 0.5);
+        wrist.setPosition(WRIST_MID);
+        arm_slider_in_for_n_sec(2);
         wrist.setPosition(WRIST_COLLECT);
+        set_elbow_pos(400, 0.5);
+        arm_state = ArmState.ARM_UP_BACK;
     }
 
     void open_gate() {
@@ -651,17 +742,9 @@ public class TobotHardware extends LinearOpMode {
         gate.setPosition(gate_pos);
     }
 
-    void slider_out() {
-
-    }
-
-    void slider_in() {
-
-    }
-
     public void StraightR(double power, double n_rotations) throws InterruptedException {
         reset_chassis();
-        set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        // set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
         int leftEncode = motorBL.getCurrentPosition();
         int rightEncode = motorFR.getCurrentPosition();
         initAutoOpTime = this.time;
@@ -713,7 +796,7 @@ public class TobotHardware extends LinearOpMode {
     public void TurnLeftD(double power, int degree, boolean spotTurn) throws InterruptedException {
         initAutoOpTime = getRuntime();
         reset_chassis();
-        set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        //set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
         //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         int leftEncode = motorBL.getCurrentPosition();
@@ -737,7 +820,7 @@ public class TobotHardware extends LinearOpMode {
     public void TurnRightD(double power, int degree, boolean spotTurn) throws InterruptedException {
         initAutoOpTime = getRuntime();
         reset_chassis();
-        set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        //set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
         //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         int leftEncode = motorBL.getCurrentPosition();
@@ -915,6 +998,11 @@ public class TobotHardware extends LinearOpMode {
             telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
         }
         nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
+    }
+
+    public void set_light_sensor(double pos) {
+        light_sensor_sv_pos = pos;
+        light_sensor_sv.setPosition(light_sensor_sv_pos);
     }
 
     public void goUntilWhite(double power) {
