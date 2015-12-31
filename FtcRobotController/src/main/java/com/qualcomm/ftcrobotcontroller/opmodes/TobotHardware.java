@@ -78,6 +78,13 @@ public class TobotHardware extends LinearOpMode {
     final static double LEVELER_RIGHT = 0.95;
     final static double LEVELER_DOWN = 0.5;
     final static double LEVELER_LEFT = 0.0;
+    final static double RIGHT_CLIMBER_UP = 0.8;
+    final static double RIGHT_CLIMBER_MID = 0.5;
+    final static double RIGHT_CLIMBER_LOW = 0.2;
+    final static double LEFT_CLIMBER_UP = 0.1;
+    final static double LEFT_CLIMBER_MID = 0.65;
+    final static double LEFT_CLIMBER_LOW = 0.8;
+
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree turn
     int numOpLoops = 1;
@@ -96,6 +103,8 @@ public class TobotHardware extends LinearOpMode {
     double slider_pos;
     double leveler_pos;
     double light_sensor_sv_pos;
+    double climberL_pos;
+    double climberR_pos;
     // amount to change the claw servo position by
     double cur_arm_power;
     double arm_power;
@@ -123,6 +132,8 @@ public class TobotHardware extends LinearOpMode {
     Servo arm_slider;
     Servo leveler;
     Servo light_sensor_sv;
+    Servo climberL;
+    Servo climberR;
 
     // variables for sensors
     ColorSensor coSensor;
@@ -180,7 +191,7 @@ public class TobotHardware extends LinearOpMode {
 
     public void tobot_init(State st) throws InterruptedException {
         /*
-		 * Use the hardwareMap to get the dc motors and servos by name. Note
+         * Use the hardwareMap to get the dc motors and servos by name. Note
 		 * that the names of the devices must match the names used when you
 		 * configured your robot and created the configuration file.
 		 */
@@ -250,6 +261,20 @@ public class TobotHardware extends LinearOpMode {
             leveler = null;
         }
         try {
+            climberR = hardwareMap.servo.get("climberR");
+        } catch (Exception p_exeception) {
+            m_warning_message("climberR");
+            DbgLog.msg(p_exeception.getLocalizedMessage());
+            climberR = null;
+        }
+        try {
+            climberL = hardwareMap.servo.get("climberL");
+        } catch (Exception p_exeception) {
+            m_warning_message("climberL");
+            DbgLog.msg(p_exeception.getLocalizedMessage());
+            climberL = null;
+        }
+        try {
             light_sensor_sv = hardwareMap.servo.get("light_sensor_sv");
         } catch (Exception p_exeception) {
             m_warning_message("light_sensor_sv");
@@ -267,6 +292,8 @@ public class TobotHardware extends LinearOpMode {
         leveler.setPosition(leveler_pos);
         light_sensor_sv_pos = LIGHT_SENSOR_DOWN;
         light_sensor_sv.setPosition(light_sensor_sv_pos);
+        set_right_climber(RIGHT_CLIMBER_UP);
+        set_left_climber(LEFT_CLIMBER_UP);
         arm_power = 0.25;
         cur_arm_power = 0;
         shoulder_dir = 0;
@@ -349,7 +376,8 @@ public class TobotHardware extends LinearOpMode {
                     state = State.STATE_TUNEUP;
                 else
                     state = State.STATE_AUTO;
-                gamepad2.reset();
+                gamepad1.reset();
+                sleep(500);
             }
             float left = -gamepad1.left_stick_y;
             float right = -gamepad1.right_stick_y;
@@ -367,8 +395,8 @@ public class TobotHardware extends LinearOpMode {
             // the robot more precisely at slower speeds.
 
             // Use speedScale to control the speed
-            rightPower = (float) ((float) scaleInput(right * speedScale ));
-            leftPower = (float) ((float) scaleInput(left * speedScale ));
+            rightPower = (float) ((float) scaleInput(right * speedScale));
+            leftPower = (float) ((float) scaleInput(left * speedScale));
 
             // write the values to the motors
             motorFR.setPower(rightPower);
@@ -378,23 +406,25 @@ public class TobotHardware extends LinearOpMode {
             motorSW.setPower(SW_power);
             elbow.setPower(cur_arm_power);
 
-            if (gamepad1.dpad_down) { // backward 2-rotation
-                StraightR(-0.8, 2);
+            if (state == State.STATE_TUNEUP) {
+                if (gamepad1.dpad_down) { // backward 2-rotation
+                    StraightR(-0.8, 2);
+                }
+                if (gamepad1.dpad_up) { //forward 2 rotation
+                    StraightR(0.8, 2);
+                }
+                if (gamepad1.dpad_left) { //left spot turn 90 Degrees
+                    TurnLeftD(0.8, 90, true);
+                }
+                if (gamepad1.dpad_right) { //right spot turn 90 Degrees
+                    TurnRightD(0.8, 90, true);
+                }
             }
-            if (gamepad1.dpad_up) { //forward 2 rotation
-                StraightR(0.8, 2);
-            }
-            if (gamepad1.dpad_left) { //left spot turn 90 Degrees
-                TurnLeftD(0.8, 90, true);
-            }
-            if (gamepad1.dpad_right) { //right spot turn 90 Degrees
-                TurnRightD(0.8, 90, true);
-            }
-            if (gamepad1.right_trigger > 0.1) { // Sweeper Forward
-                SW_power = (float) -1.0;
-            }
-            if (gamepad1.right_bumper) { // Sweeper Backward
-                SW_power = (float) 1.0;
+            if (gamepad1.b) { // sweeper forward/backward
+                if (SW_power<-0.1) SW_power = (float) 1.0; // backward
+                else SW_power = (float) -1.0; // forward
+                // gamepad1.reset();
+                sleep(500);
             }
             if (gamepad1.x) { // stop sweeper
                 SW_power = (float) 0;
@@ -411,6 +441,29 @@ public class TobotHardware extends LinearOpMode {
                 // of the chassis
                 if (speedScale < 1)
                     speedScale += 0.01;
+            }
+
+            if (gamepad1.right_trigger>0.1) { // right climber down
+                set_right_climber(RIGHT_CLIMBER_LOW);
+            }
+            if (gamepad1.right_bumper) { // right climber up
+                if (Math.abs(climberR_pos-RIGHT_CLIMBER_LOW)<0.05) {
+                    set_right_climber(RIGHT_CLIMBER_MID);
+                } else {
+                    set_right_climber(RIGHT_CLIMBER_UP);
+                }
+                sleep(500);
+            }
+            if (gamepad1.left_trigger>0.1) { // left climber down
+                set_left_climber(LEFT_CLIMBER_LOW);
+            }
+            if (gamepad1.left_bumper) { // left climber up
+                if (Math.abs(climberL_pos-LEFT_CLIMBER_LOW)<0.05) {
+                    set_left_climber(LEFT_CLIMBER_MID);
+                } else {
+                    set_left_climber(LEFT_CLIMBER_UP);
+                }
+                sleep(500);
             }
 
             if (slider_counter > 0)
@@ -550,9 +603,9 @@ public class TobotHardware extends LinearOpMode {
             } else { // Auto state, test the arm routines
                 // release arm
                 if (gamepad2.right_bumper) {
-                    if (arm_state==ArmState.ARM_INIT)
+                    if (arm_state == ArmState.ARM_INIT)
                         release_arm();
-                    else if (arm_state==ArmState.ARM_COLLECT)
+                    else if (arm_state == ArmState.ARM_COLLECT)
                         arm_collect_mode_to_up_back();
                 }
                 if (gamepad2.right_trigger > 0.1) {
@@ -613,7 +666,7 @@ public class TobotHardware extends LinearOpMode {
             }
         }
         elbow.setPower(0);
-    }   
+    }
 
     public void arm_slider_in_for_n_sec(double n) throws InterruptedException {
         arm_slider.setPosition(SLIDER_SHORTEN);
@@ -634,10 +687,10 @@ public class TobotHardware extends LinearOpMode {
         set_elbow_pos(790, 0.25);
         wrist.setPosition(WRIST_MID);
         elbow.setPower(0);
-        if (arm_state==ArmState.ARM_UP_FRONT)
-            arm_state=ArmState.ARM_DOWN_FRONT;
+        if (arm_state == ArmState.ARM_UP_FRONT)
+            arm_state = ArmState.ARM_DOWN_FRONT;
         else
-            arm_state=ArmState.ARM_DOWN_BACK;
+            arm_state = ArmState.ARM_DOWN_BACK;
     }
 
     void set_shoulder_pos(double pos) {
@@ -664,6 +717,7 @@ public class TobotHardware extends LinearOpMode {
             waitForNextHardwareCycle();
         }
     }
+
     void climber_mission() throws InterruptedException {
         release_arm();
         arm_front();
@@ -707,10 +761,10 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void arm_collection_mode() throws InterruptedException {
-        if (arm_state==ArmState.ARM_UP_FRONT) {
+        if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_back();
         }
-        if (arm_state==ArmState.ARM_UP_BACK) {
+        if (arm_state == ArmState.ARM_UP_BACK) {
             arm_down();
         }
         set_light_sensor(LIGHT_SENSOR_DOWN);
@@ -968,6 +1022,17 @@ public class TobotHardware extends LinearOpMode {
     void leveler_down() throws InterruptedException {
         leveler_pos = LEVELER_DOWN;
         leveler.setPosition(leveler_pos);
+        sleep(100);
+    }
+    void set_right_climber(double pos) throws InterruptedException {
+        climberR_pos = pos;
+        climberR.setPosition(climberR_pos);
+        sleep(100);
+    }
+
+    void set_left_climber(double pos) throws InterruptedException {
+        climberL_pos = pos;
+        climberL.setPosition(climberL_pos);
         sleep(100);
     }
 
