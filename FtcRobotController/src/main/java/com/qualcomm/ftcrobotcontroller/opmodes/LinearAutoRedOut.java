@@ -94,8 +94,8 @@ public class LinearAutoRedOut extends TobotHardware {
 
         telemetry.addData("shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
-        telemetry.addData("wrist", "pos(dir): " + String.format("%.2f (%.2f)", wrist_pos, wrist_dir));
-        telemetry.addData("gate", "pos(dir): " + String.format("%.2f (%.2f)", gate_pos, gate_dir));
+        telemetry.addData("wrist", "pos: " + String.format("%.2f", wrist_pos));
+        telemetry.addData("gate", "pos: " + String.format("%.2f", gate_pos));
         telemetry.addData("arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 
         waitOneFullHardwareCycle();
