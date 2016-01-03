@@ -1082,13 +1082,13 @@ public class TobotHardware extends LinearOpMode {
         sleep(300);
     }
 
-    public void followLineTillOp(double op_stop_val, boolean leftFirst) {
+    public void followLineTillOp(double op_stop_val, boolean leftFirst) throws InterruptedException {
         double op_val = 0;
         while ((op_val = opSensor.getLightDetected()) < op_stop_val) {
             //follow the line , using getDirection and drive methods
             int direction2go;
             direction2go = nav.getFollowLineDirection(leftFirst);
-            nav.drive(direction2go, 0.3);
+            nav.drive(direction2go, 0.3); sleep(100);
             telemetry.addData("1. ods:", String.format("%.2f", op_val));
             telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
         }

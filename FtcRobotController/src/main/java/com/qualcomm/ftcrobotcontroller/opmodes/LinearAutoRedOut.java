@@ -71,7 +71,7 @@ public class LinearAutoRedOut extends TobotHardware {
         boolean blue_detected = false;
         boolean red_detected = false;
 
-        if (false) {
+        if (true) {
             TurnLeftD(0.75, 80, true);
 
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
@@ -97,7 +97,7 @@ public class LinearAutoRedOut extends TobotHardware {
         }
 
         // dump two climbers
-        // climber_mission();
+        climber_mission();
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);
