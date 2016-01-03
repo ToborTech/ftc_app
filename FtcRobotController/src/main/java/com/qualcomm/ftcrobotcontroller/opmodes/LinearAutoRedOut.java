@@ -59,46 +59,59 @@ public class LinearAutoRedOut extends TobotHardware {
         waitForStart();
 
 
-        StraightR(0.75, 8);
+        if (false) {
+            StraightR(0.9, 8);
 
-        //StraightR(-0.5, 2);
-        TurnRightD(0.5, 35, true);
-        //StraightR(0.5, 1);
-        goUntilWhite(-0.15);
-        TurnLeftD(0.5,90, true);
-
-        // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-        followLineTillOp(0.03, true);
-        hit_left_button();
-        sleep(1000);
-        hit_right_button();
-        sleep(1000);
-        leveler_down();
-
-        // Detect Beacon color and hit the right side
-        if (colorPicker.getColor()==TT_ColorPicker.BLUE) {
-            hit_left_button();
-        } else if (colorPicker.getColor()==TT_ColorPicker.RED) {
-            hit_right_button();
-        } else { // unknown, better not do anything than giving the credit to the opponent
-            // doing nothing. May print out the message for debugging
+            //StraightR(-0.5, 2);
+            TurnRightD(0.75, 35, true);
+            //StraightR(0.5, 1);
         }
 
-        // dump two climbers, please Kevin!!
-        sleep(5000);
+        goUntilWhite(-0.15);
+        boolean blue_detected = false;
+        boolean red_detected = false;
+
+        if (false) {
+            TurnLeftD(0.75, 80, true);
+
+            // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
+            followLineTillOp(0.03, true);
+            if (false) {
+                hit_left_button();
+                sleep(1000);
+                hit_right_button();
+                sleep(1000);
+                leveler_down();
+            }
+
+            // Detect Beacon color and hit the right side
+            if (colorPicker.getColor() == TT_ColorPicker.BLUE) {
+                blue_detected = true;
+                hit_left_button();
+            } else if (colorPicker.getColor() == TT_ColorPicker.RED) {
+                hit_right_button();
+                red_detected = true;
+            } else { // unknown, better not do anything than giving the credit to the opponent
+                // doing nothing. May print out the message for debugging
+            }
+        }
+
+        // dump two climbers
+        // climber_mission();
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);
         //  StraightR(0.6,3.33);
         stop_tobot();
-
-        telemetry.addData("shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
-        telemetry.addData("elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
-        telemetry.addData("wrist", "pos: " + String.format("%.2f", wrist_pos));
-        telemetry.addData("gate", "pos: " + String.format("%.2f", gate_pos));
-        telemetry.addData("arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
-
-        waitOneFullHardwareCycle();
+        telemetry.addData("1. Red   = ", red_detected);
+        telemetry.addData("2. Blue  = ", blue_detected);
+        telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
+        telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
+        telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
+        telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
+        telemetry.addData("7. wrist", "pos: " + String.format("%.2f", wrist_pos));
+        telemetry.addData("8. gate", "pos: " + String.format("%.2f", gate_pos));
+        telemetry.addData("9. arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 
     }
 

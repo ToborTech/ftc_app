@@ -63,7 +63,7 @@ public class TobotHardware extends LinearOpMode {
     final static double WRIST_MID = 0.4;
     final static double WRIST_CLIMBER = 0.15;
     final static double WRIST_COLLECT = 0.11;
-    final static double SHOULDER_START = 0.5155;
+    final static double SHOULDER_START = 0.5115;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
     final static double SHOULDER_SCORE = 0.8;     // position to outside score position
     final static double SHOULDER_RED_MID_SCORE = 0.86; //position for scoring mid red zone basket
@@ -73,17 +73,19 @@ public class TobotHardware extends LinearOpMode {
     final static double SLIDER_STOP = 0.5;
     final static double TAPE_ROTATE = 0.25;
     final static double TAPE_SLIDER = 0.75;
-    final static double LIGHT_SENSOR_UP = 0.4;
-    final static double LIGHT_SENSOR_DOWN = 0.9;
-    final static double LEVELER_RIGHT = 0.95;
-    final static double LEVELER_DOWN = 0.5;
+    final static double LIGHT_SENSOR_UP = 0.46;
+    final static double LIGHT_SENSOR_DOWN = 0.84;
+    final static double LEVELER_RIGHT = 1;
+    final static double LEVELER_DOWN = 0.45;
     final static double LEVELER_LEFT = 0.0;
-    final static double RIGHT_CLIMBER_UP = 0.8;
+    final static double RIGHT_CLIMBER_UP = 0.75;
     final static double RIGHT_CLIMBER_MID = 0.5;
     final static double RIGHT_CLIMBER_LOW = 0.2;
-    final static double LEFT_CLIMBER_UP = 0.1;
+    final static double LEFT_CLIMBER_UP = 0.2;
     final static double LEFT_CLIMBER_MID = 0.65;
     final static double LEFT_CLIMBER_LOW = 0.8;
+    final static double WHITE_MIN = 0.5;
+    final static double WHITE_MAX = 0.75;
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree turn
@@ -426,14 +428,17 @@ public class TobotHardware extends LinearOpMode {
             } else if (gamepad1.x) { // sweeper forward
                 SW_power = (float) -1.0;
             }
-            // update the speed of the chassis
-            if (gamepad1.a) {
+            // update the speed of the chassis, or stop tape slider
+            if (gamepad1.a && gamepad1.y) {
+                tape_slider_dir = 0;
+                tape_count = 0;
+            } else if (gamepad1.a) {
                 // if the A button is pushed on gamepad1, decrease the speed
                 // of the chassis
                 if (speedScale > 0.1)
                     speedScale -= 0.01;
             }
-            if (gamepad1.y) {
+            else if (gamepad1.y) {
                 // if the Y button is pushed on gamepad1, increase the speed
                 // of the chassis
                 if (speedScale < 1)
@@ -467,7 +472,11 @@ public class TobotHardware extends LinearOpMode {
             // down to stop/slide in
             // left to stop/rotate up
             // right to stop/rotate down
-            if (gamepad1.dpad_up) {
+            if (gamepad1.back) { // stop tape
+                tape_slider_dir = 0;
+                tape_rotator_dir = 0;
+                tape_slider.setPower(0); // slider power off right away
+            } else if (gamepad1.dpad_up) {
                 tape_slider_dir = 1;
             } else if (gamepad1.dpad_down) {
                 tape_slider_dir = -1;
@@ -481,20 +490,17 @@ public class TobotHardware extends LinearOpMode {
                 tape_count = 1;
             }
 
-            if (gamepad1.back) { // stop tape
-                tape_slider_dir = 0;
-                tape_rotator_dir = 0;
-            }
-
             if (slider_counter > 0)
                 slider_counter--;
-            else
+            else {
                 arm_slider.setPosition(SLIDER_STOP);
+            }
 
             if (tape_count > 0)
                 tape_count--;
-            else
+            else {
                 tape_rotator_dir = 0;
+            }
 
             if (gamepad2.x || gamepad2.b) { // control continuous serve requires wait
                 slider_counter = 10; // 20ms * 10 = 0.2 sec
@@ -597,21 +603,35 @@ public class TobotHardware extends LinearOpMode {
                     set_wrist_pos(WRIST_UP);
                 }
                 if (gamepad2.dpad_up) {
+                    gamepad2.reset();
                     if (arm_state == ArmState.ARM_COLLECT) {
                         arm_collect_mode_to_up_back();
                     } else if (arm_state == ArmState.ARM_UP_BACK) {
                         arm_front();
+                        sleep(1000);
                     } else if (arm_state == ArmState.ARM_INIT) {
                         release_arm();
+                    } else if (arm_state == ArmState.ARM_UP_FRONT) {
+                        arm_down();
+                    } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
+                        arm_up();
                     }
                 }
-                if (gamepad2.dpad_left) {
-                    if (arm_state == ArmState.ARM_UP_FRONT)
+                else if (gamepad2.dpad_left) {
+                    gamepad2.reset();
+                    if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT)
                         go_red_mid_zone();
                 }
-                if (gamepad2.dpad_down) {
-                    if (arm_state == ArmState.ARM_UP_BACK)
+                else if (gamepad2.dpad_down) {
+                    gamepad2.reset();
+                    if (arm_state == ArmState.ARM_UP_BACK) {
                         arm_collection_mode();
+                    } else if (arm_state == ArmState.ARM_UP_FRONT) {
+                        arm_back();
+                        sleep(1000);
+                    } else if (arm_state==ArmState.ARM_SCORE_MID_RED) {
+                        arm_back_from_goal();
+                    }
                 }
             } else { // Auto state, test the arm routines
 
@@ -676,7 +696,7 @@ public class TobotHardware extends LinearOpMode {
         set_elbow_pos(1370, 0.25);
         arm_slider_in_for_n_sec(0.5);
         set_wrist_pos(WRIST_COLLECT);
-        set_elbow_pos(790, 0.25);
+        set_elbow_pos(650, 0.25);
         set_wrist_pos(WRIST_MID);
         elbow.setPower(0);
         if (arm_state == ArmState.ARM_UP_FRONT)
@@ -698,20 +718,20 @@ public class TobotHardware extends LinearOpMode {
     void arm_front() throws InterruptedException {
         set_shoulder_pos(SHOULDER_SCORE);
         set_light_sensor(LIGHT_SENSOR_UP); // also make sure light sensor up in case need to go climbing mt
-        wait_arm_pos();
+        wait_arm_pos(7);
         arm_state = ArmState.ARM_UP_FRONT;
     }
 
     void arm_back() throws InterruptedException {
         set_shoulder_pos(SHOULDER_START);
-        wait_arm_pos();
+        wait_arm_pos(7);
         arm_state = ArmState.ARM_UP_BACK;
     }
 
-    void wait_arm_pos() throws InterruptedException {
+    void wait_arm_pos(double max_sec) throws InterruptedException {
         double init_time = getRuntime();
         // the following loop will timeout in 10 sec
-        while (Math.abs(shoulder.getPosition() - shoulder_pos) > 0.05 && ((getRuntime() - init_time) < 10)) {
+        while (Math.abs(shoulder.getPosition() - shoulder_pos) > 0.01 && ((getRuntime() - init_time) < max_sec)) {
             waitForNextHardwareCycle();
         }
     }
@@ -728,7 +748,7 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void go_red_mid_zone() throws InterruptedException {
-        set_elbow_pos(742, 0.3);
+        set_elbow_pos(685, 0.3);
         set_shoulder_pos(SHOULDER_RED_MID_SCORE);
         wrist.setPosition(WRIST_UP);
         arm_slider_out_for_n_sec(5.0);
@@ -739,12 +759,22 @@ public class TobotHardware extends LinearOpMode {
         wrist.setPosition(WRIST_UP);
         arm_slider_in_for_n_sec(5.0);
         set_shoulder_pos(SHOULDER_SCORE);
-        set_elbow_pos(1300, 0.4);
-        arm_back();
-        arm_state = ArmState.ARM_UP_BACK;
+        // set_elbow_pos(1300, 0.4);
+        arm_state = ArmState.ARM_DOWN_FRONT;
+        // arm_back();
+        // arm_state = ArmState.ARM_UP_BACK;
     }
 
-    void arm_up_back() throws InterruptedException {
+    void arm_up() throws InterruptedException {
+        set_elbow_pos(1335, 0.25);
+        if (arm_state==ArmState.ARM_DOWN_FRONT)
+            arm_state = ArmState.ARM_UP_FRONT;
+        else {
+            arm_state = ArmState.ARM_UP_BACK;
+        }
+    }
+
+    void arm_up_back() throws InterruptedException { // shared by init and collection modes
         wrist.setPosition(WRIST_UP);
         sleep(500);
         set_elbow_pos(400, 0.5);
@@ -752,8 +782,7 @@ public class TobotHardware extends LinearOpMode {
         set_elbow_pos(990, 0.5);
         wrist.setPosition(WRIST_COLLECT);
         arm_slider_out_for_n_sec(0.7);
-        set_elbow_pos(1335, 0.25);
-        arm_state = ArmState.ARM_UP_BACK;
+        arm_up();
     }
 
     void release_arm() throws InterruptedException {
@@ -1071,15 +1100,16 @@ public class TobotHardware extends LinearOpMode {
         light_sensor_sv.setPosition(light_sensor_sv_pos);
     }
 
-    public void goUntilWhite(double power) {
+    public void goUntilWhite(double power) throws InterruptedException {
         while (!detectWhite()) {
             driveTT(power, power);
+            waitForNextHardwareCycle();
         }
         stop_chassis();
     }
 
     public boolean detectWhite() {
-        if (LL.getLightDetected() < 0.6 || LL.getLightDetected() > 0.8) {
+        if (LL.getLightDetected() <= WHITE_MIN || LL.getLightDetected() >= WHITE_MAX) {
             return false;
         }
         return true;

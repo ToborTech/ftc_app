@@ -31,7 +31,7 @@ public class TT_Nav {
     // private IBNO055IMU _imu ;
     private LightSensor _reflectedLightLeft, _reflectedLightRight ;
 
-    final static double LIGHT_THRESHOLD = 0.8;
+    final static double LIGHT_THRESHOLD = 0.6;
 
 
     TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2,

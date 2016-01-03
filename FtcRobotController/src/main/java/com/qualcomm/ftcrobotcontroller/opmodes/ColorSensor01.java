@@ -100,12 +100,11 @@ public class ColorSensor01 extends TobotHardware {
         else{
           detectwhite = 0;
         }
-        telemetry.addData("Red", red_final);
-        telemetry.addData("Blue", blue_final);
-        telemetry.addData("LL", ls1.getLightDetected());
-        telemetry.addData("LR", ls2.getLightDetected());
-        telemetry.addData("op", op.getLightDetected());
-        telemetry.addData("White",detectwhite);
+        telemetry.addData("1. Red   = ", red_final + "/" + String.format("%d",colorSensor.red()));
+        telemetry.addData("2. Blue  = ", blue_final + "/" + String.format("%d",colorSensor.blue()));
+        telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", ls1.getLightDetected(), ls2.getLightDetected()));
+        telemetry.addData("4. White = ", detectwhite);
+        telemetry.addData("5. ODS   = ", op.getLightDetected());
       }
     }
   }
