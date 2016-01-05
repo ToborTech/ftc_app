@@ -61,28 +61,23 @@ public class LinearAutoRedOut extends TobotHardware {
 
         if (false) {
             StraightR(0.9, 8);
-
             //StraightR(-0.5, 2);
             TurnRightD(0.75, 35, true);
             //StraightR(0.5, 1);
         }
 
         goUntilWhite(-0.15);
+        StraightR(0.5, 0.1);
         boolean blue_detected = false;
         boolean red_detected = false;
 
         if (true) {
-            TurnLeftD(0.75, 80, true);
-
+            TurnLeftD(0.5, 90, true);
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-            followLineTillOp(0.03, true);
-            if (false) {
-                hit_left_button();
-                sleep(1000);
-                hit_right_button();
-                sleep(1000);
-                leveler_down();
-            }
+            // followLineTillOp(0.03, true, 5);
+            forwardTillOp(0.03, 0.35, 5);
+            StraightR(0.2, 0.05);
+            hit_left_button();
 
             // Detect Beacon color and hit the right side
             if (colorPicker.getColor() == TT_ColorPicker.BLUE) {
@@ -112,7 +107,5 @@ public class LinearAutoRedOut extends TobotHardware {
         telemetry.addData("7. wrist", "pos: " + String.format("%.2f", wrist_pos));
         telemetry.addData("8. gate", "pos: " + String.format("%.2f", gate_pos));
         telemetry.addData("9. arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
-
     }
-
 }

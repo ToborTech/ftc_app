@@ -31,7 +31,8 @@ public class TT_Nav {
     // private IBNO055IMU _imu ;
     private LightSensor _reflectedLightLeft, _reflectedLightRight ;
 
-    final static double LIGHT_THRESHOLD = 0.5;
+    final static double WHITE_MIN = 0.5;
+    final static double WHITE_MAX = 0.75;
 
 
     TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2,
@@ -153,11 +154,13 @@ public class TT_Nav {
         int left_on = 0;
         int right_on = 0;
         int dir = 0;
+        double lval = _reflectedLightLeft.getLightDetected();
+        double rval = _reflectedLightRight.getLightDetected();
 
-        if (_reflectedLightLeft.getLightDetected() > LIGHT_THRESHOLD) {
+        if (lval >= WHITE_MIN && lval<=WHITE_MAX) {
             left_on = 1;
         }
-        if (_reflectedLightRight.getLightDetected() > LIGHT_THRESHOLD) {
+        if (rval >= WHITE_MIN && rval<=WHITE_MAX) {
             right_on = 1;
         }
         dir = left_on * 10 + right_on; // gives 0,1,10,11

@@ -53,13 +53,11 @@ public class TobotHardware extends LinearOpMode {
     // CONSTANT VALUES.
     final static double ARM_MIN_RANGE = 0.20;
     final static double ARM_MAX_RANGE = 0.90;
-    final static double CLAW_MIN_RANGE = 0.20;
-    final static double CLAW_MAX_RANGE = 0.7;
     final static double THRESHOLD = 0.01;
     final static double SERVO_SCALE = 0.001;
     final static double GATE_CLOSED = 0.05;
     final static double GATE_OPEN = 0.91;
-    final static double WRIST_UP = 0.56;
+    final static double WRIST_UP = 0.54;
     final static double WRIST_MID = 0.4;
     final static double WRIST_CLIMBER = 0.15;
     final static double WRIST_COLLECT = 0.11;
@@ -73,11 +71,11 @@ public class TobotHardware extends LinearOpMode {
     final static double SLIDER_STOP = 0.5;
     final static double TAPE_ROTATE = 0.25;
     final static double TAPE_SLIDER = 0.75;
-    final static double LIGHT_SENSOR_UP = 0.46;
-    final static double LIGHT_SENSOR_DOWN = 0.84;
-    final static double LEVELER_RIGHT = 1;
-    final static double LEVELER_DOWN = 0.45;
-    final static double LEVELER_LEFT = 0.0;
+    final static double LIGHT_SENSOR_UP = 0.2;
+    final static double LIGHT_SENSOR_DOWN = 0.8;
+    final static double LEVELER_RIGHT = 0.92;
+    final static double LEVELER_DOWN = 0.52;
+    final static double LEVELER_LEFT = 0.08;
     final static double RIGHT_CLIMBER_UP = 0.75;
     final static double RIGHT_CLIMBER_MID = 0.5;
     final static double RIGHT_CLIMBER_LOW = 0.2;
@@ -88,7 +86,8 @@ public class TobotHardware extends LinearOpMode {
     final static double WHITE_MAX = 0.75;
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
-    final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree turn
+    // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
+    final static double RROBOT = 16.5;  // number of wheel turns to get chassis 360-degree turn
     int numOpLoops = 1;
 
     //
@@ -171,7 +170,7 @@ public class TobotHardware extends LinearOpMode {
         ARM_SCORE_LOW_BLUE
     }
 
-    float speedScale = (float) 0.7; // controlling the speed of the chassis in teleOp state
+    float speedScale = (float) 0.9; // controlling the speed of the chassis in teleOp state
     float leftPower = 0;
     float rightPower = 0;
     float SW_power = 0;
@@ -366,291 +365,19 @@ public class TobotHardware extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-
-            if (gamepad2.back) { // change the state TeleOp->TuneUp->Auto
-                if (state == State.STATE_AUTO)
-                    state = State.STATE_TELEOP;
-                else if (state == State.STATE_TELEOP)
-                    state = State.STATE_TUNEUP;
-                else
-                    state = State.STATE_AUTO;
-                gamepad2.reset();
-                sleep(500);
-            }
-            float left = -gamepad1.left_stick_y;
-            float right = -gamepad1.right_stick_y;
-
-            elbow_pos = elbow.getCurrentPosition();
-            tape_slider_pos = tape_slider.getCurrentPosition();
-            tape_rotator_pos = tape_rotator.getCurrentPosition();
-            shoulder_dir = -gamepad2.left_stick_x;
-            elbow_dir = -gamepad2.right_stick_y;
-
-            right = Range.clip(right, -1, 1);
-            left = Range.clip(left, -1, 1);
-
-            // scale the joystick value to make it easier to control
-            // the robot more precisely at slower speeds.
-
-            // Use speedScale to control the speed
-            rightPower = (float) ((float) scaleInput(right * speedScale));
-            leftPower = (float) ((float) scaleInput(left * speedScale));
-
-            // write the values to the motors
-            motorFR.setPower(rightPower);
-            motorBR.setPower(rightPower);
-            motorFL.setPower(leftPower);
-            motorBL.setPower(leftPower);
-            motorSW.setPower(SW_power);
-            elbow.setPower(cur_arm_power);
-
-            if (state == State.STATE_TUNEUP) {
-                if (gamepad1.dpad_down) { // backward 2-rotation
-                    StraightR(-0.8, 2);
-                }
-                if (gamepad1.dpad_up) { //forward 2 rotation
-                    StraightR(0.8, 2);
-                }
-                if (gamepad1.dpad_left) { //left spot turn 90 Degrees
-                    TurnLeftD(0.8, 90, true);
-                }
-                if (gamepad1.dpad_right) { //right spot turn 90 Degrees
-                    TurnRightD(0.8, 90, true);
-                }
-            }
-            if (gamepad1.b && gamepad1.x) { // stop sweeper
-                SW_power = (float) 0;
-                motorSW.setPower(SW_power); // stop right away
-                sleep(400); // make sure other botton reset
-            }
-            else if (gamepad1.b) { // sweeper backward
-                SW_power = (float) 1.0;
-            } else if (gamepad1.x) { // sweeper forward
-                SW_power = (float) -1.0;
-            }
-            // update the speed of the chassis, or stop tape slider
-            if (gamepad1.a && gamepad1.y) {
-                tape_slider_dir = 0;
-                tape_count = 0;
-            } else if (gamepad1.a) {
-                // if the A button is pushed on gamepad1, decrease the speed
-                // of the chassis
-                if (speedScale > 0.1)
-                    speedScale -= 0.01;
-            }
-            else if (gamepad1.y) {
-                // if the Y button is pushed on gamepad1, increase the speed
-                // of the chassis
-                if (speedScale < 1)
-                    speedScale += 0.01;
-            }
-
-            if (gamepad1.right_trigger>0.1) { // right climber down: mid then low
-                if (Math.abs(climberR_pos-RIGHT_CLIMBER_MID)<0.05) {
-                    set_right_climber(RIGHT_CLIMBER_LOW);
-                } else {
-                    set_right_climber(RIGHT_CLIMBER_MID);
-                }
-                sleep(500);
-            }
-            if (gamepad1.right_bumper) { // right climber up
-                set_right_climber(RIGHT_CLIMBER_UP);
-            }
-            if (gamepad1.left_trigger>0.1) { // left climber down
-                if (Math.abs(climberL_pos-LEFT_CLIMBER_MID)<0.05) {
-                    set_left_climber(LEFT_CLIMBER_LOW);
-                } else {
-                    set_left_climber(LEFT_CLIMBER_MID);
-                }
-                sleep(500);
-            }
-            if (gamepad1.left_bumper) { // left climber up
-                set_left_climber(LEFT_CLIMBER_UP);
-            }
-//control direction of tape slider and tape rotator
-            // up to stop/slide out
-            // down to stop/slide in
-            // left to stop/rotate up
-            // right to stop/rotate down
-            if (gamepad1.back) { // stop tape
-                tape_slider_dir = 0;
-                tape_rotator_dir = 0;
-                tape_slider.setPower(0); // slider power off right away
-            } else if (gamepad1.dpad_up) {
-                tape_slider_dir = 1;
-            } else if (gamepad1.dpad_down) {
-                tape_slider_dir = -1;
-            }
-
-            if (gamepad1.dpad_left) {
-                tape_rotator_dir = 1;
-                tape_count = 2;
-            } else if (gamepad1.dpad_right) {
-                tape_rotator_dir = -1;
-                tape_count = 1;
-            }
-
-            if (slider_counter > 0)
-                slider_counter--;
-            else {
-                arm_slider.setPosition(SLIDER_STOP);
-            }
-
-            if (tape_count > 0)
-                tape_count--;
-            else {
-                tape_rotator_dir = 0;
-            }
-
-            if (gamepad2.x || gamepad2.b) { // control continuous serve requires wait
-                slider_counter = 10; // 20ms * 10 = 0.2 sec
-                if (gamepad2.x) {
-                    slider_pos = SLIDER_SHORTEN;
-                    slider_curr_count -= slider_counter;
-                }
-                if (gamepad2.b) {
-                    slider_pos = SLIDER_LENGHTEN;
-                    slider_curr_count += slider_counter;
-                }
-                arm_slider.setPosition(slider_pos);
-            }
-
-            if (gamepad2.y) {
-                arm_power += 0.005;
-                if (arm_power > 1) {
-                    arm_power = 1;
-                }
-            }
-            if (gamepad2.a) {
-                arm_power -= 0.005;
-                if (arm_power < 0) {
-                    arm_power = 0.05;
-                }
-            }
-
-            // control to the elbow motor power
-            if (elbow_count > 0) {
-                elbow_count--;
-            } else if (elbow_dir < -THRESHOLD) { // arm down 20% of power
-                cur_arm_power = -arm_power * 0.2;
-                elbow_count = 10;
-            } else if (elbow_dir > THRESHOLD) { // arm up
-                cur_arm_power = arm_power;
-                elbow_count = 10;
-            } else {
-                cur_arm_power = 0;
-            }
-            if (tape_slider_dir < -THRESHOLD) { // tape slider in 100% power
-                tape_slider.setPower(-1);
-            } else if (tape_slider_dir > THRESHOLD) { // tape slider out 100% power
-                tape_slider.setPower(1);
-            } else {
-                tape_slider.setPower(0);
-            }
-            if (tape_rotator_dir < -THRESHOLD) { // tape down 20% of power
-                tape_rotator.setPower(-0.2);
-            } else if (tape_rotator_dir > THRESHOLD) { // arm up 30% of power
-                tape_rotator.setPower(0.3);
-            } else {
-                tape_rotator.setPower(0);
-            }
-            if (shoulder_dir > THRESHOLD) {
-                shoulder_pos += (SERVO_SCALE);
-                if (shoulder_pos > 1) {
-                    shoulder_pos = 0.99;
-                }
-            } else if (shoulder_dir < THRESHOLD * -1) {
-                shoulder_pos -= (SERVO_SCALE);
-                if (shoulder_pos < 0) {
-                    shoulder_pos = 0.01;
-                }
-            }
-            shoulder.setPosition(shoulder_pos);
-            if (state == State.STATE_TUNEUP) {
-                // manual adjust wrist position
-                if (gamepad2.left_trigger > 0.1) { // wrist servo down
-                    wrist_pos -= SERVO_SCALE;
-                    if (wrist_pos < 0.01) wrist_pos = 0.01;
-                }
-                if (gamepad2.left_bumper) { // wrist servo up
-                    wrist_pos += SERVO_SCALE;
-                    if (wrist_pos > 0.99) wrist_pos = 0.99;
-                }
-                wrist.setPosition(wrist_pos);
-                // manual adjust gate position
-                if (gamepad2.right_trigger > 0.1) { // gate servo down
-                    gate_pos -= SERVO_SCALE;
-                    if (gate_pos < 0.01) gate_pos = 0.01;
-                }
-                if (gamepad2.right_bumper) { // gate servo up
-                    gate_pos += SERVO_SCALE;
-                    if (gate_pos > 0.99) gate_pos = 0.99;
-                }
-                gate.setPosition(gate_pos);
-            } else if (state == State.STATE_TELEOP) {
-                if (gamepad2.right_trigger > 0.1) {
-                    gate_pos = GATE_OPEN;
-                }
-                if (gamepad2.right_bumper) {
-                    gate_pos = GATE_CLOSED;
-                }
-                gate.setPosition(gate_pos);
-
-                if (gamepad2.left_trigger > 0.1) {
-                    set_wrist_pos(WRIST_COLLECT);
-                }
-                if (gamepad2.left_bumper) {
-                    set_wrist_pos(WRIST_UP);
-                }
-                if (gamepad2.dpad_up) {
-                    gamepad2.reset();
-                    if (arm_state == ArmState.ARM_COLLECT) {
-                        arm_collect_mode_to_up_back();
-                    } else if (arm_state == ArmState.ARM_UP_BACK) {
-                        arm_front();
-                        sleep(1000);
-                    } else if (arm_state == ArmState.ARM_INIT) {
-                        release_arm();
-                    } else if (arm_state == ArmState.ARM_UP_FRONT) {
-                        arm_down();
-                    } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
-                        arm_up();
-                    }
-                }
-                else if (gamepad2.dpad_left) {
-                    gamepad2.reset();
-                    if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT)
-                        go_red_mid_zone();
-                }
-                else if (gamepad2.dpad_down) {
-                    gamepad2.reset();
-                    if (arm_state == ArmState.ARM_UP_BACK) {
-                        arm_collection_mode();
-                    } else if (arm_state == ArmState.ARM_UP_FRONT) {
-                        arm_back();
-                        sleep(1000);
-                    } else if (arm_state==ArmState.ARM_SCORE_MID_RED) {
-                        arm_back_from_goal();
-                    }
-                }
-            } else { // Auto state, test the arm routines
-
-            }
             show_telemetry();
             waitOneFullHardwareCycle();
         }
     }
 
     public void show_telemetry() {
-        telemetry.addData("0. State: ", state.toString() + "(driver mode =" + motorFR.getMode().toString() + ")");
+        telemetry.addData("0. Program/Arm State: ", state.toString() + "/" + arm_state.toString());
         telemetry.addData("1. shoulder:", "pos= " + String.format("%.4f, dir=%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, dir=%.2f", cur_arm_power, elbow_pos, elbow_dir));
         telemetry.addData("3. wrist/gate", "pos= " + String.format("%.2f / %.2f", wrist_pos, gate_pos));
         telemetry.addData("4. arm_slider", "pos (dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
         telemetry.addData("5. tape_rotator", "pos= " + String.format("%2d", tape_rotator_pos));
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
-        //telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + motorBL.getTargetPosition());
-        //telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + motorFR.getTargetPosition());
         telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
         telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + rightCnt);
         telemetry.addData("9. ods:", String.format("%.2f", opSensor.getLightDetected()));
@@ -845,6 +572,8 @@ public class TobotHardware extends LinearOpMode {
             rightCnt += rightEncode;
         }
         run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+
+        sleep(300);
     }
 
     public void driveTT(double lp, double rp) {
@@ -899,6 +628,8 @@ public class TobotHardware extends LinearOpMode {
         rightPower = (float) power;
 
         run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+
+        sleep(300);
     }
 
     public void TurnRightD(double power, int degree, boolean spotTurn) throws InterruptedException {
@@ -922,6 +653,8 @@ public class TobotHardware extends LinearOpMode {
         rightCnt += rightEncode;
         leftPower = (float) power;
         run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+
+        sleep(300);
     }
 
     void set_drive_modes(DcMotorController.RunMode mode) {
@@ -1082,15 +815,30 @@ public class TobotHardware extends LinearOpMode {
         sleep(300);
     }
 
-    public void followLineTillOp(double op_stop_val, boolean leftFirst) throws InterruptedException {
+    public void followLineTillOp(double op_stop_val, boolean leftFirst, double max_sec) throws InterruptedException {
         double op_val = 0;
-        while ((op_val = opSensor.getLightDetected()) < op_stop_val) {
+        double init_time = getRuntime();
+        while ((op_val = opSensor.getLightDetected()) < op_stop_val && ((getRuntime() - init_time) < max_sec)) {
             //follow the line , using getDirection and drive methods
             int direction2go;
             direction2go = nav.getFollowLineDirection(leftFirst);
-            nav.drive(direction2go, 0.3); sleep(100);
+            nav.drive(direction2go, 0.2);
+            if (direction2go!=TT_Nav.FORWARD) {
+                sleep(40);
+            } else { // forward, make the move more
+                sleep(100);
+            }
             telemetry.addData("1. ods:", String.format("%.2f", op_val));
             telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
+        }
+        nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
+    }
+    public void forwardTillOp(double op_stop_val, double power, double max_sec) {
+        double op_val = opSensor.getLightDetected();
+        double init_time = getRuntime();
+        while (op_val < op_stop_val && ((getRuntime() - init_time) < max_sec)) {
+            nav.drive(TT_Nav.FORWARD, 0.2);
+            op_val = opSensor.getLightDetected();
         }
         nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
     }
