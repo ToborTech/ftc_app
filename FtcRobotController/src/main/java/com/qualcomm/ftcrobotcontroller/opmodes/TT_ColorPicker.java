@@ -8,19 +8,23 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
  * Created by Niki Monsef on 12/10/2015.
  */
 
+
 public class TT_ColorPicker {
+    public enum Color {
+        UNKNOWN,     // unknown color (other than blue or red)
+        BLUE,        // blue color
+        RED          // red color
+    }
+
     ColorSensor _colorSensor;
     //DeviceInterfaceModule cdim;
     //TouchSensor t;
-    final static int BLUE = 1;
-    final static int RED = 2;
-    final static int UNKNOWN = 0;
-    final static float COLOR_THRESHOLD = 2;
-    float _currentRed  ;
-    float _currentBlue ;
+    final static double COLOR_THRESHOLD = 1.3;
+    double _currentRed  ;
+    double _currentBlue ;
 
-    float[] _runningRed  = new float[10] ;
-    float[] _runningBlue = new float[10] ;
+    double[] _runningRed  = new double[10] ;
+    double[] _runningBlue = new double[10] ;
 
     TT_ColorPicker(ColorSensor colorSensor){
         _colorSensor = colorSensor ;
@@ -30,26 +34,22 @@ public class TT_ColorPicker {
         }
     }
 
-    static  int count = 0;
-    float red_acc = 0 , blue_acc = 0 , red_final = 0 , blue_final = 0;
-
-    // 1 = blue ; 2 = red ; 0 = not sure
-    public int getColor(){
+    public Color getColor(){
 
         insertNewSamples( _colorSensor.red(), _colorSensor.blue());
         calcFinal();
         if ( _currentBlue > ( _currentRed + COLOR_THRESHOLD) ){
-            return  BLUE; // 1 = Blue
+            return  Color.BLUE; // 1 = Blue
         }
         else if ( _currentRed > ( _currentBlue + COLOR_THRESHOLD )){
-            return RED ; // 2 = Red
+            return Color.RED ; // 2 = Red
         }
         else {
-            return UNKNOWN ; // not sure ( not enough difference )
+            return Color.UNKNOWN ; // not sure ( not enough difference )
         }
     }
 
-    private void insertNewSamples(float red, float blue){
+    private void insertNewSamples(double red, double blue){
         for ( int i = 9 ; i >= 1 ; i-- ) {
             _runningRed[i]=_runningRed[i-1] ; // 0->1 ; 1->2 ; ... ; 10-> drop
             _runningBlue[i]=_runningBlue[i-1] ; // 0->1 ; 1->2 ; ... ; 10-> drop
@@ -59,8 +59,8 @@ public class TT_ColorPicker {
     }
 
     private void calcFinal(){
-        float sumOfRed  = 0 ;
-        float sumOfBlue = 0 ;
+        double sumOfRed  = 0 ;
+        double sumOfBlue = 0 ;
         for ( int i = 0 ; i < 10 ; i++ ){
             sumOfBlue += _runningBlue[i] ;
             sumOfRed  += _runningRed[i]  ;

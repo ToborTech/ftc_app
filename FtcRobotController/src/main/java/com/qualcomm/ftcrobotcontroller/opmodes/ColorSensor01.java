@@ -51,61 +51,64 @@ import com.qualcomm.robotcore.util.Range;
 
 public class ColorSensor01 extends TobotHardware {
 
-  final static double LIGHT_THRESHOLD = 0.5;
+    final static double LIGHT_THRESHOLD = 0.5;
 
-  ColorSensor colorSensor;
-  DeviceInterfaceModule cdim;
-  OpticalDistanceSensor op;
-  LightSensor ls1;
-  LightSensor ls2;
+    ColorSensor colorSensor;
+    DeviceInterfaceModule cdim;
+    OpticalDistanceSensor op;
+    LightSensor ls1;
+    LightSensor ls2;
 
-  @Override
-  public void runOpMode() throws InterruptedException {
-    hardwareMap.logDevices();
+    @Override
+    public void runOpMode() throws InterruptedException {
+        hardwareMap.logDevices();
 
-    cdim = hardwareMap.deviceInterfaceModule.get("dim");
-    colorSensor = hardwareMap.colorSensor.get("co");
+        cdim = hardwareMap.deviceInterfaceModule.get("dim");
+        colorSensor = hardwareMap.colorSensor.get("co");
+        colorSensor.enableLed(false);
+        TT_ColorPicker cp = new TT_ColorPicker(colorSensor);
 
-    ls1 = hardwareMap.lightSensor.get("ll");
-    ls2 = hardwareMap.lightSensor.get("lr");
+        ls1 = hardwareMap.lightSensor.get("ll");
+        ls2 = hardwareMap.lightSensor.get("lr");
 
-    // turn on LED of light sensor.
-    ls1.enableLed(true);
-    ls2.enableLed(true);
+        // turn on LED of light sensor.
+        ls1.enableLed(true);
+        ls2.enableLed(true);
 
-    op = hardwareMap.opticalDistanceSensor.get("op");
+        op = hardwareMap.opticalDistanceSensor.get("op");
 
-    tobot_init(State.STATE_AUTO);
+        tobot_init(State.STATE_AUTO);
 
-    waitForStart();
-    int detectwhite = 0;
-    int count = 0;
-    float red_acc = 0 , blue_acc = 0 , red_final = 0 , blue_final = 0;
-    while (opModeIsActive()) {
+        waitForStart();
 
-      count++;
-      red_acc += colorSensor.red();
-      blue_acc += colorSensor.blue();
+        int detectwhite = 0;
+        int count = 0;
+        double red_acc = 0, blue_acc = 0, red_final = 0, blue_final = 0;
+        while (opModeIsActive()) {
 
+            count++;
+            red_acc += colorSensor.red();
+            blue_acc += colorSensor.blue();
 
-      if (count == 10){
-        red_final = red_acc;
-        blue_final = blue_acc;
-        red_acc = 0;
-        blue_acc = 0;
-        count = 0;
-        if(detectWhite()){
-          detectwhite = 1;
+            if (count == 10) {
+                red_final = red_acc;
+                blue_final = blue_acc;
+                red_acc = 0;
+                blue_acc = 0;
+                count = 0;
+            }
+            if (detectWhite()) {
+                detectwhite = 1;
+            } else {
+                detectwhite = 0;
+            }
+            telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", colorSensor.red()));
+            telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", colorSensor.blue()));
+            telemetry.addData("3. TT Color Picker  = ", String.format("%s", cp.getColor().toString()));
+            telemetry.addData("4. L-lig./R-lig     = ", String.format("%.2f/%.2f", ls1.getLightDetected(), ls2.getLightDetected()));
+            telemetry.addData("5. White detected   = ", detectwhite);
+            telemetry.addData("6. Optical Dis. Sen.= ", op.getLightDetected());
+            waitForNextHardwareCycle();
         }
-        else{
-          detectwhite = 0;
-        }
-        telemetry.addData("1. Red   = ", red_final + "/" + String.format("%d",colorSensor.red()));
-        telemetry.addData("2. Blue  = ", blue_final + "/" + String.format("%d",colorSensor.blue()));
-        telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", ls1.getLightDetected(), ls2.getLightDetected()));
-        telemetry.addData("4. White = ", detectwhite);
-        telemetry.addData("5. ODS   = ", op.getLightDetected());
-      }
     }
-  }
 }

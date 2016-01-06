@@ -807,18 +807,18 @@ public class TobotHardware extends LinearOpMode {
 
     void hit_right_button() throws InterruptedException {
         leveler_right();
-        TurnLeftD(0.3, 15, true);
-        sleep(300);
-        TurnLeftD(-0.3, 15, true);
-        sleep(300);
+        StraightIn(0.3, 2);
+        sleep(200);
+        StraightIn(-0.3, 2);
+        sleep(200);
     }
 
     void hit_left_button() throws InterruptedException {
         leveler_left();
-        TurnRightD(0.3, 15, true);
-        sleep(300);
-        TurnRightD(-0.3, 15, true);
-        sleep(300);
+        StraightIn(0.3, 2);
+        sleep(200);
+        StraightIn(-0.3, 2);
+        sleep(200);
     }
 
     public void followLineTillOp(double op_stop_val, boolean leftFirst, double max_sec) throws InterruptedException {

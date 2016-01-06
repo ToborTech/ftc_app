@@ -83,10 +83,10 @@ public class LinearAutoRedOut extends TobotHardware {
             hit_left_button();
 
             // Detect Beacon color and hit the right side
-            if (colorPicker.getColor() == TT_ColorPicker.BLUE) {
+            if (colorPicker.getColor() == TT_ColorPicker.Color.BLUE) {
                 blue_detected = true;
                 hit_left_button();
-            } else if (colorPicker.getColor() == TT_ColorPicker.RED) {
+            } else if (colorPicker.getColor() == TT_ColorPicker.Color.RED) {
                 hit_right_button();
                 red_detected = true;
             } else { // unknown, better not do anything than giving the credit to the opponent
