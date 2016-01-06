@@ -87,7 +87,8 @@ public class TobotHardware extends LinearOpMode {
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
-    final static double RROBOT = 16.5;  // number of wheel turns to get chassis 360-degree turn
+    final static double RROBOT = 17;  // number of wheel turns to get chassis 360-degree turn
+    final static double INCHES_PER_ROTATION = 10; // inches per chassis motor rotation based on 15/24 gear ratio
     int numOpLoops = 1;
 
     //
@@ -574,6 +575,11 @@ public class TobotHardware extends LinearOpMode {
         run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
 
         sleep(300);
+    }
+
+    public void StraightIn(double power, double in) throws InterruptedException {
+        double numberR = in/INCHES_PER_ROTATION;
+        StraightR(power, numberR);
     }
 
     public void driveTT(double lp, double rp) {

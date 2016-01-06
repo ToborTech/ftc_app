@@ -59,18 +59,21 @@ public class LinearAutoRedOut extends TobotHardware {
         waitForStart();
 
 
-        if (false) {
-            StraightR(0.9, 8);
+        if (true) {
+            StraightIn(1, 125);
             //StraightR(-0.5, 2);
-            TurnRightD(0.75, 35, true);
+            TurnRightD(0.75, 40, true);
             //StraightR(0.5, 1);
         }
 
-        goUntilWhite(-0.15);
-        StraightR(0.5, 0.1);
+        if (true) {
+            StraightIn(-1, 10);
+            goUntilWhite(-0.4);
+            StraightR(0.5, 0.1);
+
+        }
         boolean blue_detected = false;
         boolean red_detected = false;
-
         if (true) {
             TurnLeftD(0.5, 90, true);
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
@@ -89,10 +92,11 @@ public class LinearAutoRedOut extends TobotHardware {
             } else { // unknown, better not do anything than giving the credit to the opponent
                 // doing nothing. May print out the message for debugging
             }
+            // dump two climbers
+            climber_mission();
         }
 
-        // dump two climbers
-        climber_mission();
+
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);
