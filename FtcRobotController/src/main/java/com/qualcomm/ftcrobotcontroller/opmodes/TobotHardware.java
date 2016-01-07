@@ -61,9 +61,9 @@ public class TobotHardware extends LinearOpMode {
     final static double WRIST_MID = 0.4;
     final static double WRIST_CLIMBER = 0.15;
     final static double WRIST_COLLECT = 0.11;
-    final static double SHOULDER_START = 0.5115;
+    final static double SHOULDER_START = 0.5095;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
-    final static double SHOULDER_SCORE = 0.8;     // position to outside score position
+    final static double SHOULDER_SCORE = 0.806;     // position to outside score position
     final static double SHOULDER_RED_MID_SCORE = 0.86; //position for scoring mid red zone basket
     final static double SHOULDER_RED_HIGH_SCORE = 0.86; //position for scoring high red zone basket
     final static double SLIDER_LENGHTEN = 0.0;
@@ -421,16 +421,24 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void arm_down() throws InterruptedException {
-        set_elbow_pos(1370, 0.25);
-        arm_slider_in_for_n_sec(0.5);
+        if (arm_state == ArmState.ARM_UP_BACK) {
+            set_elbow_pos(990, 0.25);
+            arm_slider_in_for_n_sec(0.5);
+        }
         set_wrist_pos(WRIST_COLLECT);
-        set_elbow_pos(650, 0.25);
-        set_wrist_pos(WRIST_MID);
-        elbow.setPower(0);
-        if (arm_state == ArmState.ARM_UP_FRONT)
+        if (arm_state == ArmState.ARM_UP_FRONT) {
+            set_elbow_pos(327, 0.25);
             arm_state = ArmState.ARM_DOWN_FRONT;
-        else
+        } else {
+            set_elbow_pos(650, 0.25);
             arm_state = ArmState.ARM_DOWN_BACK;
+        }
+        set_wrist_pos(WRIST_MID);
+        if (arm_state == ArmState.ARM_DOWN_BACK) {
+            set_elbow_pos(375, 0.25);
+        }
+
+        elbow.setPower(0);
     }
 
     void set_shoulder_pos(double pos) {
@@ -476,7 +484,11 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void go_red_mid_zone() throws InterruptedException {
-        set_elbow_pos(685, 0.3);
+        if (arm_state==ArmState.ARM_UP_FRONT) {
+            set_elbow_pos(685, 0.3);
+        } else { // ARM_DOWN_FRONT
+            set_elbow_pos(680, 0.5);
+        }
         set_shoulder_pos(SHOULDER_RED_MID_SCORE);
         wrist.setPosition(WRIST_UP);
         arm_slider_out_for_n_sec(5.0);
@@ -494,10 +506,16 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void arm_up() throws InterruptedException {
+        if (arm_state==ArmState.ARM_DOWN_BACK) {
+            set_elbow_pos(990, 0.5);
+            wrist.setPosition(WRIST_COLLECT);
+            arm_slider_out_for_n_sec(0.7);
+        }
         set_elbow_pos(1335, 0.25);
+
         if (arm_state==ArmState.ARM_DOWN_FRONT)
             arm_state = ArmState.ARM_UP_FRONT;
-        else {
+        else { // either from ARM_DOWN_BACK or ARM_COLLECT
             arm_state = ArmState.ARM_UP_BACK;
         }
     }

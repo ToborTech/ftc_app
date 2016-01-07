@@ -45,7 +45,7 @@ import com.qualcomm.robotcore.util.Range;
 
 /**
  * TobotHardware
- * <p/>
+ * <p>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
 public class RedTeleOp extends TobotHardware {
@@ -250,6 +250,8 @@ public class RedTeleOp extends TobotHardware {
                 gamepad2.reset();
                 if (arm_state == ArmState.ARM_COLLECT) {
                     arm_collect_mode_to_up_back();
+                } else if (arm_state == ArmState.ARM_DOWN_BACK) {
+                    arm_up();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
                     arm_front();
                     sleep(1000);
@@ -262,11 +264,14 @@ public class RedTeleOp extends TobotHardware {
                 }
             } else if (gamepad2.dpad_left) {
                 gamepad2.reset();
-                if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT)
+                if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT) {
                     go_red_mid_zone();
+                } else if (arm_state == ArmState.ARM_UP_BACK) {
+                    arm_down();
+                }
             } else if (gamepad2.dpad_down) {
                 gamepad2.reset();
-                if (arm_state == ArmState.ARM_UP_BACK) {
+                if (arm_state == ArmState.ARM_UP_BACK || arm_state == ArmState.ARM_DOWN_BACK) {
                     arm_collection_mode();
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_back();
