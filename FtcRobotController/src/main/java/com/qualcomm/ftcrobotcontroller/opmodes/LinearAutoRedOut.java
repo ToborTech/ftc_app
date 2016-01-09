@@ -58,52 +58,22 @@ public class LinearAutoRedOut extends TobotHardware {
 
         waitForStart();
 
-
         if (true) {
             StraightIn(1, 125);
             //StraightR(-0.5, 2);
-            TurnRightD(0.75, 40, true);
+            TurnRightD(0.75, 32, true);
             //StraightR(0.5, 1);
+            StraightIn(-1, 18.5);
         }
 
-        if (true) {
-            StraightIn(-1, 10);
-            goUntilWhite(-0.4);
-            StraightR(0.5, 0.1);
-
-        }
-        boolean blue_detected = false;
-        boolean red_detected = false;
-        if (true) {
-            TurnLeftD(0.5, 90, true);
-            // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-            // followLineTillOp(0.03, true, 5);
-            forwardTillOp(0.03, 0.35, 5);
-            StraightR(0.2, 0.05);
-            hit_left_button();
-
-            // Detect Beacon color and hit the right side
-            if (colorPicker.getColor() == TT_ColorPicker.Color.BLUE) {
-                blue_detected = true;
-                hit_left_button();
-            } else if (colorPicker.getColor() == TT_ColorPicker.Color.RED) {
-                hit_right_button();
-                red_detected = true;
-            } else { // unknown, better not do anything than giving the credit to the opponent
-                // doing nothing. May print out the message for debugging
-            }
-            // dump two climbers
-            climber_mission();
-        }
-
-
+        auto_part2(true);
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);
         //  StraightR(0.6,3.33);
         stop_tobot();
-        telemetry.addData("1. Red   = ", red_detected);
-        telemetry.addData("2. Blue  = ", blue_detected);
+        //telemetry.addData("1. Red   = ", red_detected);
+        //telemetry.addData("2. Blue  = ", blue_detected);
         telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
         telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
@@ -111,5 +81,9 @@ public class LinearAutoRedOut extends TobotHardware {
         telemetry.addData("7. wrist", "pos: " + String.format("%.2f", wrist_pos));
         telemetry.addData("8. gate", "pos: " + String.format("%.2f", gate_pos));
         telemetry.addData("9. arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
+
     }
+
+
+
 }

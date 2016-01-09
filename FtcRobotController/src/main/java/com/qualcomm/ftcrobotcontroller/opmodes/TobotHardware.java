@@ -53,7 +53,7 @@ public class TobotHardware extends LinearOpMode {
     // CONSTANT VALUES.
     final static double ARM_MIN_RANGE = 0.20;
     final static double ARM_MAX_RANGE = 0.90;
-    final static double THRESHOLD = 0.01;
+    final static double THRESHOLD = 0.1;
     final static double SERVO_SCALE = 0.001;
     final static double GATE_CLOSED = 0.05;
     final static double GATE_OPEN = 0.91;
@@ -61,7 +61,7 @@ public class TobotHardware extends LinearOpMode {
     final static double WRIST_MID = 0.4;
     final static double WRIST_CLIMBER = 0.15;
     final static double WRIST_COLLECT = 0.11;
-    final static double SHOULDER_START = 0.5095;
+    final static double SHOULDER_START = 0.5099;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
     final static double SHOULDER_RED_MID_SCORE = 0.86; //position for scoring mid red zone basket
@@ -82,13 +82,12 @@ public class TobotHardware extends LinearOpMode {
     final static double LEFT_CLIMBER_UP = 0.2;
     final static double LEFT_CLIMBER_MID = 0.65;
     final static double LEFT_CLIMBER_LOW = 0.8;
-    final static double WHITE_MIN = 0.5;
-    final static double WHITE_MAX = 0.75;
-
+    final static double WHITE_MIN = 0.35;
+    final static double WHITE_MAX = 0.6;
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
-    final static double RROBOT = 17;  // number of wheel turns to get chassis 360-degree turn
-    final static double INCHES_PER_ROTATION = 10; // inches per chassis motor rotation based on 15/24 gear ratio
+    final static double RROBOT = 16.8;  // number of wheel turns to get chassis 360-degree turn
+    final static double INCHES_PER_ROTATION = 9.8; // inches per chassis motor rotation based on 16/24 gear ratio
     int numOpLoops = 1;
 
     //
@@ -144,7 +143,6 @@ public class TobotHardware extends LinearOpMode {
     // IBNO055IMU imu;
     TT_Nav nav;
     TT_ColorPicker colorPicker;
-
 
     // following variables are used by Chassis
     State state;
@@ -294,7 +292,7 @@ public class TobotHardware extends LinearOpMode {
         light_sensor_sv.setPosition(light_sensor_sv_pos);
         set_right_climber(RIGHT_CLIMBER_UP);
         set_left_climber(LEFT_CLIMBER_UP);
-        arm_power = 0.25;
+        arm_power = 0.2;
         cur_arm_power = 0;
         shoulder_dir = 0;
         elbow_pos = elbow.getCurrentPosition();
@@ -878,6 +876,39 @@ public class TobotHardware extends LinearOpMode {
             waitForNextHardwareCycle();
         }
         stop_chassis();
+    }
+
+    public void auto_part2(boolean is_red) throws InterruptedException {
+
+        goUntilWhite(-0.4);
+
+        boolean blue_detected = false;
+        boolean red_detected = false;
+        if (true) {
+            if (is_red) {
+                TurnLeftD(0.5, 90, true);
+            } else { // must be blue zone
+                TurnRightD(0.5, 90, true);
+            }
+            // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
+            // followLineTillOp(0.03, true, 5);
+            forwardTillOp(0.02, 0.35, 2.0);
+            StraightIn(0.2, 5.0);
+            //hit_left_button();
+
+            // Detect Beacon color and hit the right side
+            if (colorPicker.getColor() == TT_ColorPicker.Color.BLUE) {
+                blue_detected = true;
+                hit_left_button();
+            } else if (colorPicker.getColor() == TT_ColorPicker.Color.RED) {
+                hit_right_button();
+                red_detected = true;
+            } else { // unknown, better not do anything than giving the credit to the opponent
+                // doing nothing. May print out the message for debugging
+            }
+            // dump two climbers
+            climber_mission();
+        }
     }
 
     public boolean detectWhite() {

@@ -64,8 +64,10 @@ public class RedTeleOp extends TobotHardware {
             elbow_pos = elbow.getCurrentPosition();
             tape_slider_pos = tape_slider.getCurrentPosition();
             tape_rotator_pos = tape_rotator.getCurrentPosition();
-            shoulder_dir = -gamepad2.left_stick_x;
+            shoulder_dir = -gamepad2.right_stick_x;
             elbow_dir = -gamepad2.right_stick_y;
+            tape_slider_dir = -gamepad2.left_stick_y;
+            tape_rotator_dir = -gamepad2.left_stick_x;
 
             right = Range.clip(right, -1, 1);
             left = Range.clip(left, -1, 1);
@@ -164,7 +166,7 @@ public class RedTeleOp extends TobotHardware {
             if (tape_count > 0)
                 tape_count--;
             else {
-                tape_rotator_dir = 0;
+                // tape_rotator_dir = 0;
             }
 
             if (gamepad2.x || gamepad2.b) { // control continuous serve requires wait
@@ -197,7 +199,7 @@ public class RedTeleOp extends TobotHardware {
             if (elbow_count > 0) {
                 elbow_count--;
             } else if (elbow_dir < -THRESHOLD) { // arm down 20% of power
-                cur_arm_power = -arm_power * 0.2;
+                cur_arm_power = -arm_power * 0.3;
                 elbow_count = 10;
             } else if (elbow_dir > THRESHOLD) { // arm up
                 cur_arm_power = arm_power;
@@ -205,17 +207,17 @@ public class RedTeleOp extends TobotHardware {
             } else {
                 cur_arm_power = 0;
             }
-            if (tape_slider_dir < -THRESHOLD) { // tape slider in 100% power
+            if (tape_slider_dir < -THRESHOLD*2.0) { // tape slider in 100% power
                 tape_slider.setPower(-1);
-            } else if (tape_slider_dir > THRESHOLD) { // tape slider out 100% power
+            } else if (tape_slider_dir > THRESHOLD*2.0) { // tape slider out 100% power
                 tape_slider.setPower(1);
             } else {
                 tape_slider.setPower(0);
             }
-            if (tape_rotator_dir < -THRESHOLD) { // tape down 20% of power
-                tape_rotator.setPower(-0.2);
-            } else if (tape_rotator_dir > THRESHOLD) { // arm up 30% of power
-                tape_rotator.setPower(0.3);
+            if (tape_rotator_dir < -THRESHOLD*7.5) { // tape down 20% of power
+                tape_rotator.setPower(-0.15);
+            } else if (tape_rotator_dir > THRESHOLD*7.5) { // arm up 30% of power
+                tape_rotator.setPower(0.25);
             } else {
                 tape_rotator.setPower(0);
             }
