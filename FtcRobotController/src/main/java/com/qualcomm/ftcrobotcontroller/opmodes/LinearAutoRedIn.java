@@ -58,7 +58,7 @@ public class LinearAutoRedIn extends TobotHardware {
             //StraightR(-0.5, 2);
             TurnRightD(0.75, 45, true);
             //StraightR(0.5, 1);
-            StraightIn(0.5, 24);
+            StraightIn(0.3, 24);
         }
 
         auto_part2(true);

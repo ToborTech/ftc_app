@@ -61,10 +61,11 @@ public class TobotHardware extends LinearOpMode {
     final static double WRIST_MID = 0.4;
     final static double WRIST_CLIMBER = 0.15;
     final static double WRIST_COLLECT = 0.11;
-    final static double SHOULDER_START = 0.5099;
+    final static double SHOULDER_START = 0.5102 ;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
     final static double SHOULDER_RED_MID_SCORE = 0.86; //position for scoring mid red zone basket
+    final static double SHOULDER_BLUE_MID_SCORE = 0.7240; //position for scoring mid blue zone basket
     final static double SHOULDER_RED_HIGH_SCORE = 0.86; //position for scoring high red zone basket
     final static double SLIDER_LENGHTEN = 0.0;
     final static double SLIDER_SHORTEN = 1.0;
@@ -150,6 +151,7 @@ public class TobotHardware extends LinearOpMode {
 
     public enum State {
         STATE_TELEOP,    // state to test teleop
+        STATE_TELEOP_NO_AUTO,
         STATE_AUTO,        // state to test auto routines
         STATE_TUNEUP    // state to manually tune up servo positions and arm positions
     }
@@ -280,6 +282,7 @@ public class TobotHardware extends LinearOpMode {
             light_sensor_sv = null;
         }
         set_shoulder_pos(SHOULDER_START);
+
         wrist_pos = WRIST_UP;
         wrist.setPosition(wrist_pos);
         gate_pos = GATE_CLOSED;
@@ -328,7 +331,11 @@ public class TobotHardware extends LinearOpMode {
         motorBL.setPower(0);
 
         state = st;
-        arm_state = ArmState.ARM_INIT;
+        if (state == State.STATE_TELEOP_NO_AUTO) {
+            arm_state = ArmState.ARM_INIT;
+        } else {
+            arm_state = ArmState.ARM_DOWN_BACK;
+        }
 
         reset_motors();
         stop_tobot();
@@ -470,15 +477,18 @@ public class TobotHardware extends LinearOpMode {
         }
     }
 
-    void climber_mission() throws InterruptedException {
+    void climber_mission(boolean should_dump) throws InterruptedException {
         release_arm();
         arm_front();
         wrist.setPosition(WRIST_CLIMBER);
         sleep(3000);
-        open_gate();
-        sleep(2000);
-        close_gate();
-        arm_back();
+        if (should_dump) {
+            open_gate();
+            sleep(2000);
+            close_gate();
+        }
+        arm_back(); wait_arm_pos(5);
+        arm_down();
     }
 
     void go_red_mid_zone() throws InterruptedException {
@@ -491,6 +501,17 @@ public class TobotHardware extends LinearOpMode {
         wrist.setPosition(WRIST_UP);
         arm_slider_out_for_n_sec(5.0);
         arm_state = ArmState.ARM_SCORE_MID_RED;
+    }
+    void go_blue_mid_zone() throws InterruptedException {
+        if (arm_state==ArmState.ARM_UP_FRONT) {
+            set_elbow_pos(685, 0.3);
+        } else { // ARM_DOWN_FRONT
+            set_elbow_pos(680, 0.5);
+        }
+        set_shoulder_pos(SHOULDER_BLUE_MID_SCORE);
+        wrist.setPosition(WRIST_UP);
+        arm_slider_out_for_n_sec(5.0);
+        arm_state = ArmState.ARM_SCORE_MID_BLUE;
     }
 
     void arm_back_from_goal() throws InterruptedException {
@@ -538,13 +559,16 @@ public class TobotHardware extends LinearOpMode {
     void arm_collection_mode() throws InterruptedException {
         if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_back();
-        }
-        if (arm_state == ArmState.ARM_UP_BACK) {
+        } else if (arm_state == ArmState.ARM_UP_BACK) {
             arm_down();
         }
         set_light_sensor(LIGHT_SENSOR_DOWN);
-        set_elbow_pos(200, 0.25);
-        arm_slider_out_for_n_sec(2);
+        set_elbow_pos(180, 0.25);
+        if (arm_state == ArmState.ARM_INIT) {
+            arm_slider_out_for_n_sec(1.5);
+        } else {
+            arm_slider_out_for_n_sec(2);
+        }
         wrist.setPosition(WRIST_COLLECT);
         set_elbow_pos(90, 0.25);
         arm_slider_out_for_n_sec(2.5);
@@ -897,17 +921,20 @@ public class TobotHardware extends LinearOpMode {
             //hit_left_button();
 
             // Detect Beacon color and hit the right side
+            boolean should_dump = false;
             if (colorPicker.getColor() == TT_ColorPicker.Color.BLUE) {
                 blue_detected = true;
+                should_dump = true;
                 hit_left_button();
             } else if (colorPicker.getColor() == TT_ColorPicker.Color.RED) {
                 hit_right_button();
                 red_detected = true;
+                should_dump = true;
             } else { // unknown, better not do anything than giving the credit to the opponent
                 // doing nothing. May print out the message for debugging
             }
             // dump two climbers
-            climber_mission();
+            climber_mission(should_dump);
         }
     }
 

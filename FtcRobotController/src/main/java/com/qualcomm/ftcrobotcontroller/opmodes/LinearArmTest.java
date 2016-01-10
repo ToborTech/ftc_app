@@ -82,7 +82,7 @@ public class LinearArmTest extends TobotHardware {
         if (gamepad2.right_bumper) {
           if (arm_state==ArmState.ARM_INIT)
             //release_arm();
-          climber_mission();
+          climber_mission(true);
           else if (arm_state==ArmState.ARM_COLLECT)
             arm_collect_mode_to_up_back();
         }

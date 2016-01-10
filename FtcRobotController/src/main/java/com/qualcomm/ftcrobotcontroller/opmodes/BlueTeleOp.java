@@ -31,16 +31,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
-import com.qualcomm.ftccommon.DbgLog;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
-import com.qualcomm.robotcore.hardware.LightSensor;
-import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -48,7 +38,7 @@ import com.qualcomm.robotcore.util.Range;
  * <p>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
-public class RedTeleOp extends TobotHardware {
+public class BlueTeleOp extends TobotHardware {
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -264,20 +254,20 @@ public class RedTeleOp extends TobotHardware {
                 } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
                     arm_up();
                 }
-            } else if (gamepad2.dpad_left) {
+            } else if (gamepad2.dpad_right) {
                 gamepad2.reset();
                 if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT) {
-                    go_red_mid_zone();
+                    go_blue_mid_zone();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
                     arm_down();
                 }
             } else if (gamepad2.dpad_down) {
                 gamepad2.reset();
-                if (arm_state == ArmState.ARM_UP_BACK || arm_state == ArmState.ARM_DOWN_BACK ||
-                        arm_state == ArmState.ARM_INIT) {
+                if (arm_state == ArmState.ARM_UP_BACK || arm_state == ArmState.ARM_DOWN_BACK) {
                     arm_collection_mode();
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
-                    arm_back();
+
+
                     sleep(1000);
                 } else if (arm_state == ArmState.ARM_SCORE_MID_RED) {
                     arm_back_from_goal();

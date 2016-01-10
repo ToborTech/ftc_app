@@ -54,12 +54,11 @@ public class LinearAutoBlueIn extends TobotHardware {
         waitForStart();
 
         if (true) {
-            StraightIn(0.5, 71);
+            StraightIn(0.3, 71);
             //StraightR(-0.5, 2);
             TurnLeftD(0.5, 45, true);
             //StraightR(0.5, 1);
-            StraightIn(0.5, 22
-            );
+            StraightIn(0.3, 22);
         }
 
         auto_part2(false);
