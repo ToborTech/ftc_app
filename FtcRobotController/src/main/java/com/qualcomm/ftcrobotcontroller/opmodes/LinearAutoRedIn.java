@@ -31,22 +31,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
-import com.qualcomm.ftccommon.DbgLog;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
-
 /**
  * Linear Tele Op Mode
  * <p/>
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-public class LinearAutoRedOut extends TobotHardware {
+public class LinearAutoRedIn extends TobotHardware {
     // CONSTANT VALUES.
     // CONSTANT VALUES.
 
-    /*
+    /**
      * Constructor
      */
 
@@ -59,11 +54,11 @@ public class LinearAutoRedOut extends TobotHardware {
         waitForStart();
 
         if (true) {
-            StraightIn(1, 125);
+            StraightIn(0.5,75);
             //StraightR(-0.5, 2);
-            TurnRightD(0.75, 32, true);
+            TurnRightD(0.75, 45, true);
             //StraightR(0.5, 1);
-            StraightIn(-1, 18.5);
+            StraightIn(0.5, 24);
         }
 
         auto_part2(true);
