@@ -266,10 +266,9 @@ public class BlueTeleOp extends TobotHardware {
                 if (arm_state == ArmState.ARM_UP_BACK || arm_state == ArmState.ARM_DOWN_BACK) {
                     arm_collection_mode();
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
-
-
+                    arm_back();
                     sleep(1000);
-                } else if (arm_state == ArmState.ARM_SCORE_MID_RED) {
+                } else if (arm_state == ArmState.ARM_SCORE_MID_RED  || arm_state == ArmState.ARM_SCORE_MID_BLUE) {
                     arm_back_from_goal();
                 }
             }

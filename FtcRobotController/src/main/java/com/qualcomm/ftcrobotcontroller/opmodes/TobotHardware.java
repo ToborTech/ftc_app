@@ -77,17 +77,19 @@ public class TobotHardware extends LinearOpMode {
     final static double LEVELER_RIGHT = 0.92;
     final static double LEVELER_DOWN = 0.52;
     final static double LEVELER_LEFT = 0.08;
+    final static double FRONT_SV_DOWN = 0.99;
+    final static double FRONT_SV_UP = 0.43;
     final static double RIGHT_CLIMBER_UP = 0.75;
     final static double RIGHT_CLIMBER_MID = 0.5;
     final static double RIGHT_CLIMBER_LOW = 0.2;
     final static double LEFT_CLIMBER_UP = 0.2;
     final static double LEFT_CLIMBER_MID = 0.65;
     final static double LEFT_CLIMBER_LOW = 0.8;
-    final static double WHITE_MIN = 0.35;
-    final static double WHITE_MAX = 0.6;
+    final static double WHITE_MIN = 0.45;
+    final static double WHITE_MAX = 0.85;
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
-    final static double RROBOT = 16.8;  // number of wheel turns to get chassis 360-degree turn
+    final static double RROBOT = 15.5;  // number of wheel turns to get chassis 360-degree turn
     final static double INCHES_PER_ROTATION = 9.8; // inches per chassis motor rotation based on 16/24 gear ratio
     int numOpLoops = 1;
 
@@ -104,6 +106,7 @@ public class TobotHardware extends LinearOpMode {
     double gate_pos;
     double slider_pos;
     double leveler_pos;
+    double front_sv_pos;
     double light_sensor_sv_pos;
     double climberL_pos;
     double climberR_pos;
@@ -134,6 +137,7 @@ public class TobotHardware extends LinearOpMode {
     Servo light_sensor_sv;
     Servo climberL;
     Servo climberR;
+    Servo front_sv;
 
     // variables for sensors
     ColorSensor coSensor;
@@ -261,6 +265,14 @@ public class TobotHardware extends LinearOpMode {
             leveler = null;
         }
         try {
+            front_sv = hardwareMap.servo.get("front_sv");
+        } catch (Exception p_exeception) {
+            m_warning_message("front_sv");
+            DbgLog.msg(p_exeception.getLocalizedMessage());
+            front_sv = null;
+        }
+        front_sv_down();
+        try {
             climberR = hardwareMap.servo.get("climberR");
         } catch (Exception p_exeception) {
             m_warning_message("climberR");
@@ -291,6 +303,8 @@ public class TobotHardware extends LinearOpMode {
         arm_slider.setPosition(slider_pos);
         leveler_pos = LEVELER_DOWN;
         leveler.setPosition(leveler_pos);
+        front_sv_pos = FRONT_SV_DOWN;
+        front_sv.setPosition(front_sv_pos);
         light_sensor_sv_pos = LIGHT_SENSOR_DOWN;
         light_sensor_sv.setPosition(light_sensor_sv_pos);
         set_right_climber(RIGHT_CLIMBER_UP);
@@ -459,6 +473,7 @@ public class TobotHardware extends LinearOpMode {
     void arm_front() throws InterruptedException {
         set_shoulder_pos(SHOULDER_SCORE);
         set_light_sensor(LIGHT_SENSOR_UP); // also make sure light sensor up in case need to go climbing mt
+        front_sv_up();
         wait_arm_pos(7);
         arm_state = ArmState.ARM_UP_FRONT;
     }
@@ -486,9 +501,9 @@ public class TobotHardware extends LinearOpMode {
             open_gate();
             sleep(2000);
             close_gate();
+            arm_back(); sleep(3000);
+            arm_down();
         }
-        arm_back(); wait_arm_pos(5);
-        arm_down();
     }
 
     void go_red_mid_zone() throws InterruptedException {
@@ -504,9 +519,9 @@ public class TobotHardware extends LinearOpMode {
     }
     void go_blue_mid_zone() throws InterruptedException {
         if (arm_state==ArmState.ARM_UP_FRONT) {
-            set_elbow_pos(685, 0.3);
+            set_elbow_pos(635, 0.3);
         } else { // ARM_DOWN_FRONT
-            set_elbow_pos(680, 0.5);
+            set_elbow_pos(630, 0.5);
         }
         set_shoulder_pos(SHOULDER_BLUE_MID_SCORE);
         wrist.setPosition(WRIST_UP);
@@ -563,6 +578,7 @@ public class TobotHardware extends LinearOpMode {
             arm_down();
         }
         set_light_sensor(LIGHT_SENSOR_DOWN);
+        front_sv_down();
         set_elbow_pos(180, 0.25);
         if (arm_state == ArmState.ARM_INIT) {
             arm_slider_out_for_n_sec(1.5);
@@ -675,7 +691,7 @@ public class TobotHardware extends LinearOpMode {
 
         run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
 
-        sleep(300);
+        sleep(500);
     }
 
     public void TurnRightD(double power, int degree, boolean spotTurn) throws InterruptedException {
@@ -700,7 +716,7 @@ public class TobotHardware extends LinearOpMode {
         leftPower = (float) power;
         run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
 
-        sleep(300);
+        sleep(500);
     }
 
     void set_drive_modes(DcMotorController.RunMode mode) {
@@ -815,6 +831,17 @@ public class TobotHardware extends LinearOpMode {
         }
         return dScale;
     }
+    void front_sv_up() throws InterruptedException {
+        front_sv_pos = FRONT_SV_UP;
+        front_sv.setPosition(front_sv_pos);
+        sleep(500);
+    }
+    void front_sv_down() throws InterruptedException {
+        front_sv_pos = FRONT_SV_DOWN;
+        front_sv.setPosition(front_sv_pos);
+        sleep(500);
+    }
+
 
     void leveler_right() throws InterruptedException {
         leveler_pos = LEVELER_RIGHT;
@@ -905,6 +932,7 @@ public class TobotHardware extends LinearOpMode {
     public void auto_part2(boolean is_red) throws InterruptedException {
 
         goUntilWhite(-0.4);
+        StraightIn(0.5, 2.5);
 
         boolean blue_detected = false;
         boolean red_detected = false;
@@ -916,8 +944,8 @@ public class TobotHardware extends LinearOpMode {
             }
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
             // followLineTillOp(0.03, true, 5);
-            forwardTillOp(0.02, 0.35, 2.0);
-            StraightIn(0.2, 5.0);
+            forwardTillOp(0.023, 0.35, 2.0);
+            StraightIn(0.3, 4.0);
             //hit_left_button();
 
             // Detect Beacon color and hit the right side
@@ -934,7 +962,8 @@ public class TobotHardware extends LinearOpMode {
                 // doing nothing. May print out the message for debugging
             }
             // dump two climbers
-            climber_mission(should_dump);
+            // climber_mission(should_dump);
+            climber_mission(true);
         }
     }
 

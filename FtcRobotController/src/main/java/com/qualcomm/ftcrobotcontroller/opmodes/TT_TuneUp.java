@@ -87,10 +87,20 @@ public class TT_TuneUp extends TobotHardware {
 
             if (state == State.STATE_TUNEUP) {
                 if (gamepad1.dpad_down) { // backward 2-rotation
-                    StraightR(-0.8, 2);
+                    // StraightR(-0.8, 2);
+                    front_sv_pos -= (SERVO_SCALE);
+                    if (front_sv_pos < 0) {
+                        front_sv_pos = 0.01;
+                    }
+                    front_sv.setPosition(front_sv_pos);
                 }
                 if (gamepad1.dpad_up) { //forward 2 rotation
-                    StraightR(0.8, 2);
+                    // StraightR(0.8, 2);
+                  front_sv_pos += (SERVO_SCALE);
+                    if (front_sv_pos > 1) {
+                        front_sv_pos = 0.99;
+                    }
+                    front_sv.setPosition(front_sv_pos);
                 }
                 if (gamepad1.dpad_left) { //left spot turn 90 Degrees
                     TurnLeftD(0.8, 90, true);
@@ -155,18 +165,6 @@ public class TT_TuneUp extends TobotHardware {
                 tape_slider_dir = 0;
                 tape_rotator_dir = 0;
                 tape_slider.setPower(0); // slider power off right away
-            } else if (gamepad1.dpad_up) {
-                tape_slider_dir = 1;
-            } else if (gamepad1.dpad_down) {
-                tape_slider_dir = -1;
-            }
-
-            if (gamepad1.dpad_left) {
-                tape_rotator_dir = 1;
-                tape_count = 2;
-            } else if (gamepad1.dpad_right) {
-                tape_rotator_dir = -1;
-                tape_count = 1;
             }
 
             if (slider_counter > 0)
@@ -303,7 +301,8 @@ public class TT_TuneUp extends TobotHardware {
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         telemetry.addData("7. leveler = ", String.format("%.2f", leveler_pos) + String.format(", light sensor sv = %.2f", light_sensor_sv_pos));
         telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + rightCnt);
-        telemetry.addData("9. ods:", String.format("%.2f, imu: disable", opSensor.getLightDetected()));
+        telemetry.addData("9. ods:", String.format("%.2f, imu: disable", opSensor.getLightDetected())+
+                String.format("fr_sv_pos = %.2f",front_sv_pos));
     }
 
 }

@@ -261,6 +261,13 @@ public class TeleOpNoAuto extends TobotHardware {
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
                     arm_down();
                 }
+            } else if (gamepad2.dpad_right) {
+                gamepad2.reset();
+                if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT) {
+                    go_blue_mid_zone();
+                } else if (arm_state == ArmState.ARM_UP_BACK) {
+                    arm_down();
+                }
             } else if (gamepad2.dpad_down) {
                 gamepad2.reset();
                 if (arm_state == ArmState.ARM_UP_BACK || arm_state == ArmState.ARM_DOWN_BACK ||
@@ -269,7 +276,7 @@ public class TeleOpNoAuto extends TobotHardware {
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_back();
                     sleep(1000);
-                } else if (arm_state == ArmState.ARM_SCORE_MID_RED) {
+                } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE) {
                     arm_back_from_goal();
                 }
             }
