@@ -255,7 +255,7 @@ public class RedTeleOp extends TobotHardware {
                 } else if (arm_state == ArmState.ARM_DOWN_BACK) {
                     arm_up();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
-                    arm_front();
+                    arm_front(true);
                     sleep(1000);
                 } else if (arm_state == ArmState.ARM_INIT) {
                     release_arm();

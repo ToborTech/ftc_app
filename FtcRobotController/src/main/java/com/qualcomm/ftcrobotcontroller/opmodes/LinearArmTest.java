@@ -107,7 +107,7 @@ public class LinearArmTest extends TobotHardware {
       }
       if (gamepad2.y) {
         if (arm_state==ArmState.ARM_UP_BACK)
-           arm_front();
+           arm_front(true);
         else if (arm_state==ArmState.ARM_DOWN_FRONT)
           go_red_mid_zone();
         else if (arm_state==ArmState.ARM_DOWN_BACK)

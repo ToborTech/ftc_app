@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.hardware.UltrasonicSensor;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -56,6 +57,7 @@ public class ColorSensor01 extends TobotHardware {
     ColorSensor colorSensor;
     DeviceInterfaceModule cdim;
     OpticalDistanceSensor op;
+    UltrasonicSensor   ultra;
     LightSensor ls1;
     LightSensor ls2;
 
@@ -76,6 +78,7 @@ public class ColorSensor01 extends TobotHardware {
         ls2.enableLed(true);
 
         op = hardwareMap.opticalDistanceSensor.get("op");
+        ultra = hardwareMap.ultrasonicSensor.get("ultra");
 
         tobot_init(State.STATE_AUTO);
 
@@ -105,9 +108,9 @@ public class ColorSensor01 extends TobotHardware {
             telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", colorSensor.red()));
             telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", colorSensor.blue()));
             telemetry.addData("3. TT Color Picker  = ", String.format("%s", cp.getColor().toString()));
-            telemetry.addData("4. L-lig./R-lig     = ", String.format("%.2f/%.2f", ls1.getLightDetected(), ls2.getLightDetected()));
+            telemetry.addData("4. L-lig./R-lig     = ", String.format("%.2f / %.2f", ls1.getLightDetected(), ls2.getLightDetected()));
             telemetry.addData("5. White detected   = ", detectwhite);
-            telemetry.addData("6. Optical Dis. Sen.= ", op.getLightDetected());
+            telemetry.addData("6. ODS / Ultra      = ", String.format("%.4f / %.4f", op.getLightDetected(),ultra.getUltrasonicLevel()));
             waitForNextHardwareCycle();
         }
     }

@@ -35,14 +35,14 @@ import com.qualcomm.robotcore.util.Range;
 
 /**
  * TobotHardware
- * <p>
+ * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
 public class TeleOpNoAuto extends TobotHardware {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        tobot_init(State.STATE_TELEOP_NO_AUTO);
+        tobot_init(State.STATE_TELEOP);
 
         waitForStart();
 
@@ -57,7 +57,7 @@ public class TeleOpNoAuto extends TobotHardware {
             shoulder_dir = -gamepad2.right_stick_x;
             elbow_dir = -gamepad2.right_stick_y;
             tape_slider_dir = -gamepad2.left_stick_y;
-            tape_rotator_dir = -gamepad2.left_stick_x;
+            // tape_rotator_dir = -gamepad2.left_stick_x;
 
             right = Range.clip(right, -1, 1);
             left = Range.clip(left, -1, 1);
@@ -87,10 +87,7 @@ public class TeleOpNoAuto extends TobotHardware {
                 SW_power = (float) -1.0;
             }
             // update the speed of the chassis, or stop tape slider
-            if (gamepad1.a && gamepad1.y) {
-                tape_slider_dir = 0;
-                tape_count = 0;
-            } else if (gamepad1.a) {
+            if (gamepad1.a) {
                 // if the A button is pushed on gamepad1, decrease the speed
                 // of the chassis
                 if (speedScale > 0.1)
@@ -113,40 +110,26 @@ public class TeleOpNoAuto extends TobotHardware {
             if (gamepad1.right_bumper) { // right climber up
                 set_right_climber(RIGHT_CLIMBER_UP);
             }
+
             if (gamepad1.left_trigger > 0.1) { // left climber down
                 if (Math.abs(climberL_pos - LEFT_CLIMBER_MID) < 0.05) {
                     set_left_climber(LEFT_CLIMBER_LOW);
                 } else {
                     set_left_climber(LEFT_CLIMBER_MID);
                 }
-                sleep(500);
+                sleep(300);
             }
             if (gamepad1.left_bumper) { // left climber up
                 set_left_climber(LEFT_CLIMBER_UP);
             }
-            //control direction of tape slider and tape rotator
-            // up to stop/slide out
-            // down to stop/slide in
-            // left to stop/rotate up
-            // right to stop/rotate down
-            if (gamepad1.back) { // stop tape
-                tape_slider_dir = 0;
-                tape_rotator_dir = 0;
-                tape_slider.setPower(0); // slider power off right away
-            } else if (gamepad1.dpad_up) {
-                tape_slider_dir = 1;
-            } else if (gamepad1.dpad_down) {
-                tape_slider_dir = -1;
+            if (gamepad1.dpad_down) {
+                // front guard down
+                front_sv_down();
             }
-
-            if (gamepad1.dpad_left) {
-                tape_rotator_dir = 1;
-                tape_count = 2;
-            } else if (gamepad1.dpad_right) {
-                tape_rotator_dir = -1;
-                tape_count = 1;
+            if (gamepad1.dpad_up) {
+                // front guard up
+                front_sv_up();
             }
-
             if (slider_counter > 0)
                 slider_counter--;
             else {
@@ -156,7 +139,7 @@ public class TeleOpNoAuto extends TobotHardware {
             if (tape_count > 0)
                 tape_count--;
             else {
-                // tape_rotator_dir = 0;
+                tape_rotator_dir = 0;
             }
 
             if (gamepad2.x || gamepad2.b) { // control continuous serve requires wait
@@ -197,20 +180,14 @@ public class TeleOpNoAuto extends TobotHardware {
             } else {
                 cur_arm_power = 0;
             }
-            if (tape_slider_dir < -THRESHOLD*2.0) { // tape slider in 100% power
+            if (tape_slider_dir < -THRESHOLD * 2.0) { // tape slider in 100% power
                 tape_slider.setPower(-1);
-            } else if (tape_slider_dir > THRESHOLD*2.0) { // tape slider out 100% power
+            } else if (tape_slider_dir > THRESHOLD * 2.0) { // tape slider out 100% power
                 tape_slider.setPower(1);
             } else {
                 tape_slider.setPower(0);
             }
-            if (tape_rotator_dir < -THRESHOLD*7.5) { // tape down 20% of power
-                tape_rotator.setPower(-0.15);
-            } else if (tape_rotator_dir > THRESHOLD*7.5) { // arm up 30% of power
-                tape_rotator.setPower(0.25);
-            } else {
-                tape_rotator.setPower(0);
-            }
+
             if (shoulder_dir > THRESHOLD) {
                 shoulder_pos += (SERVO_SCALE);
                 if (shoulder_pos > 1) {
@@ -224,20 +201,53 @@ public class TeleOpNoAuto extends TobotHardware {
             }
             shoulder.setPosition(shoulder_pos);
 
-            if (gamepad2.right_trigger > 0.1) {
+            if ((gamepad2.right_trigger>0.1) && gamepad2.start) {
+                calibre_elbow();
+            } else if (gamepad2.right_trigger > 0.1) {
                 gate_pos = GATE_OPEN;
             }
-            if (gamepad2.right_bumper) {
+
+            if (gamepad2.right_bumper && gamepad2.start) { // change arm state
+                // arm_init -> arm_down_back -> arm_up_back -> arm_up_front ->arm_init
+                if (arm_state==ArmState.ARM_INIT) {
+                    arm_state = ArmState.ARM_DOWN_BACK;
+                } else if (arm_state==ArmState.ARM_DOWN_BACK) {
+                    arm_state = ArmState.ARM_UP_BACK;
+                } else if (arm_state==ArmState.ARM_UP_BACK) {
+                    arm_state = ArmState.ARM_UP_FRONT;
+                } else if (arm_state==ArmState.ARM_UP_FRONT) {
+                    arm_state = ArmState.ARM_INIT;
+                }
+                gamepad2.reset();
+                sleep(200);
+            } else if (gamepad2.right_bumper) {
                 gate_pos = GATE_CLOSED;
             }
+
             gate.setPosition(gate_pos);
 
-            if (gamepad2.left_trigger > 0.1) {
+            if ((gamepad2.left_trigger > 0.1) && (gamepad2.start)) {
                 set_wrist_pos(WRIST_COLLECT);
+            } else if (gamepad2.left_trigger > 0.1) { // tape down
+                    tape_rotator_dir = -1;
+                    tape_count = 0;
             }
-            if (gamepad2.left_bumper) {
+
+            if (gamepad2.left_bumper && gamepad2.start) {
                 set_wrist_pos(WRIST_UP);
+            } else if (gamepad2.left_bumper ){
+                    tape_rotator_dir = 1;
+                    tape_count = 0;
             }
+
+            if (tape_rotator_dir < -0.1) { // tape down 20% of power
+                tape_rotator.setPower(-0.15); sleep(2);
+            } else if (tape_rotator_dir > 0.1) { // arm up 30% of power
+                tape_rotator.setPower(0.25); sleep(2);
+            } else {
+                tape_rotator.setPower(0);
+            }
+
             if (gamepad2.dpad_up) {
                 gamepad2.reset();
                 if (arm_state == ArmState.ARM_COLLECT) {
@@ -245,7 +255,7 @@ public class TeleOpNoAuto extends TobotHardware {
                 } else if (arm_state == ArmState.ARM_DOWN_BACK) {
                     arm_up();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
-                    arm_front();
+                    arm_front(true);
                     sleep(1000);
                 } else if (arm_state == ArmState.ARM_INIT) {
                     release_arm();
@@ -281,8 +291,8 @@ public class TeleOpNoAuto extends TobotHardware {
                 }
             }
 
-            show_telemetry();
-            waitOneFullHardwareCycle();
+        show_telemetry();
+        waitOneFullHardwareCycle();
         }
     }
 }

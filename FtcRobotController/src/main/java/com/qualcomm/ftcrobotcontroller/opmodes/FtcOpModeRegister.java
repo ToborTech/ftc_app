@@ -72,11 +72,11 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("AutoRedOut", LinearAutoRedOut.class);
     manager.register("AutoBlueIn", LinearAutoBlueIn.class);
     manager.register("AutoBlueOut", LinearAutoBlueOut.class);
-    manager.register("RedTeleOp", RedTeleOp.class);
-    manager.register("BlueTeleOp", BlueTeleOp.class);
-    manager.register("TeleOpNoAuto", TeleOpNoAuto.class);
+    //manager.register("RedTeleOp", RedTeleOp.class);
+    //manager.register("BlueTeleOp", BlueTeleOp.class);
+    manager.register("TeleOp", TeleOpNoAuto.class);
     manager.register("TuneUp", TT_TuneUp.class);
-    manager.register("ColorSensor01", ColorSensor01.class);
+    manager.register("SensorTest", ColorSensor01.class);
 
 
 

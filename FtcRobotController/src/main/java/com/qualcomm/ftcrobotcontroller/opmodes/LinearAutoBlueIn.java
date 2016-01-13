@@ -53,15 +53,15 @@ public class LinearAutoBlueIn extends TobotHardware {
 
         waitForStart();
 
-        if (true) {
-            StraightIn(1, 71);
+        if (false) {
+            StraightIn(0.8, 71);
+            sleep(500);
             //StraightR(-0.5, 2);
-            TurnLeftD(0.7, 45, true);
+            TurnLeftD(0.7, 48, true);
             //StraightR(0.5, 1);
-            StraightIn(1, 22);
+            StraightIn(1, 26);
+            auto_part2(false);
         }
-
-        auto_part2(false);
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);
@@ -70,7 +70,7 @@ public class LinearAutoBlueIn extends TobotHardware {
         //telemetry.addData("1. Red   = ", red_detected);
         //telemetry.addData("2. Blue  = ", blue_detected);
         telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
-        telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
+        telemetry.addData("4. ODS / ultra = ", String.format("%.4f/%.2f", opSensor.getLightDetected(), ultra.getUltrasonicLevel()));
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
         telemetry.addData("7. wrist", "pos: " + String.format("%.2f", wrist_pos));
