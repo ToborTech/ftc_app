@@ -37,7 +37,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-public class LinearAutoRedIn extends TobotHardware {
+public class TT_AutoRedIn extends TobotHardware {
     // CONSTANT VALUES.
     // CONSTANT VALUES.
 

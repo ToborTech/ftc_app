@@ -38,7 +38,7 @@ import com.qualcomm.robotcore.util.Range;
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
-public class TeleOpNoAuto extends TobotHardware {
+public class TT_TeleOp extends TobotHardware {
     @Override
     public void runOpMode() throws InterruptedException {
 

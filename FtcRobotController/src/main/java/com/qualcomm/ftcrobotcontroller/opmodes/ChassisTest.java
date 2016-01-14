@@ -8,9 +8,9 @@ import com.qualcomm.robotcore.util.Range;
 /**
  * Created by Tobortech on 7/29/2015.
  *
- * TeleOp Mode
+ * TeleOpOld Mode
  * <p>
- * Test of the first ToBot TeleOp via the new controller
+ * Test of the first ToBot TeleOpOld via the new controller
  */
 public class ChassisTest extends OpMode {
 

@@ -42,11 +42,11 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-public class LinearAutoBlueOut extends TobotHardware {
+public class TT_AutoRedOut extends TobotHardware {
     // CONSTANT VALUES.
     // CONSTANT VALUES.
 
-    /**
+    /*
      * Constructor
      */
 
@@ -61,12 +61,12 @@ public class LinearAutoBlueOut extends TobotHardware {
         if (true) {
             StraightIn(1, 125);
             //StraightR(-0.5, 2);
-            TurnLeftD(0.75, 32, true);
+            TurnRightD(0.75, 32, true);
             //StraightR(0.5, 1);
             StraightIn(-1, 18.5);
         }
 
-        auto_part2(false);
+        auto_part2(true);
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);

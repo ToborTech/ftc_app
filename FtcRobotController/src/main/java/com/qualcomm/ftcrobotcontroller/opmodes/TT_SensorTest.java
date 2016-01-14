@@ -50,7 +50,7 @@ import com.qualcomm.robotcore.util.Range;
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
 
-public class ColorSensor01 extends TobotHardware {
+public class TT_SensorTest extends TobotHardware {
 
     final static double LIGHT_THRESHOLD = 0.5;
 
