@@ -461,7 +461,7 @@ public class TobotHardware extends LinearOpMode {
             power = -power; // power always use positive, and re-adgust based on current position
         if (power > 1) power = 1;
         int cur_pos = elbow.getCurrentPosition();
-        elbow_pos = pos-elbow_pos_offset;
+        elbow_pos = pos+elbow_pos_offset;
         if (cur_pos < elbow_pos) { // elbow up
             elbow.setPower(power);
             while (elbow.getCurrentPosition() < elbow_pos && (getRuntime()-init_time)<5) { // time out 5 sec
@@ -554,7 +554,8 @@ public class TobotHardware extends LinearOpMode {
             open_gate();
             sleep(2000);
             close_gate();
-            arm_back(); sleep(3000);
+            StraightIn(-0.5,6);
+            arm_back(); sleep(5000);
             arm_down();
         }
     }
@@ -940,7 +941,7 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void bump_beacon() throws InterruptedException {
-        driveTT(0.2, 0.2); sleep(1000);
+        driveTT(0.2, 0.2); sleep(1000); driveTT(0, 0);
         // StraightIn(-0.5, 6.0);
         if (false) {
             StraightIn(0.3, 1.0);
@@ -1011,7 +1012,8 @@ public class TobotHardware extends LinearOpMode {
     public void auto_part2(boolean is_red) throws InterruptedException {
         if (true) {
             goUntilWhite(-0.4);
-            StraightIn(0.5, 2.5);
+            StraightIn(0.5, 1.5);
+            sleep(500);
         }
 
         blue_detected = false;
@@ -1020,7 +1022,7 @@ public class TobotHardware extends LinearOpMode {
             if (is_red) {
                 TurnLeftD(0.5, 90, true);
             } else { // must be blue zone
-                TurnRightD(0.5, 80, true);
+                TurnRightD(0.5, 82, true);
             }
         }
         if (true) {
