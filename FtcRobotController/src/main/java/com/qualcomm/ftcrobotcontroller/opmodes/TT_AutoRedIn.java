@@ -54,9 +54,10 @@ public class TT_AutoRedIn extends TobotHardware {
         waitForStart();
 
         if (true) {
-            StraightIn(0.5,75);
+            StraightIn(0.5,72);
+            sleep(500);
             //StraightR(-0.5, 2);
-            TurnRightD(0.75, 45, true);
+            TurnRightD(0.75, 48, true);
             //StraightR(0.5, 1);
             StraightIn(0.3, 24);
         }

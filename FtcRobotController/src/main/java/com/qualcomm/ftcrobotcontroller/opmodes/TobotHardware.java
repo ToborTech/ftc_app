@@ -61,7 +61,7 @@ public class TobotHardware extends LinearOpMode {
     final static double WRIST_UP = 0.54;
     final static double WRIST_MID = 0.4;
     final static double WRIST_CLIMBER = 0.15;
-    final static double WRIST_COLLECT = 0.11;
+    final static double WRIST_COLLECT = 0.14;
     final static double SHOULDER_START = 0.5082 ;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
@@ -89,7 +89,7 @@ public class TobotHardware extends LinearOpMode {
     final static double LEFT_CLIMBER_UP = 0.2;
     final static double LEFT_CLIMBER_MID = 0.65;
     final static double LEFT_CLIMBER_LOW = 0.8;
-    final static double WHITE_MIN = 0.45;
+    final static double WHITE_MIN = 0.55;
     final static double WHITE_MAX = 0.85;
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
@@ -184,7 +184,7 @@ public class TobotHardware extends LinearOpMode {
         ARM_SCORE_LOW_BLUE
     }
 
-    float speedScale = (float) 0.9; // controlling the speed of the chassis in teleOp state
+    float speedScale = (float) 0.8; // controlling the speed of the chassis in teleOp state
     float leftPower = 0;
     float rightPower = 0;
     float SW_power = 0;
@@ -437,7 +437,7 @@ public class TobotHardware extends LinearOpMode {
         telemetry.addData("5. tape_rotator", "pos= " + String.format("%2d", tape_rotator_pos));
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
-        telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + rightCnt);
+        telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
         // telemetry.addData("9. ods/ultra:", String.format("%.4f/%.2f", opSensor.getLightDetected(),ultra.getUltrasonicLevel()));
     }
 
@@ -676,7 +676,7 @@ public class TobotHardware extends LinearOpMode {
         reset_chassis();
         // set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
         int leftEncode = motorBL.getCurrentPosition();
-        int rightEncode = motorFR.getCurrentPosition();
+        int rightEncode = motorBR.getCurrentPosition();
         initAutoOpTime = this.time;
         //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
@@ -737,7 +737,7 @@ public class TobotHardware extends LinearOpMode {
         //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         int leftEncode = motorBL.getCurrentPosition();
-        int rightEncode = motorFR.getCurrentPosition();
+        int rightEncode = motorBR.getCurrentPosition();
         if (spotTurn) { // use both motors for spot turn
             leftCnt = (int) (-ONE_ROTATION * RROBOT * degree / 720.0);
             rightCnt = (int) (ONE_ROTATION * RROBOT * degree / 720.0);
@@ -763,7 +763,7 @@ public class TobotHardware extends LinearOpMode {
         //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
         int leftEncode = motorBL.getCurrentPosition();
-        int rightEncode = motorFR.getCurrentPosition();
+        int rightEncode = motorBR.getCurrentPosition();
         if (spotTurn) { // use both motors for spot turn
             leftCnt = (int) (ONE_ROTATION * RROBOT * degree / 720.0);
             rightCnt = (int) (-ONE_ROTATION * RROBOT * degree / 720.0);
@@ -807,7 +807,7 @@ public class TobotHardware extends LinearOpMode {
         motorBR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         motorFL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         motorFR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-        while (motorFR.getCurrentPosition() != 0 && motorBL.getCurrentPosition() != 0) {
+        while (motorBR.getCurrentPosition() != 0 && motorBL.getCurrentPosition() != 0) {
             // && motorBR.getCurrentPosition()!=0) && motorFL.getCurrentPosition()!=0) {
             waitOneFullHardwareCycle();
         }
@@ -850,9 +850,9 @@ public class TobotHardware extends LinearOpMode {
      */
     boolean has_right_drive_encoder_reached(double p_count) {
         if (rightPower < 0) {
-            return (motorFR.getCurrentPosition() < p_count);
+            return (motorBR.getCurrentPosition() <= p_count);
         } else {
-            return (motorFR.getCurrentPosition() > p_count);
+            return (motorBR.getCurrentPosition() >= p_count);
         }
 
     } // has_right_drive_encoder_reached
@@ -1020,7 +1020,7 @@ public class TobotHardware extends LinearOpMode {
         red_detected = false;
         if (true) {
             if (is_red) {
-                TurnLeftD(0.5, 90, true);
+                TurnLeftD(0.5, 93, true);
             } else { // must be blue zone
                 TurnRightD(0.5, 82, true);
             }
