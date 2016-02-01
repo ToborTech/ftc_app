@@ -53,7 +53,7 @@ public class TT_TeleOp extends TobotHardware {
 
             elbow_pos = elbow.getCurrentPosition();
             tape_slider_pos = tape_slider.getCurrentPosition();
-            tape_rotator_pos = tape_rotator.getCurrentPosition();
+            tape_rotator_pos = tape_rotator.getPosition();
             shoulder_dir = -gamepad2.right_stick_x;
             elbow_dir = -gamepad2.right_stick_y;
             tape_slider_dir = -gamepad2.left_stick_y;
@@ -227,40 +227,33 @@ public class TT_TeleOp extends TobotHardware {
             gate.setPosition(gate_pos);
 
             if ((gamepad2.left_trigger > 0.1) && (gamepad2.start)) {
-                set_wrist_pos(WRIST_COLLECT);
+                set_wristUD_pos(WRIST_UD_DUMP);
             } else if (gamepad2.left_trigger > 0.1) { // tape down
                     tape_rotator_dir = -1;
                     tape_count = 0;
             }
 
             if (gamepad2.left_bumper && gamepad2.start) {
-                set_wrist_pos(WRIST_UP);
+                set_wristUD_pos(WRIST_UD_UP);
             } else if (gamepad2.left_bumper ){
                     tape_rotator_dir = 1;
                     tape_count = 0;
             }
 
             if (tape_rotator_dir < -0.1) { // tape down 20% of power
-                tape_rotator.setPower(-0.15); sleep(2);
+                inc_tape_rotator(-SERVO_SCALE);
             } else if (tape_rotator_dir > 0.1) { // arm up 30% of power
-                tape_rotator.setPower(0.25); sleep(2);
-            } else {
-                tape_rotator.setPower(0);
+                inc_tape_rotator(SERVO_SCALE);
             }
 
             if (gamepad2.dpad_up) {
                 gamepad2.reset();
-                if (arm_state == ArmState.ARM_COLLECT) {
-                    arm_collect_mode_to_up_back();
-                } else if (arm_state == ArmState.ARM_DOWN_BACK) {
+                if (arm_state == ArmState.ARM_DOWN_BACK) {
                     arm_up();
-                } else if (arm_state == ArmState.ARM_UP_BACK) {
-                    arm_front(true);
-                    sleep(1000);
                 } else if (arm_state == ArmState.ARM_INIT) {
-                    release_arm();
+                    arm_up();
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
-                    arm_down();
+                    arm_front();
                 } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
                     arm_up();
                 }
@@ -280,10 +273,7 @@ public class TT_TeleOp extends TobotHardware {
                 }
             } else if (gamepad2.dpad_down) {
                 gamepad2.reset();
-                if (arm_state == ArmState.ARM_UP_BACK || arm_state == ArmState.ARM_DOWN_BACK ||
-                        arm_state == ArmState.ARM_INIT) {
-                    arm_collection_mode();
-                } else if (arm_state == ArmState.ARM_UP_FRONT) {
+                if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_back();
                     sleep(1000);
                 } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE) {

@@ -58,12 +58,15 @@ public class TT_TuneUp extends TobotHardware {
         waitForStart();
 
         while (opModeIsActive()) {
-            float left = -gamepad1.left_stick_y;
-            float right = -gamepad1.right_stick_y;
+            // disable chassis wheels now to give gamepad1 sticks to tape control
+            float left = 0;  // -gamepad1.left_stick_y;
+            float right = 0; // -gamepad1.right_stick_y;
 
             elbow_pos = elbow.getCurrentPosition();
             tape_slider_pos = tape_slider.getCurrentPosition();
-            tape_rotator_pos = tape_rotator.getCurrentPosition();
+            tape_rotator_pos = tape_rotator.getPosition();
+            tape_rotator_dir = -gamepad1.left_stick_y;
+            tape_slider_dir = gamepad1.right_stick_y;
             shoulder_dir = -gamepad2.left_stick_x;
             elbow_dir = -gamepad2.right_stick_y;
 
@@ -176,7 +179,7 @@ public class TT_TuneUp extends TobotHardware {
             if (tape_count > 0)
                 tape_count--;
             else {
-                tape_rotator_dir = 0;
+                // tape_rotator_dir = 0;
             }
 
             if (gamepad2.x || gamepad2.b) { // control continuous serve requires wait
@@ -225,19 +228,17 @@ public class TT_TuneUp extends TobotHardware {
                 tape_slider.setPower(0);
             }
             if (tape_rotator_dir < -THRESHOLD) { // tape down 20% of power
-                tape_rotator.setPower(-0.2);
+                inc_tape_rotator(-SERVO_SCALE);
             } else if (tape_rotator_dir > THRESHOLD) { // arm up 30% of power
-                tape_rotator.setPower(0.3);
-            } else {
-                tape_rotator.setPower(0);
+                inc_tape_rotator(SERVO_SCALE);
             }
             if (shoulder_dir > THRESHOLD) {
-                shoulder_pos += (SERVO_SCALE);
+                shoulder_pos += (SERVO_SCALE/6.0);
                 if (shoulder_pos > 1) {
                     shoulder_pos = 0.99;
                 }
             } else if (shoulder_dir < THRESHOLD * -1) {
-                shoulder_pos -= (SERVO_SCALE);
+                shoulder_pos -= (SERVO_SCALE/6.0);
                 if (shoulder_pos < 0) {
                     shoulder_pos = 0.01;
                 }
@@ -245,15 +246,23 @@ public class TT_TuneUp extends TobotHardware {
             shoulder.setPosition(shoulder_pos);
 
             // manual adjust wrist position
-            if (gamepad2.left_trigger > 0.1) { // wrist servo down
-                wrist_pos -= SERVO_SCALE;
-                if (wrist_pos < 0.01) wrist_pos = 0.01;
+            if ((gamepad2.left_trigger > 0.1) && gamepad2.start) { // wristLR -
+                wristLR_pos -= SERVO_SCALE;
+                if (wristLR_pos < 0.01) wristLR_pos = 0.01;
+            } else if (gamepad2.left_bumper && gamepad2.start) {
+                wristLR_pos += SERVO_SCALE;
+                if (wristLR_pos > 0.99) wristLR_pos = 0.99;
+            }
+            else if (gamepad2.left_trigger > 0.1) { // wrist servo down
+                wristUD_pos -= SERVO_SCALE;
+                if (wristUD_pos < 0.01) wristUD_pos = 0.01;
             }
             if (gamepad2.left_bumper) { // wrist servo up
-                wrist_pos += SERVO_SCALE;
-                if (wrist_pos > 0.99) wrist_pos = 0.99;
+                wristUD_pos += SERVO_SCALE;
+                if (wristUD_pos > 0.99) wristUD_pos = 0.99;
             }
-            wrist.setPosition(wrist_pos);
+            wristUD.setPosition(wristUD_pos);
+            wristLR.setPosition(wristLR_pos);
 
             // manual adjust gate position
             if (gamepad2.right_trigger > 0.1) { // gate servo down
@@ -295,9 +304,9 @@ public class TT_TuneUp extends TobotHardware {
         telemetry.addData("0. Program/Arm State: ", state.toString() + "/" + arm_state.toString());
         telemetry.addData("1. shoulder:", "pos= " + String.format("%.4f, dir=%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, dir=%.2f", cur_arm_power, elbow_pos, elbow_dir));
-        telemetry.addData("3. wrist/gate", "pos= " + String.format("%.2f / %.2f", wrist_pos, gate_pos));
+        telemetry.addData("3. wrist LR/UD", "pos= " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
         telemetry.addData("4. arm_slider", "pos (dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
-        telemetry.addData("5. tape_rotator", "pos= " + String.format("%2d", tape_rotator_pos));
+        telemetry.addData("5. tape_rotator/gate", "pos= " + String.format("%.2f / %.2f", tape_rotator_pos, gate_pos));
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         telemetry.addData("7. leveler = ", String.format("%.2f", leveler_pos) + String.format(", light sensor sv = %.2f", light_sensor_sv_pos));
         telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + rightCnt);

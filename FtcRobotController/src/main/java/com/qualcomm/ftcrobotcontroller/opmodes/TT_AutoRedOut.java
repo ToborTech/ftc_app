@@ -78,7 +78,7 @@ public class TT_AutoRedOut extends TobotHardware {
         telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
-        telemetry.addData("7. wrist", "pos: " + String.format("%.2f", wrist_pos));
+        telemetry.addData("7. wrist", "pos LR/UD: " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
         telemetry.addData("8. gate", "pos: " + String.format("%.2f", gate_pos));
         telemetry.addData("9. arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 
