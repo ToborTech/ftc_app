@@ -58,6 +58,7 @@ public class TobotHardware extends LinearOpMode {
     final static double SERVO_SCALE = 0.001;
     final static double GATE_CLOSED = 0.01;
     final static double GATE_OPEN = 0.5;
+    final static double GATE_DUMP = 0.9;
     final static double WRIST_UP = 0.54;
     final static double WRIST_MID = 0.4;
     final static double WRIST_CLIMBER = 0.15;
@@ -130,7 +131,7 @@ public class TobotHardware extends LinearOpMode {
     int elbow_count;
     int tape_slider_pos;
     int tape_count;
-    double tape_rotator_pos;
+    double tape_rotator_pos=0.5;
     double shoulder_dir;
     double slider_dir;
     double elbow_dir;
@@ -236,6 +237,7 @@ public class TobotHardware extends LinearOpMode {
             DbgLog.msg(p_exeception.getLocalizedMessage());
             tape_rotator = null;
         }
+        set_tape_rotator(SLIDER_STOP);
 
         try {
             elbow = hardwareMap.dcMotor.get("elbow");
@@ -538,15 +540,21 @@ public class TobotHardware extends LinearOpMode {
 
     void climber_mission(boolean should_dump) throws InterruptedException {
         arm_up();
-        wristUD.setPosition(WRIST_CLIMBER);
-        sleep(3000);
+        arm_slider_out_for_n_sec(3);
+        set_wristLR_pos(WRIST_LR_DOWN);
         if (should_dump) {
-            open_gate();
+            sleep(2000);
+            dump_gate();
+            sleep(2000);
+            set_elbow_pos(ELBOW_UP_POINT + 100, 0.1);
+            elbow.setPower(0);
             sleep(2000);
             close_gate();
-            StraightIn(-0.5,6);
-            arm_back(); sleep(5000);
-            arm_down();
+            //StraightIn(-0.5,6);
+
+            arm_up();
+            arm_slider_in_for_n_sec(3);
+            arm_back();
         }
     }
 
@@ -596,6 +604,11 @@ public class TobotHardware extends LinearOpMode {
             set_wristLR_pos(WRIST_LR_INIT);
             arm_slider_in_for_n_sec(2.9);
             inc_wristUD_pos(-0.1);
+        } else if (arm_state==ArmState.ARM_UP_FRONT) {
+            inc_wristLR_pos(0.1);
+            set_wristUD_pos(WRIST_UD_UP);
+            set_wristLR_pos(WRIST_LR_INIT);
+            set_elbow_pos(ELBOW_UP_POINT, 0.25);
         } else { // from init or back state
             set_elbow_pos(ELBOW_UP_POINT / 3, 0.25);
             inc_wristLR_pos(0.1);
@@ -642,6 +655,10 @@ public class TobotHardware extends LinearOpMode {
 
     void open_gate() {
         gate_pos = GATE_OPEN;
+        gate.setPosition(gate_pos);
+    }
+    void dump_gate() {
+        gate_pos = GATE_DUMP;
         gate.setPosition(gate_pos);
     }
 

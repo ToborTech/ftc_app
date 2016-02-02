@@ -181,8 +181,10 @@ public class TT_TuneUp extends TobotHardware {
             else {
                 // tape_rotator_dir = 0;
             }
-
-            if (gamepad2.x || gamepad2.b) { // control continuous serve requires wait
+            if (gamepad2.x && gamepad2.b){
+                climber_mission(true);
+            }
+            else if (gamepad2.x || gamepad2.b) { // control continuous serve requires wait
                 slider_counter = 10; // 20ms * 10 = 0.2 sec
                 if (gamepad2.x) {
                     slider_pos = SLIDER_SHORTEN;
