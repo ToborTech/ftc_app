@@ -65,15 +65,15 @@ public class TobotHardware extends LinearOpMode {
     final static double WRIST_UD_INIT = 0.11;
     final static double WRIST_UD_UP = 0.61;
     final static double WRIST_UD_DUMP = 0.3;
-    final static double WRIST_LR_INIT = 0.61;
+    final static double WRIST_LR_INIT = 0.69;
     final static double WRIST_LR_DOWN = 0.11;
 
     final static double SHOULDER_START = 0.4912 ;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
-    final static double SHOULDER_RED_MID_SCORE = 0.86; //position for scoring mid red zone basket
-    final static double SHOULDER_BLUE_MID_SCORE = 0.7240; //position for scoring mid blue zone basket
-    final static double SHOULDER_RED_HIGH_SCORE = 0.86; //position for scoring high red zone basket
+    final static double SHOULDER_RED_MID_SCORE = 0.55;  //position for scoring mid red zone basket
+    final static double SHOULDER_BLUE_MID_SCORE = 0.45; //position for scoring mid blue zone basket
+    final static double SHOULDER_RED_HIGH_SCORE = 0.55; //position for scoring high red zone basket
     final static int ELBOW_LOW_POINT = 327;
     final static int ELBOW_MID_POINT = 600;
     final static int ELBOW_UP_POINT = 1335;
@@ -89,10 +89,10 @@ public class TobotHardware extends LinearOpMode {
     final static double LEVELER_LEFT = 0.63;
     final static double FRONT_SV_DOWN = 0.99;
     final static double FRONT_SV_UP = 0.43;
-    final static double RIGHT_CLIMBER_UP = 0.75;
+    final static double RIGHT_CLIMBER_UP = 0.71;
     final static double RIGHT_CLIMBER_MID = 0.5;
     final static double RIGHT_CLIMBER_LOW = 0.2;
-    final static double LEFT_CLIMBER_UP = 0.2;
+    final static double LEFT_CLIMBER_UP = 0.25;
     final static double LEFT_CLIMBER_MID = 0.65;
     final static double LEFT_CLIMBER_LOW = 0.8;
     final static double WHITE_MAX = 0.79                    ;    final static double WHITE_MIN = 0.55;
@@ -524,9 +524,10 @@ public class TobotHardware extends LinearOpMode {
 
     void arm_back() throws InterruptedException {
         set_shoulder_pos(SHOULDER_START);
-        set_wristLR_pos(WRIST_LR_INIT); sleep(1000);
+        set_wristLR_pos(WRIST_LR_INIT); sleep(500);
         set_wristUD_pos(WRIST_UD_INIT);
-        set_elbow_pos(0, 0.2);
+        set_elbow_pos(100, 0.3); sleep(400);
+        set_elbow_pos(0, 0.1);
         arm_state = ArmState.ARM_DOWN_BACK;
     }
 
@@ -542,16 +543,14 @@ public class TobotHardware extends LinearOpMode {
         arm_up();
         arm_slider_out_for_n_sec(3);
         set_wristLR_pos(WRIST_LR_DOWN);
+        sleep(2000);
         if (should_dump) {
-            sleep(2000);
             dump_gate();
-            sleep(2000);
             set_elbow_pos(ELBOW_UP_POINT + 100, 0.1);
             elbow.setPower(0);
-            sleep(2000);
+            sleep(1000);
             close_gate();
             //StraightIn(-0.5,6);
-
             arm_up();
             arm_slider_in_for_n_sec(3);
             arm_back();
@@ -560,41 +559,35 @@ public class TobotHardware extends LinearOpMode {
 
     void go_red_mid_zone() throws InterruptedException {
         if (arm_state==ArmState.ARM_UP_FRONT) {
-            set_elbow_pos(580, 0.3);
-        } else { // ARM_DOWN_FRONT
-            set_elbow_pos(575, 0.5);
+            arm_front();
         }
+        arm_slider_out_for_n_sec(1);
         set_shoulder_pos(SHOULDER_RED_MID_SCORE);
-        wristUD.setPosition(WRIST_UP);
-        arm_slider_out_for_n_sec(5.0);
+        arm_slider_out_for_n_sec(1.5);
+        // wristUD.setPosition(WRIST_UP);
         arm_state = ArmState.ARM_SCORE_MID_RED;
     }
     void go_blue_mid_zone() throws InterruptedException {
         if (arm_state==ArmState.ARM_UP_FRONT) {
-            set_elbow_pos(560, 0.3);
-        } else { // ARM_DOWN_FRONT
-            set_elbow_pos(555, 0.5);
+            arm_front();
         }
+        arm_slider_out_for_n_sec(0.5);
         set_shoulder_pos(SHOULDER_BLUE_MID_SCORE);
-        wristUD.setPosition(WRIST_UP);
-        arm_slider_out_for_n_sec(3.0);
+        arm_slider_out_for_n_sec(1);
+        //wristUD.setPosition(WRIST_UP);
         arm_state = ArmState.ARM_SCORE_MID_BLUE;
     }
 
     void arm_back_from_goal() throws InterruptedException {
-        wristUD.setPosition(WRIST_UP);
-        // elbow up a little bit for easy traction
-        elbow.setPower(0.2); sleep(100); elbow.setPower(0.0);
+        set_shoulder_pos(SHOULDER_START);
         if (arm_state==ArmState.ARM_SCORE_MID_BLUE) {
-            arm_slider_in_for_n_sec(3.0);
+            arm_slider_in_for_n_sec(1.5);
         } else {
-            arm_slider_in_for_n_sec(5.0);
+            arm_slider_in_for_n_sec(2.5);
         }
-        set_shoulder_pos(SHOULDER_SCORE);
-        // set_elbow_pos(1300, 0.4);
         arm_state = ArmState.ARM_DOWN_FRONT;
+        arm_up();
         // arm_back();
-        // arm_state = ArmState.ARM_UP_BACK;
     }
 
     void arm_up() throws InterruptedException {

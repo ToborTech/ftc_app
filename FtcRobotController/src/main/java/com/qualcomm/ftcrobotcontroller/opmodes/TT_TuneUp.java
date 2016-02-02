@@ -66,7 +66,7 @@ public class TT_TuneUp extends TobotHardware {
             tape_slider_pos = tape_slider.getCurrentPosition();
             tape_rotator_pos = tape_rotator.getPosition();
             tape_rotator_dir = -gamepad1.left_stick_y;
-            tape_slider_dir = gamepad1.right_stick_y;
+            tape_slider_dir = -gamepad1.right_stick_y;
             shoulder_dir = -gamepad2.left_stick_x;
             elbow_dir = -gamepad2.right_stick_y;
 
