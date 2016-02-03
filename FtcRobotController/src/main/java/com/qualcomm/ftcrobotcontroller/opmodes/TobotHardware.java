@@ -76,7 +76,7 @@ public class TobotHardware extends LinearOpMode {
     final static double SHOULDER_RED_HIGH_SCORE = 0.55; //position for scoring high red zone basket
     final static int ELBOW_LOW_POINT = 327;
     final static int ELBOW_MID_POINT = 600;
-    final static int ELBOW_UP_POINT = 1335;
+    final static int ELBOW_UP_POINT = 1300;
     final static double SLIDER_LENGHTEN = 0.0;
     final static double SLIDER_SHORTEN = 1.0;
     final static double SLIDER_STOP = 0.5;
@@ -516,8 +516,8 @@ public class TobotHardware extends LinearOpMode {
 
     void arm_front() throws InterruptedException {
         arm_slider_out_for_n_sec(3);
-        set_wristLR_pos(WRIST_LR_DOWN);
-        set_elbow_pos(2177, 0.2);
+        set_wristLR_pos_slow(WRIST_LR_DOWN,0.05);
+        set_elbow_pos(2177, 0.1);
         arm_state = ArmState.ARM_DOWN_FRONT;
         elbow.setPower(0);
     }
@@ -623,6 +623,25 @@ public class TobotHardware extends LinearOpMode {
 
     void set_wristLR_pos(double pos) {
         wristLR_pos = pos;
+        wristLR.setPosition(wristLR_pos);
+    }
+
+    void set_wristLR_pos_slow(double pos, double tick) throws InterruptedException {
+        wristLR_pos = pos;
+        double cur_pos = wristLR.getPosition();
+        if (cur_pos<pos) {
+            while (wristLR.getPosition()<pos) {
+                cur_pos+=tick;
+                wristLR.setPosition(cur_pos);
+                sleep(100);
+            }
+        } else {
+            while (wristLR.getPosition()>pos) {
+                cur_pos-=tick;
+                wristLR.setPosition(cur_pos);
+                sleep(100);
+            }
+        }
         wristLR.setPosition(wristLR_pos);
     }
 
