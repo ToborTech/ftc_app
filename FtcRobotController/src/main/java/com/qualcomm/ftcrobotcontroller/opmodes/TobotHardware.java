@@ -59,11 +59,9 @@ public class TobotHardware extends LinearOpMode {
     final static double GATE_CLOSED = 0.01;
     final static double GATE_OPEN = 0.5;
     final static double GATE_DUMP = 0.9;
-    final static double WRIST_UP = 0.54;
-    final static double WRIST_MID = 0.4;
-    final static double WRIST_CLIMBER = 0.15;
     final static double WRIST_UD_INIT = 0.11;
     final static double WRIST_UD_UP = 0.61;
+    final static double WRIST_UD_RED_MID = 0.71;
     final static double WRIST_UD_DUMP = 0.3;
     final static double WRIST_LR_INIT = 0.69;
     final static double WRIST_LR_DOWN = 0.11;
@@ -71,7 +69,7 @@ public class TobotHardware extends LinearOpMode {
     final static double SHOULDER_START = 0.4912 ;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
-    final static double SHOULDER_RED_MID_SCORE = 0.55;  //position for scoring mid red zone basket
+    final static double SHOULDER_RED_MID_SCORE = 0.54;  //position for scoring mid red zone basket
     final static double SHOULDER_BLUE_MID_SCORE = 0.45; //position for scoring mid blue zone basket
     final static double SHOULDER_RED_HIGH_SCORE = 0.55; //position for scoring high red zone basket
     final static int ELBOW_LOW_POINT = 327;
@@ -564,7 +562,7 @@ public class TobotHardware extends LinearOpMode {
         arm_slider_out_for_n_sec(1);
         set_shoulder_pos(SHOULDER_RED_MID_SCORE);
         arm_slider_out_for_n_sec(1.5);
-        // wristUD.setPosition(WRIST_UP);
+        wristUD.setPosition(WRIST_UD_RED_MID);
         arm_state = ArmState.ARM_SCORE_MID_RED;
     }
     void go_blue_mid_zone() throws InterruptedException {
