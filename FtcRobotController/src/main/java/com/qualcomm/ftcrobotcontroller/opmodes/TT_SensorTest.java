@@ -31,7 +31,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
-import com.qualcomm.hardware.HiTechnicNxtLightSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -54,34 +53,37 @@ public class TT_SensorTest extends TobotHardware {
 
     final static double LIGHT_THRESHOLD = 0.5;
 
-    ColorSensor colorSensor;
-    DeviceInterfaceModule cdim;
-    OpticalDistanceSensor op;
-    UltrasonicSensor   ultra;
-    LightSensor ls1;
-    LightSensor ls2;
+    //ColorSensor colorSensor;
+    //DeviceInterfaceModule cdim;
+    //OpticalDistanceSensor op;
+    //UltrasonicSensor   ultra;
+    //ColorSensor sensorRGB;
+    //LightSensor ls1;
+    //LightSensor ls2;
 
     @Override
     public void runOpMode() throws InterruptedException {
         hardwareMap.logDevices();
 
-        cdim = hardwareMap.deviceInterfaceModule.get("dim");
-        colorSensor = hardwareMap.colorSensor.get("co");
-        colorSensor.enableLed(false);
-        TT_ColorPicker cp = new TT_ColorPicker(colorSensor);
-
-        ls1 = hardwareMap.lightSensor.get("ll");
-        ls2 = hardwareMap.lightSensor.get("lr");
-
-        // turn on LED of light sensor.
-        ls1.enableLed(true);
-        ls2.enableLed(true);
-
-        op = hardwareMap.opticalDistanceSensor.get("op");
-        ultra = hardwareMap.ultrasonicSensor.get("ultra");
-
         tobot_init(State.STATE_AUTO);
 
+        //cdim = hardwareMap.deviceInterfaceModule.get("dim");
+        //colorSensor = hardwareMap.colorSensor.get("co");
+        //colorSensor.enableLed(false);
+        TT_ColorPicker cp = new TT_ColorPicker(coSensor);
+
+        //ls1 = hardwareMap.lightSensor.get("ll");
+        //ls2 = hardwareMap.lightSensor.get("lr");
+
+        // turn on LED of light sensor.
+        //ls1.enableLed(true);
+        //ls2.enableLed(true);
+
+        //op = hardwareMap.opticalDistanceSensor.get("op");
+        //ultra = hardwareMap.ultrasonicSensor.get("ultra");
+        //sensorRGB = hardwareMap.colorSensor.get("rgb");
+        //sensorRGB.enableLed(true);
+        //coSensor.enableLed(true);
         waitForStart();
 
         int detectwhite = 0;
@@ -90,8 +92,8 @@ public class TT_SensorTest extends TobotHardware {
         while (opModeIsActive()) {
 
             count++;
-            red_acc += colorSensor.red();
-            blue_acc += colorSensor.blue();
+            red_acc += coSensor.red();
+            blue_acc += coSensor.blue();
 
             if (count == 10) {
                 red_final = red_acc;
@@ -105,12 +107,12 @@ public class TT_SensorTest extends TobotHardware {
             } else {
                 detectwhite = 0;
             }
-            telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", colorSensor.red()));
-            telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", colorSensor.blue()));
+            telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
+            telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
             telemetry.addData("3. TT Color Picker  = ", String.format("%s", cp.getColor().toString()));
-            telemetry.addData("4. L-lig./R-lig     = ", String.format("%.2f / %.2f", ls1.getLightDetected(), ls2.getLightDetected()));
+            telemetry.addData("4. Low color R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
             telemetry.addData("5. White detected   = ", detectwhite);
-            telemetry.addData("6. ODS / Ultra      = ", String.format("%.4f / %.4f", op.getLightDetected(),ultra.getUltrasonicLevel()));
+            telemetry.addData("6. ODS / Ultra      = ", String.format("%.4f / %.4f", opSensor.getLightDetected(),ultra.getUltrasonicLevel()));
             waitForNextHardwareCycle();
         }
     }

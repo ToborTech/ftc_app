@@ -70,7 +70,7 @@ public class TobotHardware extends LinearOpMode {
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
     final static double SHOULDER_RED_MID_SCORE = 0.54;  //position for scoring mid red zone basket
-    final static double SHOULDER_BLUE_MID_SCORE = 0.45; //position for scoring mid blue zone basket
+    final static double SHOULDER_BLUE_MID_SCORE = 0.4; //position for scoring mid blue zone basket
     final static double SHOULDER_RED_HIGH_SCORE = 0.55; //position for scoring high red zone basket
     final static int ELBOW_LOW_POINT = 327;
     final static int ELBOW_MID_POINT = 600;
@@ -80,10 +80,10 @@ public class TobotHardware extends LinearOpMode {
     final static double SLIDER_STOP = 0.5;
     final static double TAPE_ROTATE_INIT = 0.5;
     final static double TAPE_SLIDER = 0.75;
-    final static double LIGHT_SENSOR_UP = 0.2;
-    final static double LIGHT_SENSOR_DOWN = 0.8;
+    final static double LIGHT_SENSOR_UP = 0.03;
+    final static double LIGHT_SENSOR_DOWN = 0.5;
     final static double LEVELER_RIGHT = 0.38;
-    final static double LEVELER_INIT = 0.96;
+    final static double LEVELER_INIT = 0.14;
     final static double LEVELER_LEFT = 0.63;
     final static double FRONT_SV_DOWN = 0.99;
     final static double FRONT_SV_UP = 0.43;
@@ -93,7 +93,9 @@ public class TobotHardware extends LinearOpMode {
     final static double LEFT_CLIMBER_UP = 0.25;
     final static double LEFT_CLIMBER_MID = 0.65;
     final static double LEFT_CLIMBER_LOW = 0.8;
-    final static double WHITE_MAX = 0.79                    ;    final static double WHITE_MIN = 0.55;
+    final static double WHITE_MAX = 0.79;
+    final static double WHITE_MIN = 0.55;
+    final static double WHITE_OP = 0.17; // optical distance sensor white color number
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
@@ -156,11 +158,13 @@ public class TobotHardware extends LinearOpMode {
 
     // variables for sensors
     ColorSensor coSensor;
+    ColorSensor coSensor2;
     DeviceInterfaceModule cdim;
     TouchSensor tSensor;
     UltrasonicSensor ultra;
     OpticalDistanceSensor opSensor;
-    LightSensor LL, LR;
+    // LightSensor LL, LR;
+
     // IBNO055IMU imu;
     TT_Nav nav;
     TT_ColorPicker colorPicker;
@@ -415,16 +419,21 @@ public class TobotHardware extends LinearOpMode {
         // initialize sensores
         cdim = hardwareMap.deviceInterfaceModule.get("dim");
         coSensor = hardwareMap.colorSensor.get("co");
+        coSensor.setI2cAddress(0x3c);
+
+        coSensor2 = hardwareMap.colorSensor.get("co2");
+        coSensor2.setI2cAddress(0x3e);
+        coSensor2.enableLed(true);
 
         //tSensor = hardwareMap.touchSensor.get("to");
         opSensor = hardwareMap.opticalDistanceSensor.get("op");
         ultra = hardwareMap.ultrasonicSensor.get("ultra");
 
-        LL = hardwareMap.lightSensor.get("ll");
-        LR = hardwareMap.lightSensor.get("lr");
+        //LL = hardwareMap.lightSensor.get("ll");
+        //LR = hardwareMap.lightSensor.get("lr");
 
         //Instantiate ToborTech Nav object
-        nav = new TT_Nav(motorFR, motorBR, motorFL, motorBL, opSensor, true, LL, LR); // Not using Follow line
+        nav = new TT_Nav(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
         colorPicker = new TT_ColorPicker(coSensor);
     } // end of tobot_init
 
@@ -514,10 +523,11 @@ public class TobotHardware extends LinearOpMode {
 
     void arm_front() throws InterruptedException {
         arm_slider_out_for_n_sec(3);
-        set_wristLR_pos_slow(WRIST_LR_DOWN,0.05);
+        set_wristLR_pos_slow(WRIST_LR_DOWN, 0.05);
         set_elbow_pos(2177, 0.1);
         arm_state = ArmState.ARM_DOWN_FRONT;
         elbow.setPower(0);
+        light_sensor_sv.setPosition(LIGHT_SENSOR_UP);
     }
 
     void arm_back() throws InterruptedException {
@@ -989,7 +999,7 @@ public class TobotHardware extends LinearOpMode {
                 sleep(100);
             }
             telemetry.addData("1. ods:", String.format("%.2f", op_val));
-            telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
+            // telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
         }
         nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
     }
@@ -1087,7 +1097,7 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public boolean detectWhite() {
-        if (LL.getLightDetected() <= WHITE_MIN || LL.getLightDetected() >= WHITE_MAX) {
+        if (opSensor.getLightDetected() < WHITE_OP) { // to-do
             return false;
         }
         return true;

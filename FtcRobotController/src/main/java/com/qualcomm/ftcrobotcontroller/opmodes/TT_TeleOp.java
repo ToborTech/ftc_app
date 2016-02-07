@@ -172,7 +172,7 @@ public class TT_TeleOp extends TobotHardware {
             if (elbow_count > 0) {
                 elbow_count--;
             } else if (elbow_dir < -THRESHOLD) { // arm down 20% of power
-                cur_arm_power = -arm_power * 0.3;
+                cur_arm_power = -arm_power;
                 elbow_count = 10;
             } else if (elbow_dir > THRESHOLD) { // arm up
                 cur_arm_power = arm_power;

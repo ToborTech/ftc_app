@@ -36,8 +36,7 @@ public class TT_Nav {
 
 
     TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2,
-           OpticalDistanceSensor op, boolean enableFollowLine,
-           LightSensor reflectedLightLeft,LightSensor reflectedLightRight){
+           OpticalDistanceSensor op, boolean enableFollowLine){
         _motorLeft1  = motorL1 ;
         _motorLeft2  = motorL2 ;
         _motorRight1 = motorR1 ;
@@ -45,10 +44,10 @@ public class TT_Nav {
         _op = op;
         // _imu = imu ;
         if (enableFollowLine) {
-            _reflectedLightLeft = reflectedLightLeft;
-            _reflectedLightLeft.enableLed(true);  // turn on LED of light sensor.
-            _reflectedLightRight = reflectedLightRight;
-            _reflectedLightRight.enableLed(true);  // turn on LED of light sensor.
+            //_reflectedLightLeft = reflectedLightLeft;
+            //_reflectedLightLeft.enableLed(true);  // turn on LED of light sensor.
+            //_reflectedLightRight = reflectedLightRight;
+            //_reflectedLightRight.enableLed(true);  // turn on LED of light sensor.
         }
     }
 
