@@ -37,6 +37,8 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
+import com.qualcomm.robotcore.hardware.DigitalChannelController;
+import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -59,12 +61,13 @@ public class TobotHardware extends LinearOpMode {
     final static double GATE_CLOSED = 0.01;
     final static double GATE_OPEN = 0.5;
     final static double GATE_DUMP = 0.9;
-    final static double WRIST_UD_INIT = 0.11;
-    final static double WRIST_UD_UP = 0.61;
-    final static double WRIST_UD_RED_MID = 0.71;
-    final static double WRIST_UD_DUMP = 0.3;
+    final static double WRIST_UD_INIT = 0.18;
+    final static double WRIST_UD_UP = 0.68;
+    final static double WRIST_UD_RED_MID = 0.78;
+    final static double WRIST_UD_DUMP = 0.345;
     final static double WRIST_LR_INIT = 0.69;
     final static double WRIST_LR_DOWN = 0.11;
+    final static double WRIST_LR_DUMP = 0.4;
 
     final static double SHOULDER_START = 0.4912 ;
     final static double SHOULDER_TAPE_OUT = 0.46; // position to let tape out
@@ -95,7 +98,11 @@ public class TobotHardware extends LinearOpMode {
     final static double LEFT_CLIMBER_LOW = 0.8;
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
-    final static double WHITE_OP = 0.17; // optical distance sensor white color number
+    final static double WHITE_OP = 0.08; // optical distance sensor white color number
+    final static int WHITE_ADA = 6500;
+    // we assume that the LED pin of the RGB sensor is connected to
+    // digital port 5 (zero indexed).
+    static final int LED_CHANNEL = 5;
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
@@ -159,10 +166,13 @@ public class TobotHardware extends LinearOpMode {
     // variables for sensors
     ColorSensor coSensor;
     ColorSensor coSensor2;
+    ColorSensor coAda;
     DeviceInterfaceModule cdim;
     TouchSensor tSensor;
     UltrasonicSensor ultra;
     OpticalDistanceSensor opSensor;
+    GyroSensor gyro;
+    int heading = 360;
     // LightSensor LL, LR;
 
     // IBNO055IMU imu;
@@ -172,6 +182,7 @@ public class TobotHardware extends LinearOpMode {
     // following variables are used by Chassis
     State state;
     ArmState arm_state;
+    Boolean use_gyro = true;
 
     public enum State {
         STATE_TELEOP,    // state to test teleop
@@ -183,7 +194,7 @@ public class TobotHardware extends LinearOpMode {
         ARM_INIT,       // arm at initial position
         ARM_UP_BACK,    // arm at up back position
         ARM_UP_FRONT,   // arm at up front position
-        ARM_COLLECT,    // arm at collection position
+        ARM_FRONT_DUMP, // arm at climber dump position
         ARM_DOWN_BACK,  // arm at back down position
         ARM_DOWN_FRONT, // arm at front down position
         ARM_SCORE_HIGH_RED,
@@ -280,7 +291,6 @@ public class TobotHardware extends LinearOpMode {
             set_wristUD_pos(WRIST_UD_INIT);
         }
         set_shoulder_pos(shoulder_pos); // make sure shoulder does not move initially
-        set_wristLR_pos(WRIST_LR_INIT);
 
 
         try {
@@ -391,21 +401,21 @@ public class TobotHardware extends LinearOpMode {
 
         if (state == State.STATE_TELEOP) {
             arm_state = ArmState.ARM_INIT;
-            if (shoulder_pos>SHOULDER_START+0.2) { // arm must in up-front position after auto
-                arm_state = ArmState.ARM_UP_FRONT;
-                set_wristUD_pos(WRIST_UD_INIT);
-            } else if (elbow_pos>ELBOW_MID_POINT) {
-                arm_state = ArmState.ARM_UP_BACK;
-                set_wristUD_pos(WRIST_UD_INIT);
+           if (elbow_pos>ELBOW_MID_POINT) { // robot must be at ARM_FRONT_DUMP state
+               arm_state = ArmState.ARM_FRONT_DUMP;
+               set_wristUD_pos(WRIST_UD_DUMP);
+               set_wristLR_pos(WRIST_LR_DUMP);
             } else { // ARM_INIT
-                set_wristUD_pos(WRIST_UD_INIT);
-            }
+               set_wristUD_pos(WRIST_UD_INIT);
+               set_wristLR_pos(WRIST_LR_INIT);
+           }
         } else { // tune up or Auto
             arm_state = ArmState.ARM_INIT;
             set_wristUD_pos(WRIST_UD_INIT);
+            set_wristLR_pos(WRIST_LR_INIT);
         }
-        if(arm_state == ArmState.ARM_UP_FRONT) {
-            set_shoulder_pos(SHOULDER_SCORE);
+        if(arm_state == ArmState.ARM_FRONT_DUMP) {
+            set_shoulder_pos(SHOULDER_START);
         } else {
             set_shoulder_pos(SHOULDER_START);
         }
@@ -425,12 +435,30 @@ public class TobotHardware extends LinearOpMode {
         coSensor2.setI2cAddress(0x3e);
         coSensor2.enableLed(true);
 
+        // set the digital channel to output mode.
+        // remember, the Adafruit sensor is actually two devices.
+        // It's an I2C sensor and it's also an LED that can be turned on or off.
+        cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
+
+        // get a reference to our ColorSensor object.
+        coAda = hardwareMap.colorSensor.get("color");
+
+        // bEnabled represents the state of the LED.
+        boolean bEnabled = true;
+
+        // turn the LED on in the beginning, just so user will know that the sensor is active.
+        cdim.setDigitalChannelState(LED_CHANNEL, bEnabled);
+
         //tSensor = hardwareMap.touchSensor.get("to");
         opSensor = hardwareMap.opticalDistanceSensor.get("op");
         ultra = hardwareMap.ultrasonicSensor.get("ultra");
 
         //LL = hardwareMap.lightSensor.get("ll");
         //LR = hardwareMap.lightSensor.get("lr");
+
+        gyro = hardwareMap.gyroSensor.get("gyro");
+        // calibrate the gyro.
+        gyro.calibrate();
 
         //Instantiate ToborTech Nav object
         nav = new TT_Nav(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
@@ -460,9 +488,12 @@ public class TobotHardware extends LinearOpMode {
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
         telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
-        // telemetry.addData("9. ods/ultra:", String.format("%.4f/%.2f", opSensor.getLightDetected(),ultra.getUltrasonicLevel()));
     }
 
+    public void show_heading() {
+        telemetry.addData("9. head/gyro/ods/ultra:", String.format("%d/%d/%.4f/%.2f",
+                heading, gyro.getHeading(), opSensor.getLightDetected(), ultra.getUltrasonicLevel()));
+    }
 
     public void calibre_elbow() {
         // elbow calibration can only be done when arm at following states:
@@ -547,21 +578,26 @@ public class TobotHardware extends LinearOpMode {
         }
     }
 
+    void wrist_shake() throws InterruptedException{
+        set_elbow_pos(elbow_pos + 100, 0.3);
+        set_elbow_pos(elbow_pos - 100, 0.3);
+    }
+
     void climber_mission(boolean should_dump) throws InterruptedException {
         arm_up();
         arm_slider_out_for_n_sec(3);
-        set_wristLR_pos(WRIST_LR_DOWN);
-        sleep(2000);
+        set_wristLR_pos(WRIST_LR_DUMP);
         if (should_dump) {
+            sleep(1000);
+            driveTT(-0.2, -0.2); sleep(500); driveTT(0, 0);
             dump_gate();
-            set_elbow_pos(ELBOW_UP_POINT + 100, 0.1);
             elbow.setPower(0);
             sleep(1000);
-            close_gate();
-            //StraightIn(-0.5,6);
-            arm_up();
-            arm_slider_in_for_n_sec(3);
+            arm_state = ArmState.ARM_FRONT_DUMP;
+            arm_back_from_goal();
             arm_back();
+        } else {
+            arm_state = ArmState.ARM_FRONT_DUMP;
         }
     }
 
@@ -590,12 +626,18 @@ public class TobotHardware extends LinearOpMode {
         set_shoulder_pos(SHOULDER_START);
         if (arm_state==ArmState.ARM_SCORE_MID_BLUE) {
             arm_slider_in_for_n_sec(1.5);
-        } else {
+        } else if (arm_state==ArmState.ARM_SCORE_MID_RED){
             arm_slider_in_for_n_sec(2.5);
+        } else if (arm_state==ArmState.ARM_FRONT_DUMP){
+            close_gate();
+            arm_up();
+            arm_slider_in_for_n_sec(3);
         }
-        arm_state = ArmState.ARM_DOWN_FRONT;
-        arm_up();
-        // arm_back();
+        if (arm_state!=ArmState.ARM_FRONT_DUMP){
+            arm_state = ArmState.ARM_DOWN_FRONT;
+            arm_up();
+        }
+        arm_state = ArmState.ARM_UP_FRONT;
     }
 
     void arm_up() throws InterruptedException {
@@ -710,12 +752,27 @@ public class TobotHardware extends LinearOpMode {
         sleep(300);
     }
 
+    public int mapHeading(int n) {
+        if (n<45) return (n+360);
+        return n;
+    }
+
     public void StraightIn(double power, double in) throws InterruptedException {
         double numberR = in/INCHES_PER_ROTATION;
         StraightR(power, numberR);
     }
 
     public void driveTT(double lp, double rp) {
+        if (use_gyro==true && lp==rp) {
+            int cur_heading = mapHeading(gyro.getHeading());
+           if (cur_heading>heading) { // cook to right,  slow down left motor
+               if (lp>0) lp *= 0.9;
+               else rp *= 0.9;
+           } else if (cur_heading<heading) {
+               if (lp>0) rp *= 0.9;
+               else lp *= 0.9;
+           }
+        }
         motorFR.setPower(rp);
         motorFL.setPower(lp);
         motorBR.setPower(rp);
@@ -765,8 +822,27 @@ public class TobotHardware extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         rightPower = (float) power;
-
-        run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+        if (use_gyro) {
+            int cur_heading = gyro.getHeading();
+            heading = gyro.getHeading() - degree;
+            Boolean cross_zero = false;
+            if (heading<0) {
+                heading += 360;
+                cur_heading += 360;
+                cross_zero = true;
+            }
+            while (cur_heading>heading) {
+                cur_heading = gyro.getHeading();
+                if (cross_zero==true && cur_heading < degree) {
+                    cur_heading += 360;
+                }
+                driveTT(leftPower,rightPower);
+                show_telemetry();
+            }
+            driveTT(0,0);
+        } else {
+            run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+        }
 
         sleep(500);
     }
@@ -791,8 +867,21 @@ public class TobotHardware extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         leftPower = (float) power;
-        run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
-
+        if (use_gyro) {
+            int cur_heading = gyro.getHeading();
+            heading = gyro.getHeading() + degree;
+            while (cur_heading<heading) {
+                cur_heading = gyro.getHeading();
+                if (heading > 360 && cur_heading < degree) {
+                    cur_heading += 360;
+                }
+                driveTT(leftPower,rightPower);
+                show_heading();
+            }
+            driveTT(0,0);
+        } else {
+            run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+        }
         sleep(500);
     }
 
@@ -971,7 +1060,7 @@ public class TobotHardware extends LinearOpMode {
 
     void bump_beacon() throws InterruptedException {
         driveTT(0.2, 0.2); sleep(1000); driveTT(0, 0);
-        // StraightIn(-0.5, 6.0);
+        StraightIn(-0.5, 3);
         if (false) {
             StraightIn(0.3, 1.0);
             sleep(200);
@@ -1040,7 +1129,7 @@ public class TobotHardware extends LinearOpMode {
 
     public void auto_part2(boolean is_red) throws InterruptedException {
         if (true) {
-            goUntilWhite(-0.4);
+            goUntilWhite(-0.2);
             StraightIn(0.5, 1.5);
             sleep(500);
         }
@@ -1049,16 +1138,16 @@ public class TobotHardware extends LinearOpMode {
         red_detected = false;
         if (true) {
             if (is_red) {
-                TurnLeftD(0.5, 93, true);
+                TurnLeftD(0.5, 90, true);
             } else { // must be blue zone
-                TurnRightD(0.5, 82, true);
+                TurnRightD(0.5, 90, true);
             }
         }
         if (true) {
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-            // followLineTillOp(0.03, true, 5);
-            // forwardTillOp(0.021, 0.35, 1.2);
-            forwardTillUltra(15, 0.3, 5);
+
+             forwardTillUltra(12, 0.3, 5);
+
             // StraightIn(0.3, 1.0);
             //hit_left_button();
             TT_ColorPicker.Color cur_co = TT_ColorPicker.Color.UNKNOWN;
@@ -1074,17 +1163,17 @@ public class TobotHardware extends LinearOpMode {
                 blue_detected = true;
                 should_dump = true;
                 if (is_red) {
-                    hit_left_button();
-                } else {
                     hit_right_button();
+                } else {
+                    hit_left_button();
                 }
             } else if (cur_co == TT_ColorPicker.Color.RED) {
                 red_detected = true;
                 should_dump = true;
                 if (is_red) {
-                    hit_right_button();
-                } else {
                     hit_left_button();
+                } else {
+                    hit_right_button();
                 }
             } else { // unknown, better not do anything than giving the credit to the opponent
                 // doing nothing. May print out the message for debugging
@@ -1097,9 +1186,13 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public boolean detectWhite() {
-        if (opSensor.getLightDetected() < WHITE_OP) { // to-do
+    int cur_sum_ada_colors = coAda.alpha()+coAda.blue()+coAda.red()+coAda.green();
+        if (cur_sum_ada_colors < WHITE_ADA) {
             return false;
         }
+    //    if (opSensor.getLightDetected() < WHITE_OP) { // to-do
+    //        return false;
+    //    }
         return true;
     }
 

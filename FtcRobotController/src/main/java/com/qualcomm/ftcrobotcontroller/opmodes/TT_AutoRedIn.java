@@ -53,7 +53,7 @@ public class TT_AutoRedIn extends TobotHardware {
 
         waitForStart();
 
-        if (true) {
+        if (false) {
             StraightIn(0.5,72);
             sleep(500);
             //StraightR(-0.5, 2);

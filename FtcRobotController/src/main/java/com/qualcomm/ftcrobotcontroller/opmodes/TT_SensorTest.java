@@ -91,6 +91,19 @@ public class TT_SensorTest extends TobotHardware {
         double red_acc = 0, blue_acc = 0, red_final = 0, blue_final = 0;
         while (opModeIsActive()) {
 
+            float left = -gamepad1.left_stick_y;
+            float right = -gamepad1.right_stick_y;
+            right = Range.clip(right, -1, 1);
+            left = Range.clip(left, -1, 1);
+            rightPower = (float) ((float) scaleInput(right * speedScale));
+            leftPower = (float) ((float) scaleInput(left * speedScale));
+
+            // write the values to the motors
+            motorFR.setPower(rightPower);
+            motorBR.setPower(rightPower);
+            motorFL.setPower(leftPower);
+            motorBL.setPower(leftPower);
+
             count++;
             red_acc += coSensor.red();
             blue_acc += coSensor.blue();
@@ -107,12 +120,25 @@ public class TT_SensorTest extends TobotHardware {
             } else {
                 detectwhite = 0;
             }
+            if (gamepad1.dpad_up) { // forward 30 in
+                StraightIn(0.5, 30);
+            } else if (gamepad1.dpad_down) {
+                StraightIn(-0.5, 30);
+            } else if (gamepad1.dpad_right) {
+                TurnRightD(0.5, 90, true);
+            } else if (gamepad1.dpad_left) {
+                TurnLeftD(0.5, 90, true);
+            }
             telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
             telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
             telemetry.addData("3. TT Color Picker  = ", String.format("%s", cp.getColor().toString()));
             telemetry.addData("4. Low color R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
-            telemetry.addData("5. White detected   = ", detectwhite);
-            telemetry.addData("6. ODS / Ultra      = ", String.format("%.4f / %.4f", opSensor.getLightDetected(),ultra.getUltrasonicLevel()));
+            telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d",coAda.alpha(),coAda.blue(),coAda.red(),coAda.green(),
+                    (coAda.alpha()+coAda.blue()+coAda.red()+coAda.green())));
+            telemetry.addData("6. White detected   = ", detectwhite);
+            telemetry.addData("7. ODS / Ultra      = ", String.format("%.4f / %.4f", opSensor.getLightDetected(),ultra.getUltrasonicLevel()));
+            telemetry.addData("8. Heading go / cur = ", String.format("%d / %d", heading, gyro.getHeading()));
+
             waitForNextHardwareCycle();
         }
     }

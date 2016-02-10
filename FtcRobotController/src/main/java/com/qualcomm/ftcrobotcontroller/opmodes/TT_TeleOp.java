@@ -55,7 +55,7 @@ public class TT_TeleOp extends TobotHardware {
             tape_slider_pos = tape_slider.getCurrentPosition();
             tape_rotator_pos = tape_rotator.getPosition();
             shoulder_dir = -gamepad2.right_stick_x;
-            elbow_dir = -gamepad2.right_stick_y;
+            elbow_dir = gamepad2.right_stick_y;
             tape_slider_dir = -gamepad2.left_stick_y;
             // tape_rotator_dir = -gamepad2.left_stick_x;
 
@@ -254,8 +254,6 @@ public class TT_TeleOp extends TobotHardware {
                     arm_up();
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_front();
-                } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
-                    arm_up();
                 }
             } else if (gamepad2.dpad_left) {
                 gamepad2.reset();
@@ -276,8 +274,11 @@ public class TT_TeleOp extends TobotHardware {
                 if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_back();
                     sleep(1000);
-                } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE) {
+                } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE ||
+                        arm_state == ArmState.ARM_FRONT_DUMP) {
                     arm_back_from_goal();
+                } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
+                    arm_up();
                 }
             }
 
