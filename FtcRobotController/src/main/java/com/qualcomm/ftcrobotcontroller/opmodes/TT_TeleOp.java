@@ -240,13 +240,14 @@ public class TT_TeleOp extends TobotHardware {
                     tape_count = 0;
             }
 
-            if (tape_rotator_dir < -0.1) { // tape down 20% of power
-                inc_tape_rotator(-SERVO_SCALE);
-            } else if (tape_rotator_dir > 0.1) { // arm up 30% of power
-                inc_tape_rotator(SERVO_SCALE);
+            if (tape_rotator_dir < -0.1) { // tape down
+                inc_tape_rotator(-SERVO_SCALE/4.0);
+            } else if (tape_rotator_dir > 0.1) { // arm up
+                inc_tape_rotator(SERVO_SCALE/4.0);
             }
 
             if (gamepad2.dpad_up) {
+                stop_chassis();
                 gamepad2.reset();
                 if (arm_state == ArmState.ARM_DOWN_BACK) {
                     arm_up();
@@ -254,9 +255,13 @@ public class TT_TeleOp extends TobotHardware {
                     arm_up();
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_front();
+                } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE ||
+                        arm_state == ArmState.ARM_FRONT_DUMP) {
+                    arm_back_from_goal();
                 }
             } else if (gamepad2.dpad_left) {
                 gamepad2.reset();
+                stop_chassis();
                 if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT) {
                     go_red_mid_zone();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
@@ -264,6 +269,7 @@ public class TT_TeleOp extends TobotHardware {
                 }
             } else if (gamepad2.dpad_right) {
                 gamepad2.reset();
+                stop_chassis();
                 if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT) {
                     go_blue_mid_zone();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
@@ -271,12 +277,13 @@ public class TT_TeleOp extends TobotHardware {
                 }
             } else if (gamepad2.dpad_down) {
                 gamepad2.reset();
+                stop_chassis();
                 if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_back();
                     sleep(1000);
                 } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE ||
                         arm_state == ArmState.ARM_FRONT_DUMP) {
-                    arm_back_from_goal();
+                    arm_front_from_goal();
                 } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
                     arm_up();
                 }
