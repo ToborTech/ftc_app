@@ -58,20 +58,21 @@ public class TobotHardware extends LinearOpMode {
     final static double ARM_MAX_RANGE = 0.90;
     final static double THRESHOLD = 0.1;
     final static double SERVO_SCALE = 0.001;
-    final static double GATE_CLOSED = 0.01;
-    final static double GATE_OPEN = 0.5;
-    final static double GATE_DUMP = 0.9;
+    final static double GATE_CLOSED = 0.9;
+    final static double GATE_OPEN = 0.2;
+    final static double GATE_DUMP = 0.2;
     final static double WRIST_UD_INIT = 0.18;
     final static double WRIST_UD_UP = 0.68;
-    final static double WRIST_UD_RED_MID = 0.78;
+    final static double WRIST_UD_RED_MID = 0.6;
     final static double WRIST_UD_DUMP = 0.345;
     final static double WRIST_LR_INIT = 0.69;
     final static double WRIST_LR_DOWN = 0.11;
+    final static double WRIST_LR_BLUE_MID = 0.29;
     final static double WRIST_LR_DUMP = 0.4;
 
     final static double SHOULDER_START = 0.4912 ;
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
-    final static double SHOULDER_RED_MID_SCORE = 0.54;  //position for scoring mid red zone basket
+    final static double SHOULDER_RED_MID_SCORE = 0.52;  //position for scoring mid red zone basket
     final static double SHOULDER_BLUE_MID_SCORE = 0.42; //position for scoring mid blue zone basket
     final static double SHOULDER_RED_HIGH_SCORE = 0.55; //position for scoring high red zone basket
     final static int ELBOW_LOW_POINT = 327;
@@ -287,7 +288,7 @@ public class TobotHardware extends LinearOpMode {
         }
         wristUD_pos = wristUD.getPosition();
         set_wristUD_pos(wristUD_pos);
-        
+
         shoulder_pos = SHOULDER_START;
         set_shoulder_pos(shoulder_pos); // make sure shoulder does not move initially
 
@@ -615,15 +616,15 @@ public class TobotHardware extends LinearOpMode {
         }
         arm_slider_out_for_n_sec(0.5);
         set_shoulder_pos(SHOULDER_BLUE_MID_SCORE);
-        arm_slider_out_for_n_sec(1);
-        //wristUD.setPosition(WRIST_UP);
+        //arm_slider_out_for_n_sec(1);
+        wristLR.setPosition(WRIST_LR_BLUE_MID);
         arm_state = ArmState.ARM_SCORE_MID_BLUE;
     }
 
     void arm_back_from_goal() throws InterruptedException {
         set_shoulder_pos(SHOULDER_START);
         if (arm_state==ArmState.ARM_SCORE_MID_BLUE) {
-            arm_slider_in_for_n_sec(1.5);
+            arm_slider_in_for_n_sec(0.5);
         } else if (arm_state==ArmState.ARM_SCORE_MID_RED){
             arm_slider_in_for_n_sec(2.5);
         } else if (arm_state==ArmState.ARM_FRONT_DUMP){
