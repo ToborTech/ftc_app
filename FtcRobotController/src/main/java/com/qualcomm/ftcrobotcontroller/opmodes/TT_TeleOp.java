@@ -202,24 +202,27 @@ public class TT_TeleOp extends TobotHardware {
             shoulder.setPosition(shoulder_pos);
 
             if ((gamepad2.right_trigger>0.1) && gamepad2.start) {
-                calibre_elbow();
+                // calibre_elbow();
+                inc_wristLR_pos(-0.01);
             } else if (gamepad2.right_trigger > 0.1) {
                 gate_pos = GATE_OPEN;
             }
 
-            if (gamepad2.right_bumper && gamepad2.start) { // change arm state
+            if (gamepad2.right_bumper && gamepad2.start) {
+                inc_wristLR_pos(0.01);
+                // change arm state
                 // arm_init -> arm_down_back -> arm_up_back -> arm_up_front ->arm_init
-                if (arm_state==ArmState.ARM_INIT) {
-                    arm_state = ArmState.ARM_DOWN_BACK;
-                } else if (arm_state==ArmState.ARM_DOWN_BACK) {
-                    arm_state = ArmState.ARM_UP_BACK;
-                } else if (arm_state==ArmState.ARM_UP_BACK) {
-                    arm_state = ArmState.ARM_UP_FRONT;
-                } else if (arm_state==ArmState.ARM_UP_FRONT) {
-                    arm_state = ArmState.ARM_INIT;
-                }
-                gamepad2.reset();
-                sleep(200);
+                //if (arm_state==ArmState.ARM_INIT) {
+                //    arm_state = ArmState.ARM_DOWN_BACK;
+                //} else if (arm_state==ArmState.ARM_DOWN_BACK) {
+                //    arm_state = ArmState.ARM_UP_BACK;
+                //} else if (arm_state==ArmState.ARM_UP_BACK) {
+                //    arm_state = ArmState.ARM_UP_FRONT;
+                //} else if (arm_state==ArmState.ARM_UP_FRONT) {
+                //    arm_state = ArmState.ARM_INIT;
+                //}
+                //gamepad2.reset();
+                //sleep(200);
             } else if (gamepad2.right_bumper) {
                 gate_pos = GATE_CLOSED;
             }
@@ -227,14 +230,14 @@ public class TT_TeleOp extends TobotHardware {
             gate.setPosition(gate_pos);
 
             if ((gamepad2.left_trigger > 0.1) && (gamepad2.start)) {
-                set_wristUD_pos(WRIST_UD_DUMP);
+                inc_wristUD_pos(-0.01);
             } else if (gamepad2.left_trigger > 0.1) { // tape down
                     tape_rotator_dir = -1;
                     tape_count = 0;
             }
 
             if (gamepad2.left_bumper && gamepad2.start) {
-                set_wristUD_pos(WRIST_UD_UP);
+                inc_wristUD_pos(0.01);
             } else if (gamepad2.left_bumper ){
                     tape_rotator_dir = 1;
                     tape_count = 0;
