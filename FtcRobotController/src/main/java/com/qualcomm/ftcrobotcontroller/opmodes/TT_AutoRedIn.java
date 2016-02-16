@@ -53,14 +53,7 @@ public class TT_AutoRedIn extends TobotHardware {
 
         waitForStart();
 
-        if (false) {
-            StraightIn(0.5,72);
-            sleep(500);
-            //StraightR(-0.5, 2);
-            TurnRightD(0.75, 48, true);
-            //StraightR(0.5, 1);
-            StraightIn(0.3, 24);
-        }
+        auto_part1(true);
 
         auto_part2(true);
 
@@ -71,6 +64,7 @@ public class TT_AutoRedIn extends TobotHardware {
         //telemetry.addData("1. Red   = ", red_detected);
         //telemetry.addData("2. Blue  = ", blue_detected);
         //telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
+        telemetry.addData("3. Heading go / cur", String.format("%d / %d", heading, gyro.getHeading()));
         telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));

@@ -65,7 +65,7 @@ public class TT_SensorTest extends TobotHardware {
     public void runOpMode() throws InterruptedException {
         hardwareMap.logDevices();
 
-        tobot_init(State.STATE_AUTO);
+        tobot_init(State.STATE_TUNEUP);
 
         //cdim = hardwareMap.deviceInterfaceModule.get("dim");
         //colorSensor = hardwareMap.colorSensor.get("co");
@@ -88,6 +88,7 @@ public class TT_SensorTest extends TobotHardware {
 
         int detectwhite = 0;
         int count = 0;
+        speedScale = (float) 0.5;
         double red_acc = 0, blue_acc = 0, red_final = 0, blue_final = 0;
         while (opModeIsActive()) {
 
@@ -97,6 +98,18 @@ public class TT_SensorTest extends TobotHardware {
             left = Range.clip(left, -1, 1);
             rightPower = (float) ((float) scaleInput(right * speedScale));
             leftPower = (float) ((float) scaleInput(left * speedScale));
+
+            if (gamepad1.a) {
+                // if the A button is pushed on gamepad1, decrease the speed
+                // of the chassis
+                if (speedScale > 0.1)
+                    speedScale -= 0.01;
+            } else if (gamepad1.y) {
+                // if the Y button is pushed on gamepad1, increase the speed
+                // of the chassis
+                if (speedScale < 1)
+                    speedScale += 0.01;
+            }
 
             // write the values to the motors
             motorFR.setPower(rightPower);
@@ -120,10 +133,20 @@ public class TT_SensorTest extends TobotHardware {
             } else {
                 detectwhite = 0;
             }
-            if (gamepad1.dpad_up) { // forward 30 in
-                StraightIn(0.5, 30);
-            } else if (gamepad1.dpad_down) {
-                StraightIn(-0.5, 30);
+            if (gamepad1.dpad_up) { // try out auto-blue
+                auto_part1(false);
+                sleep(1000);
+                StraightIn(-0.3, 12);
+                sleep(1000);
+                TurnRightD(0.5, 90, true);
+                sleep(5000);
+            } else if (gamepad1.dpad_down) { // try out auto-red
+                auto_part1(true);
+                sleep(1000);
+                StraightIn(-0.3, 12);
+                sleep(1000);
+                TurnLeftD(0.5, 90, true);
+                sleep(5000);
             } else if (gamepad1.dpad_right) {
                 TurnRightD(0.5, 90, true);
             } else if (gamepad1.dpad_left) {
@@ -137,7 +160,7 @@ public class TT_SensorTest extends TobotHardware {
                     (coAda.alpha()+coAda.blue()+coAda.red()+coAda.green())));
             telemetry.addData("6. White detected   = ", detectwhite);
             telemetry.addData("7. ODS / Ultra      = ", String.format("%.4f / %.4f", opSensor.getLightDetected(),ultra.getUltrasonicLevel()));
-            telemetry.addData("8. Heading go / cur = ", String.format("%d / %d", heading, gyro.getHeading()));
+            telemetry.addData("8. Heading go / cur", String.format("%d / %d", heading, gyro.getHeading()));
 
             waitForNextHardwareCycle();
         }

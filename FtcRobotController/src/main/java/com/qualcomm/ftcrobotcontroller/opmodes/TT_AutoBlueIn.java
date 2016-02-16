@@ -53,19 +53,9 @@ public class TT_AutoBlueIn extends TobotHardware {
 
         waitForStart();
 
-        if (true) {
-            StraightIn(0.8, 71);
-            sleep(500);
-            //StraightR(-0.5, 2);
-            TurnLeftD(0.7, 48, true);
-            //StraightR(0.5, 1);
-            StraightIn(1, 26);
-        }
+        auto_part1(false);
         auto_part2(false);
 
-        //  StraightR(0.5,0.1);
-        //  TurnRightD(0.5,90,true);
-        //  StraightR(0.6,3.33);
         stop_tobot();
         telemetry.addData("1. Red   = ", red_detected);
         telemetry.addData("2. Blue  = ", blue_detected);
