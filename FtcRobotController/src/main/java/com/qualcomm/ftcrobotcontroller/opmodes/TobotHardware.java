@@ -99,7 +99,7 @@ public class TobotHardware extends LinearOpMode {
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
-    final static int WHITE_ADA = 4000;
+    final static int WHITE_ADA = 6000;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 5;
@@ -182,7 +182,7 @@ public class TobotHardware extends LinearOpMode {
     // following variables are used by Chassis
     State state;
     ArmState arm_state;
-    Boolean use_gyro = false;
+    Boolean use_gyro = true;
     Boolean use_encoder = true;
 
     public enum State {
@@ -736,7 +736,8 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public void driveTT(double lp, double rp) {
-        if (use_gyro == true && lp == rp) {
+        //if (use_gyro == true && lp == rp) {
+        if (false) {
             int cur_heading = mapHeading(gyro.getHeading());
             if (cur_heading > heading) { // cook to right,  slow down left motor
                 if (lp > 0) lp *= 0.9;
@@ -796,7 +797,8 @@ public class TobotHardware extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         rightPower = (float) power;
-        if (use_gyro) {
+        //if (use_gyro) {
+        if (false) {
             initAutoOpTime = getRuntime();
             int cur_heading = gyro.getHeading();
             heading = gyro.getHeading() - degree;
@@ -848,7 +850,8 @@ public class TobotHardware extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         leftPower = (float) power;
-        if (use_gyro) {
+        // if (use_gyro) {
+        if (false) {
             initAutoOpTime = getRuntime();
             int cur_heading = gyro.getHeading();
 
@@ -961,12 +964,22 @@ public class TobotHardware extends LinearOpMode {
             } else {
                 leftCnt += diff;
             }
+            if (rightPower<0) {
+                rightCnt += diff;
+            } else {
+                rightCnt -= diff;
+            }
         } else if (has_right_drive_encoder_reached(p_right_count)) { // shift target encoder value from left to right
             double diff = Math.abs(p_left_count - motorBL.getCurrentPosition())/2;
             if (rightPower<0) {
                 rightCnt -= diff;
             } else {
                 rightCnt += diff;
+            }
+            if (leftPower<0) {
+                leftCnt += diff;
+            } else {
+                leftCnt -= diff;
             }
         }
         return l_return;
@@ -1152,7 +1165,7 @@ public class TobotHardware extends LinearOpMode {
         }
         sleep(500);
 
-        //StraightIn(0.8, 30);
+        StraightIn(0.8, 24);
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
 
@@ -1160,18 +1173,30 @@ public class TobotHardware extends LinearOpMode {
         if (true) {
             sleep(500);
             goUntilWhite(-0.2);
-            // StraightIn(0.5, 3);
-            // driveTT(0.3, 0.3); sleep(200);driveTT(0, 0);
-            sleep(1500);
+            // StraightIn(0.5, 0.5);
+            driveTT(0.3, 0.3); sleep(100);driveTT(0, 0);
+            sleep(500);
         }
 
         blue_detected = false;
         red_detected = false;
         if (true) {
             if (is_red) {
-                TurnLeftD(0.4, 83, true);
+                heading = 315;
+                TurnLeftD(0.5, 93, true);
             } else { // must be blue zone
-                TurnRightD(0.4, 83, true);
+                heading = 45;
+                TurnRightD(0.5, 90, true);
+            }
+        }
+        if (use_gyro) {
+            sleep(500);
+            int cur_heading = gyro.getHeading();
+            if (cur_heading > heading) {
+                TurnLeftD(0.5, (int)(cur_heading - heading), true);
+            }
+            else if (cur_heading < heading) {
+                TurnRightD(0.5, (int)(cur_heading - heading), true);
             }
         }
         if (true) {
@@ -1209,7 +1234,7 @@ public class TobotHardware extends LinearOpMode {
                 // doing nothing. May print out the message for debugging
             }
             // dump two climbers
-            climber_mission(should_dump);
+             climber_mission(should_dump);
 
             // climber_mission(true);
         }
