@@ -152,6 +152,7 @@ public class TT_SensorTest extends TobotHardware {
             } else if (gamepad1.dpad_left) {
                 TurnLeftD(0.5, 90, true);
             }
+            touch = (tSensor.isPressed()?1:0);
             telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
             telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
             telemetry.addData("3. TT Color Picker  = ", String.format("%s", cp.getColor().toString()));
@@ -159,7 +160,8 @@ public class TT_SensorTest extends TobotHardware {
             telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d",coAda.alpha(),coAda.blue(),coAda.red(),coAda.green(),
                     (coAda.alpha()+coAda.blue()+coAda.red()+coAda.green())));
             telemetry.addData("6. White detected   = ", detectwhite);
-            telemetry.addData("7. ODS / Ultra      = ", String.format("%.4f / %.4f", opSensor.getLightDetected(),ultra.getUltrasonicLevel()));
+            telemetry.addData("7. ODS / Ultra / Touch = ", String.format("%.4f / %.4f / %d",
+                    opSensor.getLightDetected(),ultra.getUltrasonicLevel(),touch));
             telemetry.addData("8. Heading go / cur", String.format("%d / %d", heading, gyro.getHeading()));
 
             waitForNextHardwareCycle();

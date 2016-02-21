@@ -173,6 +173,7 @@ public class TobotHardware extends LinearOpMode {
     OpticalDistanceSensor opSensor;
     GyroSensor gyro;
     int heading = 360;
+    int touch = 0;
     // LightSensor LL, LR;
 
     // IBNO055IMU imu;
@@ -387,7 +388,7 @@ public class TobotHardware extends LinearOpMode {
         // turn the LED on in the beginning, just so user will know that the sensor is active.
         cdim.setDigitalChannelState(LED_CHANNEL, bEnabled);
 
-        //tSensor = hardwareMap.touchSensor.get("to");
+        tSensor = hardwareMap.touchSensor.get("to");
         opSensor = hardwareMap.opticalDistanceSensor.get("op");
         ultra = hardwareMap.ultrasonicSensor.get("ultra");
 
@@ -431,11 +432,13 @@ public class TobotHardware extends LinearOpMode {
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
         telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
+        show_heading();
     }
 
     public void show_heading() {
-        telemetry.addData("9. head/gyro/ods/ultra:", String.format("%d/%d/%.4f/%.2f",
-                heading, gyro.getHeading(), opSensor.getLightDetected(), ultra.getUltrasonicLevel()));
+        touch = (tSensor.isPressed()?1:0);
+        telemetry.addData("9. head/gyro/ods/ultra/touch:", String.format("%d/%d/%.4f/%.2f/%d",
+                heading, gyro.getHeading(), opSensor.getLightDetected(), ultra.getUltrasonicLevel(),touch));
     }
 
     public void calibre_elbow() {
@@ -480,6 +483,15 @@ public class TobotHardware extends LinearOpMode {
         arm_slider.setPosition(SLIDER_STOP);
     }
 
+    public void arm_slider_in_till_touch(double nsec) throws InterruptedException {
+        arm_slider.setPosition(SLIDER_SHORTEN);
+        initAutoOpTime = getRuntime();
+        while (!tSensor.isPressed() && (getRuntime()-initAutoOpTime<nsec)) {
+            waitOneFullHardwareCycle();
+        }
+        arm_slider.setPosition(SLIDER_STOP);
+    }
+
     public void arm_slider_out_for_n_sec(double n) throws InterruptedException {
         arm_slider.setPosition(SLIDER_LENGHTEN);
         sleep((long) (n * 1000.0));
@@ -498,7 +510,7 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void arm_front() throws InterruptedException {
-        arm_slider_out_for_n_sec(3.5);
+        arm_slider_out_for_n_sec(4);
         set_wristLR_pos_slow(WRIST_LR_DOWN, 0.05);
         set_elbow_pos(2177, 0.1);
         arm_state = ArmState.ARM_DOWN_FRONT;
@@ -509,8 +521,11 @@ public class TobotHardware extends LinearOpMode {
     void arm_back() throws InterruptedException {
         set_shoulder_pos(SHOULDER_START);
         set_wristLR_pos(WRIST_LR_INIT);
-        sleep(500);
+        if (arm_state != ArmState.ARM_UP_FRONT) {
+            sleep(500);
+        }
         set_wristUD_pos(WRIST_UD_INIT);
+        arm_slider_in_till_touch(2);
         set_elbow_pos(100, 0.3);
         sleep(400);
         set_elbow_pos(0, 0.1);
@@ -550,6 +565,17 @@ public class TobotHardware extends LinearOpMode {
         }
     }
 
+    void go_red_high_zone() throws InterruptedException {
+        if (arm_state == ArmState.ARM_UP_FRONT) {
+            arm_front();
+        }
+        arm_slider_out_for_n_sec(1);
+        set_shoulder_pos(SHOULDER_RED_MID_SCORE);
+        arm_slider_out_for_n_sec(1.5);
+        wristUD.setPosition(WRIST_UD_RED_MID);
+        arm_state = ArmState.ARM_SCORE_MID_RED;
+    }
+
     void go_red_mid_zone() throws InterruptedException {
         if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_front();
@@ -559,6 +585,17 @@ public class TobotHardware extends LinearOpMode {
         arm_slider_out_for_n_sec(1.5);
         wristUD.setPosition(WRIST_UD_RED_MID);
         arm_state = ArmState.ARM_SCORE_MID_RED;
+    }
+
+    void go_blue_high_zone() throws InterruptedException {
+        if (arm_state == ArmState.ARM_UP_FRONT) {
+            arm_front();
+        }
+        arm_slider_out_for_n_sec(0.5);
+        set_shoulder_pos(SHOULDER_BLUE_MID_SCORE);
+        //arm_slider_out_for_n_sec(1);
+        wristLR.setPosition(WRIST_LR_BLUE_MID);
+        arm_state = ArmState.ARM_SCORE_MID_BLUE;
     }
 
     void go_blue_mid_zone() throws InterruptedException {
@@ -606,7 +643,7 @@ public class TobotHardware extends LinearOpMode {
             set_elbow_pos(ELBOW_UP_POINT, 0.25);
             inc_wristUD_pos(0.1);
             set_wristLR_pos(WRIST_LR_INIT);
-            arm_slider_in_for_n_sec(3);
+            arm_slider_in_till_touch(4.5);
             inc_wristUD_pos(-0.1);
         } else if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_FRONT_DUMP) {
             inc_wristLR_pos(0.1);

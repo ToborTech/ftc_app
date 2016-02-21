@@ -263,18 +263,24 @@ public class TT_TeleOp extends TobotHardware {
                     arm_back_from_goal();
                 }
             } else if (gamepad2.dpad_left) {
-                gamepad2.reset();
+                // gamepad2.reset();
                 stop_chassis();
                 if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT) {
-                    go_red_mid_zone();
+                    if (gamepad2.start)
+                        go_red_high_zone();
+                    else
+                        go_red_mid_zone();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
                     arm_down();
                 }
             } else if (gamepad2.dpad_right) {
-                gamepad2.reset();
+                // gamepad2.reset();
                 stop_chassis();
                 if (arm_state == ArmState.ARM_UP_FRONT || arm_state == ArmState.ARM_DOWN_FRONT) {
-                    go_blue_mid_zone();
+                    if (gamepad2.start)
+                        go_blue_high_zone();
+                    else
+                        go_blue_mid_zone();
                 } else if (arm_state == ArmState.ARM_UP_BACK) {
                     arm_down();
                 }
