@@ -107,7 +107,7 @@ public class TobotHardware extends LinearOpMode {
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
     final static double RROBOT = 15.5;  // number of wheel turns to get chassis 360-degree turn
-    final static double INCHES_PER_ROTATION = 9.8; // inches per chassis motor rotation based on 16/24 gear ratio
+    final static double INCHES_PER_ROTATION = 6.67; // inches per chassis motor rotation based on 16/24 gear ratio
     int numOpLoops = 1;
 
     //

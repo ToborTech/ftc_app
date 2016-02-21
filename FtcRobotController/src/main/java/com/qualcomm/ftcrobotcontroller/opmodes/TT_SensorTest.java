@@ -133,7 +133,10 @@ public class TT_SensorTest extends TobotHardware {
             } else {
                 detectwhite = 0;
             }
-            if (gamepad1.dpad_up) { // try out auto-blue
+            if (gamepad1.dpad_up && gamepad1.start) {
+                StraightIn(1 , 72);
+            }
+            else if (gamepad1.dpad_up) { // try out auto-blue
                 auto_part1(false);
                 sleep(1000);
                 StraightIn(-0.3, 12);
