@@ -85,9 +85,9 @@ public class TobotHardware extends LinearOpMode {
     final static double TAPE_SLIDER = 0.75;
     final static double LIGHT_SENSOR_UP = 0.03;
     final static double LIGHT_SENSOR_DOWN = 0.5;
-    final static double LEVELER_RIGHT = 0.38;
+    final static double LEVELER_RIGHT = 0.45;
     final static double LEVELER_INIT = 0.14;
-    final static double LEVELER_LEFT = 0.63;
+    final static double LEVELER_LEFT = 0.7;
     final static double FRONT_SV_DOWN = 0.99;
     final static double FRONT_SV_UP = 0.43;
     final static double RIGHT_CLIMBER_UP = 0.71;
@@ -99,14 +99,14 @@ public class TobotHardware extends LinearOpMode {
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
-    final static int WHITE_ADA = 6000;
+    final static int WHITE_ADA = 7000;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 5;
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
-    final static double RROBOT = 15.5;  // number of wheel turns to get chassis 360-degree turn
+    final static double RROBOT = 22.78;  // number of wheel turns to get chassis 360-degree turn
     final static double INCHES_PER_ROTATION = 6.67; // inches per chassis motor rotation based on 16/24 gear ratio
     int numOpLoops = 1;
 
@@ -1189,20 +1189,20 @@ public class TobotHardware extends LinearOpMode {
             return;
 
         if (state == State.STATE_AUTO) {
-            StraightIn(0.8, 72);
+            StraightIn(1, 72);
         } else { // test mode
             StraightIn(0.5, 24);
         }
 
         sleep(500);
         if (is_red) {
-            TurnRightD(0.5, 45, true);
+            TurnRightD(0.75, 45, true);
         } else {
-            TurnLeftD(0.5, 45, true);
+            TurnLeftD(0.75, 45, true);
         }
         sleep(500);
 
-        StraightIn(0.8, 24);
+        StraightIn(1, 20);
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
 
@@ -1211,7 +1211,9 @@ public class TobotHardware extends LinearOpMode {
             sleep(500);
             goUntilWhite(-0.2);
             // StraightIn(0.5, 0.5);
-            driveTT(0.3, 0.3); sleep(100);driveTT(0, 0);
+            driveTT(0.5, 0.5);
+            sleep(500);
+            driveTT(0, 0);
             sleep(500);
         }
 
@@ -1220,20 +1222,20 @@ public class TobotHardware extends LinearOpMode {
         if (true) {
             if (is_red) {
                 heading = 315;
-                TurnLeftD(0.5, 93, true);
+                TurnLeftD(0.75, 90, true);
             } else { // must be blue zone
                 heading = 45;
-                TurnRightD(0.5, 90, true);
+                TurnRightD(0.75, 90, true);
             }
         }
         if (use_gyro) {
             sleep(500);
             int cur_heading = gyro.getHeading();
             if (cur_heading > heading) {
-                TurnLeftD(0.5, (int)(cur_heading - heading), true);
+                TurnLeftD(0.75, (int)(cur_heading - heading), true);
             }
             else if (cur_heading < heading) {
-                TurnRightD(0.5, (int)(cur_heading - heading), true);
+                TurnRightD(0.75, (int)(cur_heading - heading), true);
             }
         }
         if (true) {
