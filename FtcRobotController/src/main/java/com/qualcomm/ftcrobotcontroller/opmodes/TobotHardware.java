@@ -64,17 +64,22 @@ public class TobotHardware extends LinearOpMode {
     final static double WRIST_UD_INIT = 0.18;
     final static double WRIST_UD_UP = 0.68;
     final static double WRIST_UD_RED_MID = 0.6;
+    final static double WRIST_UD_RED_HIGH = 0.73;
+    final static double WRIST_UD_BLUE_HIGH = 0.8;
     final static double WRIST_UD_DUMP = 0.53;
     final static double WRIST_LR_INIT = 0.69;
     final static double WRIST_LR_DOWN = 0.11;
     final static double WRIST_LR_BLUE_MID = 0.29;
+    final static double WRIST_LR_BLUE_HIGH = 0.26;
+    final static double WRIST_LR_RED_HIGH = 0.001;
     final static double WRIST_LR_DUMP = 0.2;
 
     final static double SHOULDER_START = 0.4912;
     final static double SHOULDER_SCORE = 0.806;     // position to outside score position
     final static double SHOULDER_RED_MID_SCORE = 0.52;  //position for scoring mid red zone basket
     final static double SHOULDER_BLUE_MID_SCORE = 0.42; //position for scoring mid blue zone basket
-    final static double SHOULDER_RED_HIGH_SCORE = 0.55; //position for scoring high red zone basket
+    final static double SHOULDER_RED_HIGH_SCORE = 0.52; //position for scoring high red zone basket
+    final static double SHOULDER_BLUE_HIGH_SCORE = 0.4480; //position for scoring high red zone basket
     final static int ELBOW_LOW_POINT = 327;
     final static int ELBOW_MID_POINT = 600;
     final static int ELBOW_UP_POINT = 1260;
@@ -99,7 +104,7 @@ public class TobotHardware extends LinearOpMode {
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
-    final static int WHITE_ADA = 7000;
+    final static int WHITE_ADA = 8000;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 5;
@@ -512,7 +517,7 @@ public class TobotHardware extends LinearOpMode {
     void arm_front() throws InterruptedException {
         arm_slider_out_for_n_sec(4);
         set_wristLR_pos_slow(WRIST_LR_DOWN, 0.05);
-        set_elbow_pos(2177, 0.1);
+        set_elbow_pos(2177, 0.3);
         arm_state = ArmState.ARM_DOWN_FRONT;
         elbow.setPower(0);
         light_sensor_sv.setPosition(LIGHT_SENSOR_UP);
@@ -525,8 +530,8 @@ public class TobotHardware extends LinearOpMode {
             sleep(500);
         }
         set_wristUD_pos(WRIST_UD_INIT);
-        arm_slider_in_till_touch(2);
-        set_elbow_pos(100, 0.3);
+        arm_slider_in_till_touch(4);
+        set_elbow_pos(100, 0.4);
         sleep(400);
         set_elbow_pos(0, 0.1);
         arm_state = ArmState.ARM_DOWN_BACK;
@@ -546,8 +551,8 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void climber_mission(boolean should_dump) throws InterruptedException {
-        arm_up();
-        arm_slider_out_for_n_sec(5);
+        //arm_up();
+        //arm_slider_out_for_n_sec(5);
 
         if (should_dump) {
             set_wristLR_pos(WRIST_LR_DUMP);
@@ -571,9 +576,10 @@ public class TobotHardware extends LinearOpMode {
         }
         arm_slider_out_for_n_sec(1);
         set_shoulder_pos(SHOULDER_RED_MID_SCORE);
-        arm_slider_out_for_n_sec(1.5);
-        wristUD.setPosition(WRIST_UD_RED_MID);
-        arm_state = ArmState.ARM_SCORE_MID_RED;
+        arm_slider_out_for_n_sec(2);
+        wristUD.setPosition(WRIST_UD_RED_HIGH);
+        wristLR.setPosition(WRIST_LR_RED_HIGH);
+        arm_state = ArmState.ARM_SCORE_HIGH_RED;
     }
 
     void go_red_mid_zone() throws InterruptedException {
@@ -591,11 +597,12 @@ public class TobotHardware extends LinearOpMode {
         if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_front();
         }
-        arm_slider_out_for_n_sec(0.5);
-        set_shoulder_pos(SHOULDER_BLUE_MID_SCORE);
-        //arm_slider_out_for_n_sec(1);
-        wristLR.setPosition(WRIST_LR_BLUE_MID);
-        arm_state = ArmState.ARM_SCORE_MID_BLUE;
+        arm_slider_out_for_n_sec(1);
+        set_shoulder_pos(SHOULDER_BLUE_HIGH_SCORE);
+        arm_slider_out_for_n_sec(1.5);
+        wristLR.setPosition(WRIST_LR_BLUE_HIGH);
+        wristUD.setPosition(WRIST_UD_BLUE_HIGH);
+        arm_state = ArmState.ARM_SCORE_HIGH_BLUE;
     }
 
     void go_blue_mid_zone() throws InterruptedException {
@@ -610,15 +617,16 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void arm_back_from_goal() throws InterruptedException {
+        close_gate();
         set_shoulder_pos(SHOULDER_START);
         if (arm_state == ArmState.ARM_SCORE_MID_BLUE) {
             arm_slider_in_for_n_sec(0.5);
-        } else if (arm_state == ArmState.ARM_SCORE_MID_RED) {
-            arm_slider_in_for_n_sec(2.5);
         } else if (arm_state == ArmState.ARM_FRONT_DUMP) {
             close_gate();
             arm_up();
             arm_slider_in_for_n_sec(5);
+        } else { // high goals +  mid red
+            arm_slider_in_for_n_sec(2.5);
         }
         if (arm_state != ArmState.ARM_FRONT_DUMP) {
             arm_state = ArmState.ARM_DOWN_FRONT;
@@ -639,6 +647,7 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void arm_up() throws InterruptedException {
+        close_gate();
         if (arm_state == ArmState.ARM_DOWN_FRONT) {
             set_elbow_pos(ELBOW_UP_POINT, 0.25);
             inc_wristUD_pos(0.1);
@@ -1185,24 +1194,34 @@ public class TobotHardware extends LinearOpMode {
 
     public void auto_part1(boolean is_red) throws InterruptedException {
 
-        if (false)  // change true to skip part1
+        if (false) {  // change true to skip part1
             return;
-
-        if (state == State.STATE_AUTO) {
-            StraightIn(1, 72);
-        } else { // test mode
-            StraightIn(0.5, 24);
         }
 
+        arm_up();
+        arm_slider.setPosition(SLIDER_LENGHTEN);
+        StraightIn(1, 50);
+        arm_slider.setPosition(SLIDER_STOP);
+        //sleep(300);
+        if (is_red){
+            // StraightIn(1, 10);
+            driveTT(1,1); sleep(1500);driveTT(0,0);
+        }
+        else{
+            //StraightIn(1, 14);
+            driveTT(1,1); sleep(1500);driveTT(0,0);
+        }
         sleep(500);
+
         if (is_red) {
             TurnRightD(0.75, 45, true);
+            sleep(500);
+            StraightIn(1, 20);
         } else {
             TurnLeftD(0.75, 45, true);
+            sleep(500);
+            StraightIn(1, 18);
         }
-        sleep(500);
-
-        StraightIn(1, 20);
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
 
@@ -1212,7 +1231,12 @@ public class TobotHardware extends LinearOpMode {
             goUntilWhite(-0.2);
             // StraightIn(0.5, 0.5);
             driveTT(0.5, 0.5);
-            sleep(500);
+            if(is_red){
+                sleep(500);
+            }
+            else{
+                sleep(500);
+            }
             driveTT(0, 0);
             sleep(500);
         }
@@ -1222,20 +1246,20 @@ public class TobotHardware extends LinearOpMode {
         if (true) {
             if (is_red) {
                 heading = 315;
-                TurnLeftD(0.75, 90, true);
+                TurnLeftD(0.75, 88, true);
             } else { // must be blue zone
                 heading = 45;
                 TurnRightD(0.75, 90, true);
             }
         }
-        if (use_gyro) {
+        if (use_gyro && is_red) {
             sleep(500);
             int cur_heading = gyro.getHeading();
             if (cur_heading > heading) {
                 TurnLeftD(0.75, (int)(cur_heading - heading), true);
             }
             else if (cur_heading < heading) {
-                TurnRightD(0.75, (int)(cur_heading - heading), true);
+                TurnRightD(0.75, (int)(heading - cur_heading), true);
             }
         }
         if (true) {

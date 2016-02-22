@@ -291,7 +291,8 @@ public class TT_TeleOp extends TobotHardware {
                     arm_back();
                     sleep(1000);
                 } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE ||
-                        arm_state == ArmState.ARM_FRONT_DUMP) {
+                        arm_state == ArmState.ARM_FRONT_DUMP || arm_state == ArmState.ARM_SCORE_HIGH_RED ||
+                        arm_state == ArmState.ARM_SCORE_HIGH_BLUE) {
                     arm_front_from_goal();
                 } else if (arm_state == ArmState.ARM_DOWN_FRONT) {
                     arm_up();
