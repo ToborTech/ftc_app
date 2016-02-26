@@ -106,10 +106,10 @@ public class TT_TuneUp extends TobotHardware {
                     front_sv.setPosition(front_sv_pos);
                 }
                 if (gamepad1.dpad_left) { //left spot turn 90 Degrees
-                    TurnLeftD(0.8, 90, true);
+                    TurnLeftD(1, 90, true);
                 }
                 if (gamepad1.dpad_right) { //right spot turn 90 Degrees
-                    TurnRightD(0.8, 90, true);
+                    TurnRightD(1, 90, true);
                 }
             }
             if (gamepad1.b && gamepad1.x) { // stop sweeper

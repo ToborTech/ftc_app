@@ -104,14 +104,14 @@ public class TobotHardware extends LinearOpMode {
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
-    final static int WHITE_ADA = 8000;
+    final static int WHITE_ADA = 7000;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 5;
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
-    final static double RROBOT = 22.78;  // number of wheel turns to get chassis 360-degree turn
+    final static double RROBOT = 25.63;  // number of wheel turns to get chassis 360-degree turn
     final static double INCHES_PER_ROTATION = 6.67; // inches per chassis motor rotation based on 16/24 gear ratio
     int numOpLoops = 1;
 
@@ -517,10 +517,11 @@ public class TobotHardware extends LinearOpMode {
     void arm_front() throws InterruptedException {
         arm_slider.setPosition(SLIDER_LENGHTEN);
         set_wristLR_pos_slow(WRIST_LR_DOWN, 0.05);
+        // arm_slider_out_for_n_sec(2.2);
+        set_elbow_pos(1800, 0.3);
+        set_elbow_pos(2000, 0.1);
+        set_elbow_pos(2100, 0.07); // slow down to avoid losing cubes
         arm_slider.setPosition(SLIDER_STOP);
-        arm_slider_out_for_n_sec(2.2);
-        set_elbow_pos(2000, 0.3);
-        set_elbow_pos(2100, 0.1);
         arm_state = ArmState.ARM_DOWN_FRONT;
         elbow.setPower(0);
         light_sensor_sv.setPosition(LIGHT_SENSOR_UP);
@@ -626,7 +627,6 @@ public class TobotHardware extends LinearOpMode {
         if (arm_state == ArmState.ARM_SCORE_MID_BLUE) {
             arm_slider_in_for_n_sec(0.5);
         } else if (arm_state == ArmState.ARM_FRONT_DUMP) {
-            close_gate();
             arm_up();
             arm_slider_in_for_n_sec(5);
         } else { // high goals +  mid red
@@ -642,9 +642,13 @@ public class TobotHardware extends LinearOpMode {
     void arm_front_from_goal() throws InterruptedException {
         set_shoulder_pos(SHOULDER_START);
         if (arm_state == ArmState.ARM_SCORE_MID_BLUE) {
-            arm_slider_in_for_n_sec(1.3);
+            arm_slider_in_for_n_sec(0.5);
         } else if (arm_state == ArmState.ARM_SCORE_MID_RED) {
-            arm_slider_in_for_n_sec(2.3);
+            arm_slider_in_for_n_sec(2.4);
+        } else  if (arm_state == ArmState.ARM_SCORE_HIGH_BLUE) {
+            arm_slider_in_for_n_sec(2.4);
+        }  if (arm_state == ArmState.ARM_SCORE_HIGH_RED) {
+            arm_slider_in_for_n_sec(2.9);
         }
         set_shoulder_pos(SHOULDER_START);
         arm_state = ArmState.ARM_DOWN_FRONT;
@@ -774,7 +778,7 @@ public class TobotHardware extends LinearOpMode {
             double numberR = in / INCHES_PER_ROTATION;
             StraightR(power, numberR);
         } else { // using timer
-            double in_per_ms = 0.023 * power / 0.8;
+            double in_per_ms = 0.014 * power / 0.8;
             if (in_per_ms < 0) in_per_ms *= -1.0;
             long msec = (long) (in / in_per_ms);
             if (msec < 100) msec = 100;
@@ -1204,7 +1208,7 @@ public class TobotHardware extends LinearOpMode {
 
         arm_up();
         arm_slider.setPosition(SLIDER_LENGHTEN);
-        StraightIn(1, 50);
+        StraightIn(1, 51);
         arm_slider.setPosition(SLIDER_STOP);
         //sleep(300);
         if (is_red){
@@ -1213,17 +1217,17 @@ public class TobotHardware extends LinearOpMode {
         }
         else{
             //StraightIn(1, 14);
-            driveTT(1,1); sleep(1500);driveTT(0,0);
+            driveTT(1, 1); sleep(1500);driveTT(0,0);
         }
-        sleep(500);
+        sleep(400);
 
         if (is_red) {
-            TurnRightD(0.75, 45, true);
-            sleep(500);
+            TurnRightD(1, 48, true);
+            sleep(400);
             StraightIn(1, 20);
         } else {
-            TurnLeftD(0.75, 45, true);
-            sleep(500);
+            TurnLeftD(1, 42, true);
+            sleep(400);
             StraightIn(1, 18);
         }
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
@@ -1231,10 +1235,10 @@ public class TobotHardware extends LinearOpMode {
 
     public void auto_part2(boolean is_red) throws InterruptedException {
         if (true) {
-            sleep(500);
-            goUntilWhite(-0.2);
+            sleep(400);
+            goUntilWhite(-0.3);
             // StraightIn(0.5, 0.5);
-            driveTT(0.5, 0.5);
+            driveTT(0.75, 0.75);
             if(is_red){
                 sleep(500);
             }
@@ -1242,7 +1246,7 @@ public class TobotHardware extends LinearOpMode {
                 sleep(500);
             }
             driveTT(0, 0);
-            sleep(500);
+            sleep(400);
         }
 
         blue_detected = false;
@@ -1250,25 +1254,46 @@ public class TobotHardware extends LinearOpMode {
         if (true) {
             if (is_red) {
                 heading = 315;
-                TurnLeftD(0.75, 88, true);
+                TurnLeftD(1, 88, true);
             } else { // must be blue zone
-                heading = 45;
-                TurnRightD(0.75, 90, true);
+                heading = 50;
+                TurnRightD(1, 90, true);
+                driveTT(0.75, 0.75);sleep(200);driveTT(0, 0);
             }
         }
-        if (use_gyro && is_red) {
-            sleep(500);
+        if (use_gyro) {
+            sleep(400);
             int cur_heading = gyro.getHeading();
-            if (cur_heading > heading) {
-                TurnLeftD(0.75, (int)(cur_heading - heading), true);
+            int degree = 0;
+            int left = 0;
+            if (!is_red) {
+                use_encoder = false; // for blue zone, use time correction for now
             }
-            else if (cur_heading < heading) {
-                TurnRightD(0.75, (int)(heading - cur_heading), true);
+            if (true) {
+                if (cur_heading > heading) {
+                    degree = (int) (cur_heading - heading);
+                    TurnLeftD(1, degree, true);
+                } else if (cur_heading < heading) {
+                    degree = (int) (heading - cur_heading);
+                    TurnRightD(1, degree, true);
+                }
+            } else {
+                if (cur_heading > heading) {
+                    degree = (int) (cur_heading - heading);
+                    left = 1;
+                } else if (cur_heading < heading) {
+                    degree = (int) (heading - cur_heading);
+                }
+                telemetry.addData("8. Heading go / cur / degree (left)", String.format("%d / %d / %d (%d)", heading, cur_heading, degree, left));
+                sleep(5000);
+            }
+            if (!is_red) {
+                use_encoder = true;
             }
         }
         if (true) {
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-             forwardTillUltra(12, 0.3, 5);
+             forwardTillUltra(12, 0.5, 5);
 
             // StraightIn(0.3, 1.0);
             //hit_left_button();

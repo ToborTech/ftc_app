@@ -43,6 +43,7 @@ public class TT_TeleOp extends TobotHardware {
     public void runOpMode() throws InterruptedException {
 
         tobot_init(State.STATE_TELEOP);
+        Boolean hanging_there = false;
 
         waitForStart();
 
@@ -181,10 +182,18 @@ public class TT_TeleOp extends TobotHardware {
                 cur_arm_power = 0;
             }
             if (tape_slider_dir < -THRESHOLD * 2.0) { // tape slider in 100% power
+                if (gamepad2.start)
+                    hanging_there = true;
+                else if (gamepad2.back)
+                    hanging_there = false;
                 tape_slider.setPower(-1);
             } else if (tape_slider_dir > THRESHOLD * 2.0) { // tape slider out 100% power
                 tape_slider.setPower(1);
-            } else {
+                hanging_there = false;
+            } else if (hanging_there) { // minimum power to ensure Tobot does not slide down
+                tape_slider.setPower(-0.2);
+            } else
+            {
                 tape_slider.setPower(0);
             }
 
@@ -259,7 +268,8 @@ public class TT_TeleOp extends TobotHardware {
                 } else if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_front();
                 } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE ||
-                        arm_state == ArmState.ARM_FRONT_DUMP) {
+                        arm_state == ArmState.ARM_FRONT_DUMP || arm_state == ArmState.ARM_SCORE_HIGH_RED ||
+                        arm_state == ArmState.ARM_SCORE_HIGH_BLUE) {
                     arm_back_from_goal();
                 }
             } else if (gamepad2.dpad_left) {
