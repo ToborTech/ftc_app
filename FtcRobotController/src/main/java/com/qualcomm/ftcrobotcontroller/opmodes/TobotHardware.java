@@ -517,7 +517,7 @@ public class TobotHardware extends LinearOpMode {
     void arm_front() throws InterruptedException {
         arm_slider.setPosition(SLIDER_LENGHTEN);
         set_wristLR_pos_slow(WRIST_LR_DOWN, 0.05);
-        // arm_slider_out_for_n_sec(2.2);
+        arm_slider_out_for_n_sec(2.2);
         set_elbow_pos(1800, 0.3);
         set_elbow_pos(2000, 0.1);
         set_elbow_pos(2100, 0.07); // slow down to avoid losing cubes
