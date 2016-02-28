@@ -53,7 +53,7 @@ public class TT_AutoRedIn extends TobotHardware {
 
         waitForStart();
 
-        auto_part1(true);
+        auto_part1(true, true);
 
         auto_part2(true);
 

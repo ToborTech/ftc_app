@@ -279,11 +279,19 @@ public class TT_TuneUp extends TobotHardware {
 
             // manual adjust leveler
             if (gamepad2.dpad_left) {
-                leveler_pos += SERVO_SCALE;
-                if (leveler_pos > 0.99) leveler_pos = 0.99;
+                if (gamepad2.start) {
+                    leveler_left();
+                } else {
+                    leveler_pos += SERVO_SCALE;
+                    if (leveler_pos > 0.99) leveler_pos = 0.99;
+                }
             } else if (gamepad2.dpad_right) {
-                leveler_pos -= SERVO_SCALE;
-                if (leveler_pos < 0.01) leveler_pos = 0.01;
+                if (gamepad2.start) {
+                    leveler_right();
+                } else {
+                    leveler_pos -= SERVO_SCALE;
+                    if (leveler_pos < 0.01) leveler_pos = 0.01;
+                }
             }
             leveler.setPosition(leveler_pos);
 

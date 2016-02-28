@@ -53,7 +53,7 @@ public class TT_AutoBlueIn extends TobotHardware {
 
         waitForStart();
 
-        auto_part1(false);
+        auto_part1(false, true);
         auto_part2(false);
 
         stop_tobot();

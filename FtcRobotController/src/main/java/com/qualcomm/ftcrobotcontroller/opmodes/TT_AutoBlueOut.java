@@ -58,13 +58,7 @@ public class TT_AutoBlueOut extends TobotHardware {
 
         waitForStart();
 
-        if (true) {
-            StraightIn(1, 125);
-            //StraightR(-0.5, 2);
-            TurnLeftD(0.75, 32, true);
-            //StraightR(0.5, 1);
-            StraightIn(-1, 18.5);
-        }
+        auto_part1(false, false);
 
         auto_part2(false);
 

@@ -90,9 +90,9 @@ public class TobotHardware extends LinearOpMode {
     final static double TAPE_SLIDER = 0.75;
     final static double LIGHT_SENSOR_UP = 0.03;
     final static double LIGHT_SENSOR_DOWN = 0.5;
-    final static double LEVELER_RIGHT = 0.45;
+    final static double LEVELER_RIGHT = 0.36;
     final static double LEVELER_INIT = 0.14;
-    final static double LEVELER_LEFT = 0.7;
+    final static double LEVELER_LEFT = 0.62;
     final static double FRONT_SV_DOWN = 0.99;
     final static double FRONT_SV_UP = 0.43;
     final static double RIGHT_CLIMBER_UP = 0.71;
@@ -104,7 +104,7 @@ public class TobotHardware extends LinearOpMode {
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
-    final static int WHITE_ADA = 7000;
+    final static int WHITE_ADA = 6000;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 5;
@@ -628,7 +628,7 @@ public class TobotHardware extends LinearOpMode {
             arm_slider_in_for_n_sec(0.5);
         } else if (arm_state == ArmState.ARM_FRONT_DUMP) {
             arm_up();
-            arm_slider_in_for_n_sec(5);
+            arm_slider_in_till_touch(5);
         } else { // high goals +  mid red
             arm_slider_in_for_n_sec(2.5);
         }
@@ -920,7 +920,16 @@ public class TobotHardware extends LinearOpMode {
             }
             driveTT(0, 0);
         } else {
-            run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+            if (use_encoder) {
+                run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+            }
+            else {
+                long degree_in_ms = 33 * degree;
+                driveTT(leftPower, rightPower);
+                sleep(degree_in_ms);
+                driveTT(0, 0);
+            }
+
         }
         sleep(500);
     }
@@ -1200,7 +1209,7 @@ public class TobotHardware extends LinearOpMode {
         stop_chassis();
     }
 
-    public void auto_part1(boolean is_red) throws InterruptedException {
+    public void auto_part1(boolean is_red, boolean is_in) throws InterruptedException {
 
         if (false) {  // change true to skip part1
             return;
@@ -1219,16 +1228,24 @@ public class TobotHardware extends LinearOpMode {
             //StraightIn(1, 14);
             driveTT(1, 1); sleep(1500);driveTT(0,0);
         }
+
+        if (!is_in) { // move more
+            StraightIn(1, 38);
+        }
         sleep(400);
 
         if (is_red) {
             TurnRightD(1, 48, true);
             sleep(400);
-            StraightIn(1, 20);
+            if (is_in) {
+                StraightIn(1, 20);
+            }
         } else {
             TurnLeftD(1, 42, true);
             sleep(400);
-            StraightIn(1, 18);
+            if (is_in) {
+                StraightIn(1, 18);
+            }
         }
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
@@ -1267,7 +1284,7 @@ public class TobotHardware extends LinearOpMode {
             int degree = 0;
             int left = 0;
             if (!is_red) {
-                use_encoder = false; // for blue zone, use time correction for now
+                use_encoder = false; // for bl zone, use time correction for now
             }
             if (true) {
                 if (cur_heading > heading) {
