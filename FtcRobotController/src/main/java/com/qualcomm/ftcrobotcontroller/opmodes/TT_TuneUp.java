@@ -106,12 +106,20 @@ public class TT_TuneUp extends TobotHardware {
                     front_sv.setPosition(front_sv_pos);
                 }
                 if (gamepad1.dpad_left) { //left spot turn 90 Degrees
-                    DbgLog.msg("MY_DEBUG - left turn 90D!");
+                    DbgLog.msg("MY_DEBUG - Beginning of left turn 90D!");
                     TurnLeftD(1, 90, true);
+                    DbgLog.msg("MY_DEBUG - End of left turn 90D!");
+                    sleep(1000);
+                    DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                            gyro.getHeading(), leftPower, rightPower));
                 }
                 if (gamepad1.dpad_right) { //right spot turn 90 Degrees
-                    DbgLog.msg("MY_DEBUG - right turn 90D!");
+                    DbgLog.msg("MY_DEBUG - begin of right turn 90D!");
                     TurnRightD(1, 90, true);
+                    DbgLog.msg("MY_DEBUG - end of right turn 90D!");
+                    sleep(1000);
+                    DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                            gyro.getHeading(), leftPower, rightPower));
                 }
             }
             if (gamepad1.b && gamepad1.x) { // stop sweeper
