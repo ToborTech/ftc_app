@@ -106,9 +106,11 @@ public class TT_TuneUp extends TobotHardware {
                     front_sv.setPosition(front_sv_pos);
                 }
                 if (gamepad1.dpad_left) { //left spot turn 90 Degrees
+                    DbgLog.msg("MY_DEBUG - left turn 90D!");
                     TurnLeftD(1, 90, true);
                 }
                 if (gamepad1.dpad_right) { //right spot turn 90 Degrees
+                    DbgLog.msg("MY_DEBUG - right turn 90D!");
                     TurnRightD(1, 90, true);
                 }
             }

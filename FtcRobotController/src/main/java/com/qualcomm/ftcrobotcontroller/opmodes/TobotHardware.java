@@ -373,11 +373,11 @@ public class TobotHardware extends LinearOpMode {
         // initialize sensores
         cdim = hardwareMap.deviceInterfaceModule.get("dim");
         coSensor = hardwareMap.colorSensor.get("co");
-        coSensor.setI2cAddress(0x3c);
+        //coSensor.setI2cAddress(0x3c);
 
         coSensor2 = hardwareMap.colorSensor.get("co2");
-        coSensor2.setI2cAddress(0x3e);
-        coSensor2.enableLed(true);
+        //coSensor2.setI2cAddress(0x3e);
+        //coSensor2.enableLed(true);
 
         // set the digital channel to output mode.
         // remember, the Adafruit sensor is actually two devices.
@@ -412,6 +412,7 @@ public class TobotHardware extends LinearOpMode {
             set_wristLR_pos(WRIST_LR_DUMP);
             set_wristUD_pos(WRIST_UD_DUMP);
         }
+        hardwareMap.logDevices();
     } // end of tobot_init
 
     @Override
@@ -428,6 +429,7 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public void show_telemetry() {
+        int cur_heading = mapHeading(gyro.getHeading());
         telemetry.addData("0. Program/Arm State: ", state.toString() + "/" + arm_state.toString());
         telemetry.addData("1. shoulder:", "pos= " + String.format("%.4f, dir=%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, offset=%d", cur_arm_power, elbow_pos, elbow_pos_offset));
@@ -438,6 +440,8 @@ public class TobotHardware extends LinearOpMode {
         telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
         telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
         show_heading();
+        // Dbg.msg(String.format("Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
+	    //                   heading, cur_heading, leftPower, rightPower));
     }
 
     public void show_heading() {
@@ -851,8 +855,8 @@ public class TobotHardware extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         rightPower = (float) power;
-        //if (use_gyro) {
-        if (false) {
+        if (use_gyro) {
+        // if (false) {
             initAutoOpTime = getRuntime();
             int cur_heading = gyro.getHeading();
             heading = gyro.getHeading() - degree;
@@ -873,8 +877,10 @@ public class TobotHardware extends LinearOpMode {
                 }
 
                 driveTT(leftPower, rightPower);
-                show_telemetry();
+                show_heading();
                 waitForNextHardwareCycle();
+                DbgLog.msg(String.format("Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
+                        heading, cur_heading, leftPower, rightPower));
             }
             driveTT(0, 0);
         } else {
@@ -904,10 +910,11 @@ public class TobotHardware extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         leftPower = (float) power;
-        // if (use_gyro) {
-        if (false) {
+        if (use_gyro) {
+        // if (false) {
             initAutoOpTime = getRuntime();
             int cur_heading = gyro.getHeading();
+            heading = cur_heading + degree;
 
             while (cur_heading < heading && (getRuntime() - initAutoOpTime < 4)) {
                 cur_heading = gyro.getHeading();
@@ -917,6 +924,8 @@ public class TobotHardware extends LinearOpMode {
                 driveTT(leftPower, rightPower);
                 show_heading();
                 waitForNextHardwareCycle();
+                DbgLog.msg(String.format("Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
+                        heading, cur_heading, leftPower, rightPower));
             }
             driveTT(0, 0);
         } else {
