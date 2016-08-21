@@ -69,11 +69,13 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("AutoRedOut", TT_AutoRedOut.class);
     manager.register("AutoBlueIn", TT_AutoBlueIn.class);
     manager.register("AutoBlueOut", TT_AutoBlueOut.class);
+    manager.register("Op_TeleOp", TT_TeleOp_Op.class);
     manager.register("TeleOp", TT_TeleOp.class);
     manager.register("TuneUp", TT_TuneUp.class);
     manager.register("SensorTest", TT_SensorTest.class);
-    manager.register("MRGyroTest", MRGyroTest.class);
+    // manager.register("MRGyroTest", MRGyroTest.class);
     manager.register("AdafruitRGBExample", AdafruitRGBExample.class);
+    manager.register("IMUtest", IMUtest.class);
 
 
 

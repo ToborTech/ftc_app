@@ -31,27 +31,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
+import android.util.Log;
+
 import com.qualcomm.ftccommon.DbgLog;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.GyroSensor;
-import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.UltrasonicSensor;
-import com.qualcomm.robotcore.util.Range;
 
 /**
  * TobotHardware
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
-public class TobotHardware extends LinearOpMode {
+public class TobotHardware_Op extends OpMode {
 
     // CONSTANT VALUES.
     final static double ARM_MIN_RANGE = 0.20;
@@ -113,8 +114,8 @@ public class TobotHardware extends LinearOpMode {
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
     final static double RROBOT = 25.63;  // number of wheel turns to get chassis 360-degree turn
     final static double INCHES_PER_ROTATION = 6.67; // inches per chassis motor rotation based on 16/24 gear ratio
-    final static double GYRO_ROTATION_RATIO_L = 0.92; // 0.83; // Ratio of Gyro Sensor Left turn to prevent overshooting the turn.
-    final static double GYRO_ROTATION_RATIO_R = 0.88; // 0.84; // Ratio of Gyro Sensor Right turn to prevent overshooting the turn.
+    final static double GYRO_ROTATION_RATIO_L = 0.83; // 0.83; // Ratio of Gyro Sensor Left turn to prevent overshooting the turn.
+    final static double GYRO_ROTATION_RATIO_R = 0.82; // 0.82; // Ratio of Gyro Sensor Right turn to prevent overshooting the turn.
     int numOpLoops = 1;
 
     //
@@ -179,24 +180,41 @@ public class TobotHardware extends LinearOpMode {
     UltrasonicSensor ultra;
     OpticalDistanceSensor opSensor;
     GyroSensor gyro;
+    Boolean heading_cross_zero = false;
     int heading = 360;
+    int cur_heading = 0;
+    int prev_heading = 0;
+    int init_heading = 0;
+    double imu_heading = 0;
+    double imu_cur_heading = 0;
+    double imu_prev_heading = 0;
+    double imu_init_heading = 0;
     int touch = 0;
+    volatile double[] rollAngle = new double[2], pitchAngle = new double[2], yawAngle = new double[2];
     // LightSensor LL, LR;
 
-    // IBNO055IMU imu;
+    AdafruitIMU imu;
     TT_Nav nav;
     TT_ColorPicker colorPicker;
 
     // following variables are used by Chassis
     State state;
     ArmState arm_state;
-    Boolean use_gyro = true;
+    Boolean use_gyro = false;
     Boolean use_encoder = true;
+    Boolean use_imu = true;
 
     public enum State {
         STATE_TELEOP,    // state to test teleop
         STATE_AUTO,        // state to test auto routines
         STATE_TUNEUP    // state to manually tune up servo positions and arm positions
+    }
+
+    public enum Action {
+        INIT,
+        RTURN,    // state to right turn
+        LTURN,    // state to left turn
+        STRAIGHT  // state to forward/backward
     }
 
     public enum ArmState {
@@ -213,7 +231,8 @@ public class TobotHardware extends LinearOpMode {
         ARM_SCORE_MID_BLUE,
         ARM_SCORE_LOW_BLUE
     }
-
+    Action ch_action = Action.INIT;
+    int test_count = 0;
     float speedScale = (float) 0.8; // controlling the speed of the chassis in teleOp state
     float leftPower = 0;
     float rightPower = 0;
@@ -246,7 +265,7 @@ public class TobotHardware extends LinearOpMode {
         return new_sv;
     }
 
-    public void tobot_init(State st) throws InterruptedException {
+    public void tobot_init(State st)   {
         /*
          * Use the hardwareMap to get the dc motors and servos by name. Note
 		 * that the names of the devices must match the names used when you
@@ -307,6 +326,22 @@ public class TobotHardware extends LinearOpMode {
 
         light_sensor_sv_pos = LIGHT_SENSOR_DOWN;
         light_sensor_sv.setPosition(light_sensor_sv_pos);
+
+        long systemTime = System.nanoTime();
+        try {
+            imu = new AdafruitIMU(hardwareMap, "imu"
+
+                    //The following was required when the definition of the "I2cDevice" class was incomplete.
+                    //, "cdim", 5
+
+                    , (byte)(AdafruitIMU.BNO055_ADDRESS_A * 2)//By convention the FTC SDK always does 8-bit I2C bus
+                    //addressing
+                    , (byte)AdafruitIMU.OPERATION_MODE_IMU);
+        } catch (RobotCoreException e){
+            Log.i("FtcRobotController", "Exception: " + e.getMessage());
+        }
+        Log.i("FtcRobotController", "IMU Init method finished in: "
+                + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
 
         arm_power = 0.2;
         cur_arm_power = 0;
@@ -372,6 +407,7 @@ public class TobotHardware extends LinearOpMode {
             set_drive_modes(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
         }
 
+
         // initialize sensores
         cdim = hardwareMap.deviceInterfaceModule.get("dim");
         coSensor = hardwareMap.colorSensor.get("co");
@@ -410,29 +446,43 @@ public class TobotHardware extends LinearOpMode {
         nav = new TT_Nav(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
         colorPicker = new TT_ColorPicker(coSensor);
         if (state == State.STATE_TELEOP && arm_state == ArmState.ARM_FRONT_DUMP) {
-            sleep(500);
+            //sleep(500);
             set_wristLR_pos(WRIST_LR_DUMP);
             set_wristUD_pos(WRIST_UD_DUMP);
         }
         hardwareMap.logDevices();
     } // end of tobot_init
 
+
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void init() {
 
         tobot_init(State.STATE_TELEOP);
+    }
 
-        waitForStart();
+    @Override
+    public void start() {
+        /*
+      	* Use the hardwareMap to get the dc motors, servos and other sensors by name. Note
+      	* that the names of the devices must match the names used when you
+      	* configured your robot and created the configuration file. The hardware map
+      	* for this OpMode is not initialized until the OpModeManager's "startActiveOpMode" method
+      	* runs.
+    		*/
+        long systemTime = System.nanoTime();
+        imu.startIMU();//Set up the IMU as needed for a continual stream of I2C reads.
+        Log.i("FtcRobotController", "IMU Start method finished in: "
+                + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
+    }
 
-        while (opModeIsActive()) {
-            show_telemetry();
-            waitOneFullHardwareCycle();
-        }
+    @Override
+    public void loop() {
+        
     }
 
     public void show_telemetry() {
         int cur_heading = mapHeading(gyro.getHeading());
-        telemetry.addData("0. Program/Arm State: ", state.toString() + "/" + arm_state.toString());
+        telemetry.addData("0. Ch/Arm State: ", ch_action.toString() + "/" + arm_state.toString());
         telemetry.addData("1. shoulder:", "pos= " + String.format("%.4f, dir=%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, offset=%d", cur_arm_power, elbow_pos, elbow_pos_offset));
         telemetry.addData("3. wrist LR/UD", "pos= " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
@@ -448,8 +498,8 @@ public class TobotHardware extends LinearOpMode {
 
     public void show_heading() {
         touch = (tSensor.isPressed()?1:0);
-        telemetry.addData("9. head/gyro/ods/ultra/touch:", String.format("%d/%d/%.4f/%.2f/%d",
-                heading, gyro.getHeading(), opSensor.getLightDetected(), ultra.getUltrasonicLevel(),touch));
+        telemetry.addData("9. head/gyro/yaw/ultra/touch:", String.format("%d/%d/%.4f/%.2f/%d",
+                heading, gyro.getHeading(), yawAngle[0], ultra.getUltrasonicLevel(),touch));
     }
 
     public void calibre_elbow() {
@@ -465,7 +515,7 @@ public class TobotHardware extends LinearOpMode {
         }
     }
 
-    public void set_elbow_pos(int pos, double power) throws InterruptedException {
+    public void set_elbow_pos(int pos, double power)   {
         double init_time = getRuntime();
         if (power < 0)
             power = -power; // power always use positive, and re-adgust based on current position
@@ -476,51 +526,51 @@ public class TobotHardware extends LinearOpMode {
             elbow.setPower(power);
             while (elbow.getCurrentPosition() < elbow_pos && (getRuntime() - init_time) < 2) { // time out 3 sec
                 elbow.setPower(power);
-                waitForNextHardwareCycle();
+                //waitForNextHardwareCycle();
             }
         } else { // elbow should go down
             elbow.setPower(-power);
             while (elbow.getCurrentPosition() > elbow_pos && (getRuntime() - init_time) < 3) {
                 elbow.setPower(-power);
-                waitForNextHardwareCycle();
+                //waitForNextHardwareCycle();
             }
         }
         elbow.setPower(0);
     }
 
-    public void arm_slider_in_for_n_sec(double n) throws InterruptedException {
+    public void arm_slider_in_for_n_sec(double n)   {
         arm_slider.setPosition(SLIDER_SHORTEN);
-        sleep((long) (n * 1000.0));
+        //sleep((long) (n * 1000.0));
         arm_slider.setPosition(SLIDER_STOP);
     }
 
-    public void arm_slider_in_till_touch(double nsec) throws InterruptedException {
+    public void arm_slider_in_till_touch(double nsec)   {
         arm_slider.setPosition(SLIDER_SHORTEN);
         initAutoOpTime = getRuntime();
-        while (!tSensor.isPressed() && (getRuntime()-initAutoOpTime<nsec)) {
-            waitOneFullHardwareCycle();
+        while (!tSensor.isPressed() && (getRuntime()-initAutoOpTime < nsec)) {
+           //waitOneFullHardwareCycle();
         }
         arm_slider.setPosition(SLIDER_STOP);
     }
 
-    public void arm_slider_out_for_n_sec(double n) throws InterruptedException {
+    public void arm_slider_out_for_n_sec(double n)   {
         arm_slider.setPosition(SLIDER_LENGHTEN);
-        sleep((long) (n * 1000.0));
+        //sleep((long) (n * 1000.0));
         arm_slider.setPosition(SLIDER_STOP);
     }
 
-    void arm_down() throws InterruptedException {
+    void arm_down() {
         set_wristLR_pos(WRIST_LR_INIT);
-        sleep(100);
+        //sleep(100);
         set_wristUD_pos(WRIST_UD_INIT);
-        sleep(50);
+        //sleep(50);
         arm_slider_out_for_n_sec(3);
         set_elbow_pos(ELBOW_LOW_POINT, 0.2);
         arm_state = ArmState.ARM_DOWN_FRONT;
         elbow.setPower(0);
     }
 
-    void arm_front() throws InterruptedException {
+    void arm_front()   {
         arm_slider.setPosition(SLIDER_LENGHTEN);
         set_wristLR_pos_slow(WRIST_LR_DOWN, 0.05);
         arm_slider_out_for_n_sec(2.2);
@@ -533,11 +583,11 @@ public class TobotHardware extends LinearOpMode {
         light_sensor_sv.setPosition(LIGHT_SENSOR_UP);
     }
 
-    void arm_back() throws InterruptedException {
+    void arm_back()   {
         set_shoulder_pos(SHOULDER_START);
         set_wristLR_pos(WRIST_LR_INIT);
         if (arm_state != ArmState.ARM_UP_FRONT) {
-            sleep(500);
+            //(500);
         }
         set_wristUD_pos(WRIST_UD_INIT);
         if (!tSensor.isPressed()) {
@@ -548,31 +598,31 @@ public class TobotHardware extends LinearOpMode {
         arm_state = ArmState.ARM_DOWN_BACK;
     }
 
-    void wait_arm_pos(double max_sec) throws InterruptedException {
+    void wait_arm_pos(double max_sec)   {
         double init_time = getRuntime();
         // the following loop will timeout in 10 sec
         while (Math.abs(shoulder.getPosition() - shoulder_pos) > 0.02 && ((getRuntime() - init_time) < max_sec)) {
-            waitForNextHardwareCycle();
+            //waitForNextHardwareCycle();
         }
     }
 
-    void wrist_shake() throws InterruptedException {
+    void wrist_shake()   {
         set_elbow_pos(elbow_pos + 100, 0.3);
         set_elbow_pos(elbow_pos - 100, 0.3);
     }
 
-    void climber_mission(boolean should_dump) throws InterruptedException {
+    void climber_mission(boolean should_dump)   {
         //arm_up();
         //arm_slider_out_for_n_sec(5);
 
         if (should_dump) {
             set_wristLR_pos(WRIST_LR_DUMP);
             set_wristUD_pos(WRIST_UD_DUMP);
-            sleep(1000);
+            //sleep(1000);
             //driveTT(-0.2, -0.2); sleep(500); driveTT(0, 0);
             dump_gate();
             elbow.setPower(0);
-            sleep(1000);
+            //sleep(1000);
             arm_state = ArmState.ARM_FRONT_DUMP;
             arm_back_from_goal();
             arm_back();
@@ -581,7 +631,7 @@ public class TobotHardware extends LinearOpMode {
         }
     }
 
-    void go_red_high_zone() throws InterruptedException {
+    void go_red_high_zone()   {
         if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_front();
         }
@@ -593,7 +643,7 @@ public class TobotHardware extends LinearOpMode {
         arm_state = ArmState.ARM_SCORE_HIGH_RED;
     }
 
-    void go_red_mid_zone() throws InterruptedException {
+    void go_red_mid_zone()   {
         if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_front();
         }
@@ -604,7 +654,7 @@ public class TobotHardware extends LinearOpMode {
         arm_state = ArmState.ARM_SCORE_MID_RED;
     }
 
-    void go_blue_high_zone() throws InterruptedException {
+    void go_blue_high_zone()   {
         if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_front();
         }
@@ -616,7 +666,7 @@ public class TobotHardware extends LinearOpMode {
         arm_state = ArmState.ARM_SCORE_HIGH_BLUE;
     }
 
-    void go_blue_mid_zone() throws InterruptedException {
+    void go_blue_mid_zone()   {
         if (arm_state == ArmState.ARM_UP_FRONT) {
             arm_front();
         }
@@ -627,7 +677,7 @@ public class TobotHardware extends LinearOpMode {
         arm_state = ArmState.ARM_SCORE_MID_BLUE;
     }
 
-    void arm_back_from_goal() throws InterruptedException {
+    void arm_back_from_goal()   {
         close_gate();
         set_shoulder_pos(SHOULDER_START);
         if (arm_state == ArmState.ARM_SCORE_MID_BLUE) {
@@ -645,7 +695,7 @@ public class TobotHardware extends LinearOpMode {
         arm_state = ArmState.ARM_UP_FRONT;
     }
 
-    void arm_front_from_goal() throws InterruptedException {
+    void arm_front_from_goal()   {
         set_shoulder_pos(SHOULDER_START);
         if (arm_state == ArmState.ARM_SCORE_MID_BLUE) {
             arm_slider_in_for_n_sec(0.5);
@@ -660,7 +710,7 @@ public class TobotHardware extends LinearOpMode {
         arm_state = ArmState.ARM_DOWN_FRONT;
     }
 
-    void arm_up() throws InterruptedException {
+    void arm_up()   {
         close_gate();
         if (arm_state == ArmState.ARM_DOWN_FRONT) {
             set_elbow_pos(ELBOW_UP_POINT, 0.25);
@@ -697,20 +747,20 @@ public class TobotHardware extends LinearOpMode {
         wristLR.setPosition(wristLR_pos);
     }
 
-    void set_wristLR_pos_slow(double pos, double tick) throws InterruptedException {
+    void set_wristLR_pos_slow(double pos, double tick)   {
         wristLR_pos = pos;
         double cur_pos = wristLR.getPosition();
         if (cur_pos < pos) {
             while (wristLR.getPosition() < pos) {
                 cur_pos += tick;
                 wristLR.setPosition(cur_pos);
-                sleep(100);
+                //sleep(100);
             }
         } else {
             while (wristLR.getPosition() > pos) {
                 cur_pos -= tick;
                 wristLR.setPosition(cur_pos);
-                sleep(100);
+                //sleep(100);
             }
         }
         wristLR.setPosition(wristLR_pos);
@@ -751,27 +801,39 @@ public class TobotHardware extends LinearOpMode {
         gate.setPosition(gate_pos);
     }
 
-    public void StraightR(double power, double n_rotations) throws InterruptedException {
-        reset_chassis();
-        // set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        int leftEncode = motorBL.getCurrentPosition();
-        int rightEncode = motorBR.getCurrentPosition();
-        initAutoOpTime = this.time;
-        //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        leftCnt = (int) (ONE_ROTATION * n_rotations);
-        rightCnt = (int) (ONE_ROTATION * n_rotations);
-        leftPower = rightPower = (float) power;
-        if (power < 0) { // move backward
-            leftCnt = leftEncode - leftCnt;
-            rightCnt = rightEncode - rightCnt;
+    public void StraightR(double power, double n_rotations)   {
+        if (ch_action==Action.INIT) {
+            ch_action = Action.STRAIGHT;
+            reset_chassis();
+            // set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+            int leftEncode = motorBL.getCurrentPosition();
+            int rightEncode = motorBR.getCurrentPosition();
+            initAutoOpTime = this.time;
+            //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+            //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+            leftCnt = (int) (ONE_ROTATION * n_rotations);
+            rightCnt = (int) (ONE_ROTATION * n_rotations);
+            leftPower = rightPower = (float) power;
+            if (power < 0) { // move backward
+                leftCnt = leftEncode - leftCnt;
+                rightCnt = rightEncode - rightCnt;
+            } else {
+                leftCnt += leftEncode;
+                rightCnt += rightEncode;
+            }
         } else {
-            leftCnt += leftEncode;
-            rightCnt += rightEncode;
+            // run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
+            if (!have_drive_encoders_reached(leftCnt, rightCnt) && (getRuntime() - initAutoOpTime < 5)) {
+                driveTT(leftPower, rightPower);
+                show_telemetry();
+                //waitOneFullHardwareCycle();
+            } else {
+                ch_action = Action.INIT;
+                stop_chassis();
+            }
         }
-        run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
 
-        sleep(300);
+        //sleep(300);
     }
 
     public int mapHeading(int n) {
@@ -779,7 +841,7 @@ public class TobotHardware extends LinearOpMode {
         return n;
     }
 
-    public void StraightIn(double power, double in) throws InterruptedException {
+    public void StraightIn(double power, double in)   {
         if (use_encoder) {
             double numberR = in / INCHES_PER_ROTATION;
             StraightR(power, numberR);
@@ -790,7 +852,7 @@ public class TobotHardware extends LinearOpMode {
             if (msec < 100) msec = 100;
             if (msec > 6000) msec = 6000; // limit to 6 sec
             driveTT(power, power);
-            sleep(msec);
+            //sleep(msec);
             driveTT(0, 0);
         }
     }
@@ -813,20 +875,20 @@ public class TobotHardware extends LinearOpMode {
         motorBL.setPower(lp);
     }
 
-    public void run_until_encoder(int leftCnt, double leftPower, int rightCnt, double rightPower) throws InterruptedException {
+    public void run_until_encoder(int leftCnt, double leftPower, int rightCnt, double rightPower)   {
         //motorFR.setTargetPosition(rightCnt);
         //motorBL.setTargetPosition(leftCnt);
         //motorBL.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
         //motorFR.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
         //waitOneFullHardwareCycle();
         driveTT(leftPower, rightPower);
-        waitOneFullHardwareCycle();
+        //waitOneFullHardwareCycle();
         initAutoOpTime = getRuntime();
         //while (motorFR.isBusy() || motorBL.isBusy()) {
         while (!have_drive_encoders_reached(leftCnt, rightCnt) && (getRuntime() - initAutoOpTime < 5)) {
             driveTT(leftPower, rightPower);
             show_telemetry();
-            waitOneFullHardwareCycle();
+            //waitOneFullHardwareCycle();
         }
         stop_chassis();
         if (state == State.STATE_AUTO) {
@@ -837,128 +899,118 @@ public class TobotHardware extends LinearOpMode {
         // waitOneFullHardwareCycle();
     }
 
-    public void TurnLeftD(double power, int degree, boolean spotTurn) throws InterruptedException {
+    public void TurnLeftD(double power, int degree, boolean spotTurn)   {
         double adjust_degree = GYRO_ROTATION_RATIO_L * (double) degree;
-        initAutoOpTime = getRuntime();
-        reset_chassis();
-        //set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        int leftEncode = motorBL.getCurrentPosition();
-        int rightEncode = motorBR.getCurrentPosition();
-        if (spotTurn) { // use both motors for spot turn
-            leftCnt = (int) (-ONE_ROTATION * RROBOT * degree / 720.0);
-            rightCnt = (int) (ONE_ROTATION * RROBOT * degree / 720.0);
-            leftPower = (float) -power;
-        } else { // swing turn. only use right motor
-            leftCnt = 0;
-            rightCnt = (int) (ONE_ROTATION * RROBOT * degree / 360.0);
-            leftPower = (float) 0;
-        }
-        leftCnt += leftEncode;
-        rightCnt += rightEncode;
-        rightPower = (float) power;
-        if (use_gyro) {
-        // if (false) {
+
+        if (ch_action==Action.INIT) {
+            ch_action = Action.LTURN;
             initAutoOpTime = getRuntime();
-            int cur_heading = gyro.getHeading();
-            heading = gyro.getHeading() - (int) adjust_degree;
-            Boolean cross_zero = false;
-            if (heading < 0) {
-                heading += 360;
-                cur_heading += 360;
-                cross_zero = true;
+            if (spotTurn) { // use both motors for spot turn
+                leftPower = (float) -power;
+            } else { // swing turn. only use right motor
+                leftPower = (float) 0;
             }
-            DbgLog.msg(String.format("LOP: Left Turn %d degree: Gyro tar/curr heading = %d/%d",
-                    degree, heading, gyro.getHeading()));
-            int prev_heading = -1;
-
-            while (cur_heading > heading && (getRuntime() - initAutoOpTime < 4)) {
-                driveTT(leftPower, rightPower);
-                if (prev_heading!=cur_heading) {
-                    DbgLog.msg(String.format("LOP: Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
-                            heading, cur_heading, leftPower, rightPower));
-                }
-                prev_heading = cur_heading;
+            rightPower = (float) power;
+            leftPower = (float) -power;
+            if (use_gyro) {
                 cur_heading = gyro.getHeading();
-                if (cross_zero == true) {
-                    if (cur_heading < adjust_degree) {
-                        cur_heading += 360;
-                    } else {
-                        cross_zero = false;
-                    }
+                heading = cur_heading - (int) adjust_degree;
+                heading_cross_zero = false;
+                if (heading < 0) {
+                    heading += 360;
+                    cur_heading += 360;
+                    heading_cross_zero = true;
                 }
-
-                // show_heading();
-                waitForNextHardwareCycle();
+                prev_heading = -1;
+                init_heading = cur_heading;
+                DbgLog.msg(String.format("OP: Left Turn %d degree: Gyro tar/curr heading = %d/%d",
+                        degree, heading, gyro.getHeading()));
             }
-            driveTT(0, 0);
-        } else {
-            run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
-        }
+            driveTT(leftPower, rightPower);
+        } else { // Determine if right term has reached
 
+            if (prev_heading!=cur_heading) {
+                DbgLog.msg(String.format("OP: Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
+                        heading, cur_heading, leftPower, rightPower));
+            }
+            int tmp_heading = cur_heading;
+            cur_heading = gyro.getHeading();
+            if (heading_cross_zero == true) {
+                if (cur_heading < adjust_degree) {
+                    cur_heading += 360;
+                } else {
+                    heading_cross_zero = false;
+                }
+            }
+            Boolean degree_reached = (cur_heading<=heading);
+            if ((heading < 10) && (prev_heading < cur_heading -180)) {
+                degree_reached = true;
+            }
+            prev_heading = tmp_heading;
+
+
+            if ( degree_reached || ((getRuntime()-initAutoOpTime)>5.0)) {
+                driveTT(0, 0);
+                ch_action = Action.INIT;
+            } else {
+                driveTT(leftPower, rightPower);
+            }
+        }
         // sleep(500);
     }
 
-    public void TurnRightD(double power, int degree, boolean spotTurn) throws InterruptedException {
+    public void TurnRightD(double power, int degree, boolean spotTurn)   {
         double adjust_degree = GYRO_ROTATION_RATIO_R * (double) degree;
-        initAutoOpTime = getRuntime();
-        reset_chassis();
-        //set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        //motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        //motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        int leftEncode = motorBL.getCurrentPosition();
-        int rightEncode = motorBR.getCurrentPosition();
-        if (spotTurn) { // use both motors for spot turn
-            leftCnt = (int) (ONE_ROTATION * RROBOT * degree / 720.0);
-            rightCnt = (int) (-ONE_ROTATION * RROBOT * degree / 720.0);
-            rightPower = (float) -power;
-        } else { // swing turn. only use right motor
-            leftCnt = 0;
-            rightCnt = (int) (ONE_ROTATION * RROBOT * degree / 360.0);
-            rightPower = (float) 0;
-        }
-        leftCnt += leftEncode;
-        rightCnt += rightEncode;
-        leftPower = (float) power;
-
-        if (use_gyro) {
-        // if (false) {
+        if (ch_action==Action.INIT) {
+            ch_action = Action.RTURN;
             initAutoOpTime = getRuntime();
-            int cur_heading = gyro.getHeading();
-            heading = cur_heading + (int)adjust_degree;
-            int prev_heading = -1;
-            int init_heading = cur_heading;
-            DbgLog.msg(String.format("LOP: Right Turn %d degree: Gyro tar/curr heading = %d/%d",
-                    degree, heading, gyro.getHeading()));
-
-            while (cur_heading < heading && (getRuntime() - initAutoOpTime < 4)) {
-                driveTT(leftPower, rightPower);
-                if (prev_heading!=cur_heading) {
-                    DbgLog.msg(String.format("LOP: Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
-                            heading, cur_heading, leftPower, rightPower));
-                }
-                prev_heading = cur_heading;
+            if (spotTurn) { // use both motors for spot turn
+                rightPower = (float) -power;
+            } else { // swing turn. only use right motor
+                rightPower = (float) 0;
+            }
+            leftPower = (float) power;
+            rightPower = (float) -power;
+            if (use_gyro) {
                 cur_heading = gyro.getHeading();
+                heading = cur_heading + (int) adjust_degree;
+                prev_heading = -1;
+                init_heading = cur_heading;
+                DbgLog.msg(String.format("OP: Right Turn %d degree: Gyro tar/curr heading = %d/%d",
+                        degree, heading, gyro.getHeading()));
+            }
+            else if (use_imu) {
+                imu_heading = yawAngle[0] - adjust_degree ;
+                imu_prev_heading = -1;
+                imu_init_heading = yawAngle[0];
+                DbgLog.msg(String.format("OP: Right Turn %d degree: IMU tar/curr heading = %.2f/%.2f",
+                        degree, imu_heading, yawAngle[0]));
+            }
+            driveTT(leftPower, rightPower);
+        } else { // Determine if right term has reached
+            if (use_imu) {
+                if (imu_prev_heading != yawAngle[0]) {
+                    DbgLog.msg(String.format("OP: IMU heading tar/curr = %.2f/%.2f, power L/R = %.2f/%.2f",
+                            imu_heading, yawAngle[0], leftPower, rightPower));
+                }
+                imu_prev_heading = yawAngle[0];
+                if ((yawAngle[0] <= imu_heading) || ((getRuntime() - initAutoOpTime) > 5.0)) {
+                    driveTT(0, 0);
+                    ch_action = Action.INIT;
+                } else {
+                    driveTT(leftPower, rightPower);
+                }
+            } else if (use_gyro) {
                 if (heading > 360 && init_heading > cur_heading) {
                     cur_heading += 360;
                 }
-                // show_heading();
-                waitForNextHardwareCycle();
-
+                if ((cur_heading >= heading) || ((getRuntime() - initAutoOpTime) > 5.0)) {
+                    driveTT(0, 0);
+                    ch_action = Action.INIT;
+                } else {
+                    driveTT(leftPower, rightPower);
+                }
             }
-            driveTT(0, 0);
-        } else {
-            if (use_encoder) {
-                run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
-            }
-            else {
-                long degree_in_ms = 33 * (long) degree;
-                driveTT(leftPower, rightPower);
-                sleep(degree_in_ms);
-                driveTT(0, 0);
-            }
-
         }
         // sleep(500);
     }
@@ -984,14 +1036,14 @@ public class TobotHardware extends LinearOpMode {
         arm_slider.setPosition(SLIDER_STOP);
     }
 
-    void reset_chassis() throws InterruptedException {
+    void reset_chassis()   {
         motorBL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         motorBR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         motorFL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         motorFR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         while (motorBR.getCurrentPosition() != 0 && motorBL.getCurrentPosition() != 0) {
             // && motorBR.getCurrentPosition()!=0) && motorFL.getCurrentPosition()!=0) {
-            waitOneFullHardwareCycle();
+            //waitOneFullHardwareCycle();
         }
         leftCnt = 0;
         rightCnt = 0;
@@ -1001,11 +1053,11 @@ public class TobotHardware extends LinearOpMode {
         motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
     }
 
-    void reset_motors() throws InterruptedException {
+    void reset_motors()   {
         reset_chassis();
         elbow.setMode(DcMotorController.RunMode.RESET_ENCODERS);
         while (elbow.getCurrentPosition() != 0) {
-            waitOneFullHardwareCycle();
+            //waitOneFullHardwareCycle();
         }
         elbow.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
     }
@@ -1103,83 +1155,83 @@ public class TobotHardware extends LinearOpMode {
         tape_rotator.setPosition(tape_rotator_pos);
     }
 
-    void inc_tape_rotator(double inc) throws InterruptedException {
+    void inc_tape_rotator(double inc)   {
         if (inc < 0) {
             tape_rotator.setPosition(SLIDER_LENGHTEN);
         } else {
             tape_rotator.setPosition(SLIDER_SHORTEN);
         }
-        sleep(30);
+        //sleep(30);
         tape_rotator.setPosition(SLIDER_STOP);
     }
 
-    void front_sv_up() throws InterruptedException {
+    void front_sv_up()   {
         front_sv_pos = FRONT_SV_UP;
         front_sv.setPosition(front_sv_pos);
-        sleep(500);
+        //sleep(500);
     }
 
-    void front_sv_down() throws InterruptedException {
+    void front_sv_down()   {
         front_sv_pos = FRONT_SV_DOWN;
         front_sv.setPosition(front_sv_pos);
-        sleep(500);
+        //sleep(500);
     }
 
 
-    void leveler_right() throws InterruptedException {
+    void leveler_right()   {
         leveler_pos = LEVELER_RIGHT;
         leveler.setPosition(leveler_pos);
-        sleep(500);
+        //sleep(500);
     }
 
-    void leveler_left() throws InterruptedException {
+    void leveler_left()   {
         leveler_pos = LEVELER_LEFT;
         leveler.setPosition(leveler_pos);
-        sleep(500);
+        //sleep(500);
     }
 
-    void leveler_down() throws InterruptedException {
+    void leveler_down()   {
         leveler_pos = LEVELER_INIT;
         leveler.setPosition(leveler_pos);
-        sleep(100);
+        //sleep(100);
     }
 
-    void set_right_climber(double pos) throws InterruptedException {
+    void set_right_climber(double pos)   {
         climberR_pos = pos;
         // climberR.setPosition(climberR_pos);
-        sleep(100);
+        //sleep(100);
     }
 
-    void set_left_climber(double pos) throws InterruptedException {
+    void set_left_climber(double pos)   {
         climberL_pos = pos;
         // climberL.setPosition(climberL_pos);
-        sleep(100);
+        //sleep(100);
     }
 
-    void hit_right_button() throws InterruptedException {
+    void hit_right_button()   {
         leveler_right();
         bump_beacon();
     }
 
-    void bump_beacon() throws InterruptedException {
+    void bump_beacon()   {
         driveTT(0.2, 0.2);
-        sleep(1000);
+       // sleep(1000);
         driveTT(0, 0);
         StraightIn(-0.5, 3);
         if (false) {
             StraightIn(0.3, 1.0);
-            sleep(200);
+            //sleep(200);
             StraightIn(-0.3, 1.0);
-            sleep(200);
+            //sleep(200);
         }
     }
 
-    void hit_left_button() throws InterruptedException {
+    void hit_left_button()   {
         leveler_left();
         bump_beacon();
     }
 
-    public void followLineTillOp(double op_stop_val, boolean leftFirst, double max_sec) throws InterruptedException {
+    public void followLineTillOp(double op_stop_val, boolean leftFirst, double max_sec)   {
         double op_val = 0;
         double init_time = getRuntime();
         while ((op_val = opSensor.getLightDetected()) < op_stop_val && ((getRuntime() - init_time) < max_sec)) {
@@ -1188,9 +1240,9 @@ public class TobotHardware extends LinearOpMode {
             direction2go = nav.getFollowLineDirection(leftFirst);
             nav.drive(direction2go, 0.2);
             if (direction2go != TT_Nav.FORWARD) {
-                sleep(40);
+                //sleep(40);
             } else { // forward, make the move more
-                sleep(100);
+                //sleep(100);
             }
             telemetry.addData("1. ods:", String.format("%.2f", op_val));
             // telemetry.addData("2. ll/lr:", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
@@ -1198,24 +1250,24 @@ public class TobotHardware extends LinearOpMode {
         nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
     }
 
-    public void forwardTillOp(double op_stop_val, double power, double max_sec) throws InterruptedException {
+    public void forwardTillOp(double op_stop_val, double power, double max_sec)   {
         double op_val = opSensor.getLightDetected();
         double init_time = getRuntime();
         while (op_val < op_stop_val && ((getRuntime() - init_time) < max_sec)) {
             nav.drive(TT_Nav.FORWARD, 0.2);
             op_val = opSensor.getLightDetected();
-            waitForNextHardwareCycle();
+            //waitForNextHardwareCycle();
         }
         nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
     }
 
-    public void forwardTillUltra(double us_stop_val, double power, double max_sec) throws InterruptedException {
+    public void forwardTillUltra(double us_stop_val, double power, double max_sec)   {
         double us_val = ultra.getUltrasonicLevel();
         double init_time = getRuntime();
         while ((us_val < 0.1 || us_val > us_stop_val) && ((getRuntime() - init_time) < max_sec)) {
             nav.drive(TT_Nav.FORWARD, 0.2);
             us_val = ultra.getUltrasonicLevel();
-            waitForNextHardwareCycle();
+            //waitForNextHardwareCycle();
         }
         nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
     }
@@ -1225,20 +1277,20 @@ public class TobotHardware extends LinearOpMode {
         light_sensor_sv.setPosition(light_sensor_sv_pos);
     }
 
-    public void goUntilWhite(double power) throws InterruptedException {
+    public void goUntilWhite(double power)   {
         initAutoOpTime = getRuntime();
         while (!detectWhite() && (getRuntime() - initAutoOpTime < 0.5)) {
             driveTT(power, power);
-            waitForNextHardwareCycle();
+            //waitForNextHardwareCycle();
         }
         while (!detectWhite() && (getRuntime() - initAutoOpTime < 2)) {
             driveTT(power, power);
-            waitForNextHardwareCycle();
+            //waitForNextHardwareCycle();
         }
         stop_chassis();
     }
 
-    public void auto_part1(boolean is_red, boolean is_in) throws InterruptedException {
+    public void auto_part1(boolean is_red, boolean is_in)   {
 
         DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
                 gyro.getHeading(), leftPower, rightPower));
@@ -1262,11 +1314,15 @@ public class TobotHardware extends LinearOpMode {
 
         if (is_red){
             // StraightIn(1, 10);
-            driveTT(1,1); sleep(1500);driveTT(0,0);
+            driveTT(1, 1); 
+            //sleep(1500);
+            driveTT(0,0);
         }
         else{
             //StraightIn(1, 14);
-            driveTT(1, 1); sleep(1500);driveTT(0,0);
+            driveTT(1, 1); 
+            //sleep(1500);
+            driveTT(0,0);
         }
 
         if (!is_in) { // move more
@@ -1274,17 +1330,17 @@ public class TobotHardware extends LinearOpMode {
         }
         DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
                 gyro.getHeading(), leftPower, rightPower));
-        sleep(400);
+        //sleep(400);
 
         if (is_red) {
             TurnRightD(1, 45, true);
-            sleep(400);
+            //sleep(400);
             if (is_in) {
                 StraightIn(1, 20);
             }
         } else {
             TurnLeftD(1, 42, true);
-            sleep(400);
+            //sleep(400);
             if (is_in) {
                 StraightIn(1, 18);
             }
@@ -1294,20 +1350,20 @@ public class TobotHardware extends LinearOpMode {
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
 
-    public void auto_part2(boolean is_red) throws InterruptedException {
+    public void auto_part2(boolean is_red)   {
         if (true) {
-            sleep(400);
+            //sleep(400);
             goUntilWhite(-0.3);
             // StraightIn(0.5, 0.5);
             driveTT(0.75, 0.75);
             if(is_red){
-                sleep(500);
+                //sleep(500);
             }
             else{
-                sleep(500);
+                //sleep(500);
             }
             driveTT(0, 0);
-            sleep(400);
+            //sleep(400);
         }
 
         blue_detected = false;
@@ -1319,11 +1375,13 @@ public class TobotHardware extends LinearOpMode {
             } else { // must be blue zone
                 heading = 50;
                 TurnRightD(1, 90, true);
-                driveTT(0.75, 0.75);sleep(200);driveTT(0, 0);
+                driveTT(0.75, 0.75);
+                //sleep(200);
+                 driveTT(0, 0);
             }
         }
         if (use_gyro) {
-            sleep(400);
+            //sleep(400);
             int cur_heading = gyro.getHeading();
             int degree = 0;
             int left = 0;
@@ -1346,7 +1404,7 @@ public class TobotHardware extends LinearOpMode {
                     degree = (int) (heading - cur_heading);
                 }
                 telemetry.addData("8. Heading go / cur / degree (left)", String.format("%d / %d / %d (%d)", heading, cur_heading, degree, left));
-                sleep(5000);
+                //sleep(5000);
             }
             if (!is_red) {
                 use_encoder = true;
@@ -1363,7 +1421,7 @@ public class TobotHardware extends LinearOpMode {
             // sense color up to 2 secs
             do {
                 cur_co = colorPicker.getColor();
-                waitForNextHardwareCycle();
+                //wait ForNextHardwareCycle();
             } while (cur_co==TT_ColorPicker.Color.UNKNOWN && getRuntime()-initTime<2);
             // Detect Beacon color and hit the right side
             boolean should_dump = false;

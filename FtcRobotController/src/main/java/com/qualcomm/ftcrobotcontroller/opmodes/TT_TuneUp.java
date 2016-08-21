@@ -99,6 +99,7 @@ public class TT_TuneUp extends TobotHardware {
                 }
                 if (gamepad1.dpad_up) { //forward 2 rotation
                     // StraightR(0.8, 2);
+                    auto_part1(false, true);
                   front_sv_pos += (SERVO_SCALE);
                     if (front_sv_pos > 1) {
                         front_sv_pos = 0.99;
@@ -106,17 +107,17 @@ public class TT_TuneUp extends TobotHardware {
                     front_sv.setPosition(front_sv_pos);
                 }
                 if (gamepad1.dpad_left) { //left spot turn 90 Degrees
-                    DbgLog.msg("MY_DEBUG - Beginning of left turn 90D!");
+                    DbgLog.msg(String.format("MY_DEBUG - Beginning of left turn 90D cur heading = %d!", gyro.getHeading()));
                     TurnLeftD(1, 90, true);
-                    DbgLog.msg("MY_DEBUG - End of left turn 90D!");
+                    DbgLog.msg(String.format("MY_DEBUG - End of left turn 90D tar/cur heading = %d/%d!", heading, gyro.getHeading()));
                     sleep(1000);
                     DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
                             gyro.getHeading(), leftPower, rightPower));
                 }
                 if (gamepad1.dpad_right) { //right spot turn 90 Degrees
-                    DbgLog.msg("MY_DEBUG - begin of right turn 90D!");
+                    DbgLog.msg(String.format("MY_DEBUG - Beginning of right turn 90D cur heading = %d!", gyro.getHeading()));
                     TurnRightD(1, 90, true);
-                    DbgLog.msg("MY_DEBUG - end of right turn 90D!");
+                    DbgLog.msg(String.format("MY_DEBUG - End of right turn 90D tar/cur heading = %d/%d!", heading, gyro.getHeading()));
                     sleep(1000);
                     DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
                             gyro.getHeading(), leftPower, rightPower));
@@ -330,8 +331,9 @@ public class TT_TuneUp extends TobotHardware {
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         telemetry.addData("7. leveler = ", String.format("%.2f", leveler_pos) + String.format(", light sensor sv = %.2f", light_sensor_sv_pos));
         telemetry.addData("8. right cur/tg enc:", motorFR.getCurrentPosition() + "/" + rightCnt);
-        telemetry.addData("9. ods:", String.format("%.2f, imu: disable", opSensor.getLightDetected())+
-                String.format("fr_sv_pos = %.2f",front_sv_pos));
+        show_heading();
+        //telemetry.addData("9. ods:", String.format("%.2f, imu: disable", opSensor.getLightDetected())+
+        //        String.format("fr_sv_pos = %.2f",front_sv_pos));
     }
 
 }

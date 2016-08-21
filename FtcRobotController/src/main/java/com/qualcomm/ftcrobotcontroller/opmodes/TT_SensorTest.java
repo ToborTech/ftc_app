@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
+import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -144,12 +145,16 @@ public class TT_SensorTest extends TobotHardware {
                 TurnRightD(0.5, 90, true);
                 sleep(5000);
             } else if (gamepad1.dpad_down) { // try out auto-red
-                auto_part1(true,true);
+                DbgLog.msg("MY_DEBUG - Beginning of Auto_Part 1!");
+                auto_part1(true, true);
                 sleep(1000);
                 StraightIn(-0.3, 12);
                 sleep(1000);
+                DbgLog.msg("MY_DEBUG - Beginning of Left Turn 90 Degrees!");
                 TurnLeftD(0.5, 90, true);
                 sleep(5000);
+                DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                        gyro.getHeading(), leftPower, rightPower));
             } else if (gamepad1.dpad_right) {
                 TurnRightD(0.5, 90, true);
             } else if (gamepad1.dpad_left) {
