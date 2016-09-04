@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 // import org.swerverobotics.library.interfaces.IBNO055IMU;
 
-public class TT_Nav {
+public class TT_Nav_old {
 
     // Defining constants for drive direction
     final static int FORWARD    = 0 ;
@@ -35,8 +35,8 @@ public class TT_Nav {
     final static double WHITE_MAX = 0.75;
 
 
-    TT_Nav(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2,
-           OpticalDistanceSensor op, boolean enableFollowLine){
+    TT_Nav_old(DcMotor motorR1, DcMotor motorR2, DcMotor motorL1, DcMotor motorL2,
+               OpticalDistanceSensor op, boolean enableFollowLine){
         _motorLeft1  = motorL1 ;
         _motorLeft2  = motorL2 ;
         _motorRight1 = motorR1 ;

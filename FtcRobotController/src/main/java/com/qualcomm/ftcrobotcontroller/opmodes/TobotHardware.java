@@ -39,12 +39,10 @@ import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.GyroSensor;
-import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.UltrasonicSensor;
-import com.qualcomm.robotcore.util.Range;
 
 /**
  * TobotHardware
@@ -184,7 +182,7 @@ public class TobotHardware extends LinearOpMode {
     // LightSensor LL, LR;
 
     // IBNO055IMU imu;
-    TT_Nav nav;
+    TT_Nav_old nav;
     TT_ColorPicker colorPicker;
 
     // following variables are used by Chassis
@@ -407,7 +405,7 @@ public class TobotHardware extends LinearOpMode {
         gyro.calibrate();
 
         //Instantiate ToborTech Nav object
-        nav = new TT_Nav(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
+        nav = new TT_Nav_old(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
         colorPicker = new TT_ColorPicker(coSensor);
         if (state == State.STATE_TELEOP && arm_state == ArmState.ARM_FRONT_DUMP) {
             sleep(500);
@@ -1187,7 +1185,7 @@ public class TobotHardware extends LinearOpMode {
             int direction2go;
             direction2go = nav.getFollowLineDirection(leftFirst);
             nav.drive(direction2go, 0.2);
-            if (direction2go != TT_Nav.FORWARD) {
+            if (direction2go != TT_Nav_old.FORWARD) {
                 sleep(40);
             } else { // forward, make the move more
                 sleep(100);
@@ -1202,7 +1200,7 @@ public class TobotHardware extends LinearOpMode {
         double op_val = opSensor.getLightDetected();
         double init_time = getRuntime();
         while (op_val < op_stop_val && ((getRuntime() - init_time) < max_sec)) {
-            nav.drive(TT_Nav.FORWARD, 0.2);
+            nav.drive(TT_Nav_old.FORWARD, 0.2);
             op_val = opSensor.getLightDetected();
             waitForNextHardwareCycle();
         }
@@ -1213,7 +1211,7 @@ public class TobotHardware extends LinearOpMode {
         double us_val = ultra.getUltrasonicLevel();
         double init_time = getRuntime();
         while ((us_val < 0.1 || us_val > us_stop_val) && ((getRuntime() - init_time) < max_sec)) {
-            nav.drive(TT_Nav.FORWARD, 0.2);
+            nav.drive(TT_Nav_old.FORWARD, 0.2);
             us_val = ultra.getUltrasonicLevel();
             waitForNextHardwareCycle();
         }

@@ -38,91 +38,39 @@ import com.qualcomm.robotcore.util.Range;
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
-public class TT_TeleOp_Op extends TobotHardware_Op {
+public class
+TT_TeleOp_Op extends TobotHardware_Op {
     @Override
     public void loop() {
         imu.getIMUGyroAngles(rollAngle, pitchAngle, yawAngle);
         Boolean hanging_there = false;
 
-        if (ch_action==Action.RTURN) { // right turn state
-            TurnRightD(leftPower, 90, true);
-        } else if (ch_action==Action.LTURN) {
-            TurnLeftD(rightPower, 90, true);
+        if (ch_action== Action.RTURN) { // right turn state
+            TurnRightD(leftPower, 0, true);
+        } else if (ch_action== Action.LTURN) {
+            TurnLeftD(rightPower, 0, true);
         } else if (ch_action== Action.STRAIGHT) {
-            StraightR(rightPower,1);
+            StraightR(rightPower,0);
         } else { // main loop for detection all button
-            if(false) {
                 if (test_count == 0) {
-                    // StraightR(1.0, 1);
-                    TurnLeftD(1, 90, true);
+                    StraightIn(1, 90);
                     test_count++;
                     return;
                 } else if (test_count == 100) {
-                    TurnLeftD(1, 90, true);
+                    TurnRightD(1, 45, true); // red zone
                     test_count++;
                     return;
                 } else if (test_count == 200) {
-                    TurnLeftD(1, 90, true);
+                    StraightIn(1, 20);
                     test_count++;
                     return;
                 } else if (test_count == 300) {
-                    TurnLeftD(1, 90, true);
+                    TurnLeftD(1, 90, true); // facing beacon
                     test_count++;
                     return;
-                } else if (test_count == 400) {
-                    TurnLeftD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 500) {
-                    TurnLeftD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 600) {
-                    TurnLeftD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 700) {
-                    TurnLeftD(1, 90, true);
-                    test_count++;
-                    return;
-
-                } else if (test_count == 1000) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 1100) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 1200) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 1300) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 1400) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 1500) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 1600) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else if (test_count == 1700) {
-                    TurnRightD(1, 90, true);
-                    test_count++;
-                    return;
-                } else {
+                } else if (test_count<10000) {
                     test_count++;
                 }
-            }
-
 
             float left = -gamepad1.left_stick_y;
             float right = -gamepad1.right_stick_y;
@@ -379,4 +327,9 @@ public class TT_TeleOp_Op extends TobotHardware_Op {
         elbow.setPower(cur_arm_power);
     }
 
+    @Override
+    public void stop() {
+        test_count = 0;
+        stop_tobot();
+    }
 }
