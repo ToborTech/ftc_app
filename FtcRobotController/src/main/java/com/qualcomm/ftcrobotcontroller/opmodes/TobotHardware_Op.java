@@ -34,6 +34,8 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 import android.util.Log;
 
 import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.hardware.adafruit.BNO055IMU;
+import com.qualcomm.hardware.adafruit.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -47,6 +49,10 @@ import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.UltrasonicSensor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 /**
  * TobotHardware
@@ -194,7 +200,9 @@ public class TobotHardware_Op extends OpMode {
   volatile double[] rollAngle = new double[2], pitchAngle = new double[2], yawAngle = new double[2];
   // LightSensor LL, LR;
 
-  AdafruitIMU imu;
+  BNO055IMU imu;
+  Orientation angles;
+
   TT_Nav_old nav;
   TT_ColorPicker colorPicker;
 
@@ -302,7 +310,7 @@ public class TobotHardware_Op extends OpMode {
     }
 
     elbow_pos = elbow.getCurrentPosition();
-    elbow.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+    elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     elbow.setDirection(DcMotor.Direction.REVERSE);
 
     shoulder = init_servo("shoulder");
@@ -337,18 +345,20 @@ public class TobotHardware_Op extends OpMode {
 
 
     long systemTime = System.nanoTime();
-    try {
-      imu = new AdafruitIMU(hardwareMap, "imu"
+    BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+    parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+    parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+    parameters.calibrationDataFile = "AdafruitIMUCalibration.json"; // see the calibration sample opmode
+    parameters.loggingEnabled      = true;
+    parameters.loggingTag          = "IMU";
+    parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
-              //The following was required when the definition of the "I2cDevice" class was incomplete.
-              //, "cdim", 5
+    // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+    // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+    // and named "imu".
+    imu = hardwareMap.get(BNO055IMU.class, "imu");
+    imu.initialize(parameters);
 
-              , (byte)(AdafruitIMU.BNO055_ADDRESS_A * 2)//By convention the FTC SDK always does 8-bit I2C bus
-              //addressing
-              , (byte)AdafruitIMU.OPERATION_MODE_IMU);
-    } catch (RobotCoreException e){
-      Log.i("FtcRobotController", "Exception: " + e.getMessage());
-    }
     Log.i("FtcRobotController", "IMU Init method finished in: "
             + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
 
@@ -377,10 +387,10 @@ public class TobotHardware_Op extends OpMode {
     motorSW = hardwareMap.dcMotor.get("motorSW");
     motorBL.setDirection(DcMotor.Direction.REVERSE);
     motorFL.setDirection(DcMotor.Direction.REVERSE);
-    motorBL.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-    motorBR.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-    motorFL.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-    motorFR.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
+    motorBL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    motorBR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    motorFL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    motorFR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     motorSW.setPower(0);
     motorFR.setPower(0);
     motorBR.setPower(0);
@@ -411,9 +421,9 @@ public class TobotHardware_Op extends OpMode {
     }
 
     if (state == State.STATE_AUTO || state == State.STATE_TELEOP) {
-      set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+      set_drive_modes(DcMotor.RunMode.RUN_USING_ENCODER);
     } else { // State.STATE_TUNE
-      set_drive_modes(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
+      set_drive_modes(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
 
@@ -488,7 +498,7 @@ public class TobotHardware_Op extends OpMode {
       	* runs.
     		*/
     long systemTime = System.nanoTime();
-    imu.startIMU();//Set up the IMU as needed for a continual stream of I2C reads.
+    // imu.startIMU();//Set up the IMU as needed for a continual stream of I2C reads.
     Log.i("FtcRobotController", "IMU Start method finished in: "
             + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
 
@@ -497,6 +507,12 @@ public class TobotHardware_Op extends OpMode {
   @Override
   public void loop() {
 
+  }
+  public void getIMUGyroAngles(){
+    angles = imu.getAngularOrientation().toAxesReference(AxesReference.INTRINSIC).toAxesOrder(AxesOrder.ZYX);
+    yawAngle[0] = angles.firstAngle;
+    rollAngle[0] = angles.secondAngle;
+    pitchAngle[0] = angles.thirdAngle;
   }
 
   public void show_telemetry() {
@@ -912,9 +928,9 @@ public class TobotHardware_Op extends OpMode {
     }
     stop_chassis();
     if (state == State.STATE_AUTO) {
-      set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+      set_drive_modes(DcMotor.RunMode.RUN_USING_ENCODER);
     } else {
-      set_drive_modes(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
+      set_drive_modes(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     // waitOneFullHardwareCycle();
   }
@@ -1075,7 +1091,7 @@ public class TobotHardware_Op extends OpMode {
     // sleep(500);
   }
 
-  void set_drive_modes(DcMotorController.RunMode mode) {
+  void set_drive_modes(DcMotor.RunMode mode) {
     motorBL.setMode(mode);
     motorBR.setMode(mode);
     motorFL.setMode(mode);
@@ -1097,29 +1113,29 @@ public class TobotHardware_Op extends OpMode {
   }
 
   void reset_chassis()   {
-    motorBL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-    motorBR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-    motorFL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-    motorFR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+    motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     while (motorBR.getCurrentPosition() != 0 && motorBL.getCurrentPosition() != 0) {
       // && motorBR.getCurrentPosition()!=0) && motorFL.getCurrentPosition()!=0) {
       //waitOneFullHardwareCycle();
     }
     leftCnt = 0;
     rightCnt = 0;
-    motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-    motorBR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-    motorFL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-    motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+    motorBL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    motorBR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    motorFL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    motorFR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
   }
 
   void reset_motors()   {
     reset_chassis();
-    elbow.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+    elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     while (elbow.getCurrentPosition() != 0) {
       //waitOneFullHardwareCycle();
     }
-    elbow.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+    elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
   }
 
   boolean has_left_drive_encoder_reached(double p_count) {

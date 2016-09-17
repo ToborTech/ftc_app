@@ -331,10 +331,10 @@ public class TobotHardware extends LinearOpMode {
         motorSW = hardwareMap.dcMotor.get("motorSW");
         motorBL.setDirection(DcMotor.Direction.REVERSE);
         motorFL.setDirection(DcMotor.Direction.REVERSE);
-        motorBL.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-        motorBR.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-        motorFL.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-        motorFR.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
+        motorBL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorBR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorFL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorFR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorSW.setPower(0);
         motorFR.setPower(0);
         motorBR.setPower(0);
@@ -365,9 +365,9 @@ public class TobotHardware extends LinearOpMode {
         }
 
         if (state == State.STATE_AUTO || state == State.STATE_TELEOP) {
-            set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+            set_drive_modes(DcMotor.RunMode.RUN_USING_ENCODER);
         } else { // State.STATE_TUNE
-            set_drive_modes(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
+            set_drive_modes(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
 
         // initialize sensores
@@ -828,9 +828,9 @@ public class TobotHardware extends LinearOpMode {
         }
         stop_chassis();
         if (state == State.STATE_AUTO) {
-            set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
+            set_drive_modes(DcMotor.RunMode.RUN_USING_ENCODER);
         } else {
-            set_drive_modes(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
+            set_drive_modes(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         // waitOneFullHardwareCycle();
     }
@@ -961,7 +961,7 @@ public class TobotHardware extends LinearOpMode {
         // sleep(500);
     }
 
-    void set_drive_modes(DcMotorController.RunMode mode) {
+    void set_drive_modes(DcMotor.RunMode mode) {
         motorBL.setMode(mode);
         motorBR.setMode(mode);
         motorFL.setMode(mode);
@@ -983,29 +983,29 @@ public class TobotHardware extends LinearOpMode {
     }
 
     void reset_chassis() throws InterruptedException {
-        motorBL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-        motorBR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-        motorFL.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-        motorFR.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         while (motorBR.getCurrentPosition() != 0 && motorBL.getCurrentPosition() != 0) {
             // && motorBR.getCurrentPosition()!=0) && motorFL.getCurrentPosition()!=0) {
             waitOneFullHardwareCycle();
         }
         leftCnt = 0;
         rightCnt = 0;
-        motorBL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        motorBR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        motorFL.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        motorFR.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        motorBL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorFL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorFR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     void reset_motors() throws InterruptedException {
         reset_chassis();
-        elbow.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         while (elbow.getCurrentPosition() != 0) {
             waitOneFullHardwareCycle();
         }
-        elbow.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     boolean has_left_drive_encoder_reached(double p_count) {

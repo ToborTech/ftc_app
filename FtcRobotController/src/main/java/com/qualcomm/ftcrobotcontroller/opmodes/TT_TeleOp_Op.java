@@ -38,11 +38,12 @@ import com.qualcomm.robotcore.util.Range;
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
+
 public class
 TT_TeleOp_Op extends TobotHardware_Op {
     @Override
     public void loop() {
-        imu.getIMUGyroAngles(rollAngle, pitchAngle, yawAngle);
+        getIMUGyroAngles();
         Boolean hanging_there = false;
 
         if (ch_action== Action.RTURN) { // right turn state
