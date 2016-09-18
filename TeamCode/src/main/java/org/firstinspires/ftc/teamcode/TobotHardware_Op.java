@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package com.qualcomm.ftcrobotcontroller.opmodes;
+package org.firstinspires.ftc.teamcode;
 
 import android.util.Log;
 
@@ -37,10 +37,8 @@ import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.hardware.adafruit.BNO055IMU;
 import com.qualcomm.hardware.adafruit.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.GyroSensor;
@@ -345,22 +343,7 @@ public class TobotHardware_Op extends OpMode {
 
 
     long systemTime = System.nanoTime();
-    BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-    parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
-    parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-    parameters.calibrationDataFile = "AdafruitIMUCalibration.json"; // see the calibration sample opmode
-    parameters.loggingEnabled      = true;
-    parameters.loggingTag          = "IMU";
-    parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
-    // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
-    // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-    // and named "imu".
-    imu = hardwareMap.get(BNO055IMU.class, "imu");
-    imu.initialize(parameters);
-
-    Log.i("FtcRobotController", "IMU Init method finished in: "
-            + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
 
     arm_power = 0.2;
     cur_arm_power = 0;
@@ -490,18 +473,25 @@ public class TobotHardware_Op extends OpMode {
 
   @Override
   public void start() {
-        /*
-      	* Use the hardwareMap to get the dc motors, servos and other sensors by name. Note
-      	* that the names of the devices must match the names used when you
-      	* configured your robot and created the configuration file. The hardware map
-      	* for this OpMode is not initialized until the OpModeManager's "startActiveOpMode" method
-      	* runs.
-    		*/
-    long systemTime = System.nanoTime();
-    // imu.startIMU();//Set up the IMU as needed for a continual stream of I2C reads.
-    Log.i("FtcRobotController", "IMU Start method finished in: "
-            + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
+    if (false) {
+      long systemTime = System.nanoTime();
+      BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+      parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+      parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+      parameters.calibrationDataFile = "AdafruitIMUCalibration.json"; // see the calibration sample opmode
+      parameters.loggingEnabled = true;
+      parameters.loggingTag = "IMU";
+      parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
+      // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+      // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+      // and named "imu".
+      imu = hardwareMap.get(BNO055IMU.class, "imu");
+      imu.initialize(parameters);
+
+      Log.i("FtcRobotController", "IMU Init method finished in: "
+              + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
+    }
   }
 
   @Override

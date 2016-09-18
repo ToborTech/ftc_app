@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package com.qualcomm.ftcrobotcontroller.opmodes;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.util.Range;
 
@@ -38,40 +38,86 @@ import com.qualcomm.robotcore.util.Range;
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
-
-public class
-TT_TeleOp_Op extends TobotHardware_Op {
+public class TT_TeleOp extends TobotHardware {
     @Override
-    public void loop() {
-        getIMUGyroAngles();
-        Boolean hanging_there = false;
+    public void runOpMode() throws InterruptedException {
 
-        if (ch_action== Action.RTURN) { // right turn state
-            TurnRightD(leftPower, 0, true);
-        } else if (ch_action== Action.LTURN) {
-            TurnLeftD(rightPower, 0, true);
-        } else if (ch_action== Action.STRAIGHT) {
-            StraightR(rightPower,0);
-        } else { // main loop for detection all button
-                if (test_count == 0) {
-                    StraightIn(1, 90);
-                    test_count++;
-                    return;
-                } else if (test_count == 100) {
-                    TurnRightD(1, 45, true); // red zone
-                    test_count++;
-                    return;
-                } else if (test_count == 200) {
-                    StraightIn(1, 20);
-                    test_count++;
-                    return;
-                } else if (test_count == 300) {
-                    TurnLeftD(1, 90, true); // facing beacon
-                    test_count++;
-                    return;
-                } else if (test_count<10000) {
-                    test_count++;
-                }
+        tobot_init(State.STATE_TELEOP);
+        Boolean hanging_there = false;
+        int test_count = 0;
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            if (test_count==0) {
+                // StraightR(1.0, 1);
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==100) {
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==200) {
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==300) {
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==400) {
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==500) {
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==600) {
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==700) {
+                TurnLeftD(1, 90, true);
+                test_count ++;
+                continue;
+
+            } else if (test_count==1000) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==1100) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==1200) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==1300) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==1400) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==1500) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==1600) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else if (test_count==1700) {
+                TurnRightD(1, 90, true);
+                test_count ++;
+                continue;
+            } else {
+                test_count ++;
+            }
 
             float left = -gamepad1.left_stick_y;
             float right = -gamepad1.right_stick_y;
@@ -94,12 +140,18 @@ TT_TeleOp_Op extends TobotHardware_Op {
             rightPower = (float) ((float) scaleInput(right * speedScale));
             leftPower = (float) ((float) scaleInput(left * speedScale));
 
-
+            // write the values to the motors
+            motorFR.setPower(rightPower);
+            motorBR.setPower(rightPower);
+            motorFL.setPower(leftPower);
+            motorBL.setPower(leftPower);
+            motorSW.setPower(SW_power);
+            elbow.setPower(cur_arm_power);
 
             if (gamepad1.b && gamepad1.x) { // stop sweeper
                 SW_power = (float) 0;
                 motorSW.setPower(SW_power); // stop right away
-                //sleep(400); // make sure other botton reset
+                sleep(400); // make sure other botton reset
             } else if (gamepad1.b) { // sweeper backward
                 SW_power = (float) 1.0;
             } else if (gamepad1.x) { // sweeper forward
@@ -119,16 +171,24 @@ TT_TeleOp_Op extends TobotHardware_Op {
             }
 
             if (gamepad1.right_trigger > 0.1) { // right climber down: mid then low
-                TurnRightD(1, 90, true);
-                //sleep(500);
+                if (Math.abs(climberR_pos - RIGHT_CLIMBER_MID) < 0.05) {
+                    set_right_climber(RIGHT_CLIMBER_LOW);
+                } else {
+                    set_right_climber(RIGHT_CLIMBER_MID);
+                }
+                sleep(500);
             }
             if (gamepad1.right_bumper) { // right climber up
                 set_right_climber(RIGHT_CLIMBER_UP);
             }
 
             if (gamepad1.left_trigger > 0.1) { // left climber down
-                TurnLeftD(1, 90, true);
-                //sleep(300);
+                if (Math.abs(climberL_pos - LEFT_CLIMBER_MID) < 0.05) {
+                    set_left_climber(LEFT_CLIMBER_LOW);
+                } else {
+                    set_left_climber(LEFT_CLIMBER_MID);
+                }
+                sleep(300);
             }
             if (gamepad1.left_bumper) { // left climber up
                 set_left_climber(LEFT_CLIMBER_UP);
@@ -202,7 +262,8 @@ TT_TeleOp_Op extends TobotHardware_Op {
                 hanging_there = false;
             } else if (hanging_there) { // minimum power to ensure Tobot does not slide down
                 tape_slider.setPower(-0.2);
-            } else {
+            } else
+            {
                 tape_slider.setPower(0);
             }
 
@@ -219,7 +280,7 @@ TT_TeleOp_Op extends TobotHardware_Op {
             }
             shoulder.setPosition(shoulder_pos);
 
-            if ((gamepad2.right_trigger > 0.1) && gamepad2.start) {
+            if ((gamepad2.right_trigger>0.1) && gamepad2.start) {
                 // calibre_elbow();
                 inc_wristLR_pos(-0.01);
             } else if (gamepad2.right_trigger > 0.1) {
@@ -240,7 +301,7 @@ TT_TeleOp_Op extends TobotHardware_Op {
                 //    arm_state = ArmState.ARM_INIT;
                 //}
                 //gamepad2.reset();
-                ////sleep(200);
+                //sleep(200);
             } else if (gamepad2.right_bumper) {
                 gate_pos = GATE_CLOSED;
             }
@@ -250,21 +311,21 @@ TT_TeleOp_Op extends TobotHardware_Op {
             if ((gamepad2.left_trigger > 0.1) && (gamepad2.start)) {
                 inc_wristUD_pos(-0.01);
             } else if (gamepad2.left_trigger > 0.1) { // tape down
-                tape_rotator_dir = -1;
-                tape_count = 0;
+                    tape_rotator_dir = -1;
+                    tape_count = 0;
             }
 
             if (gamepad2.left_bumper && gamepad2.start) {
                 inc_wristUD_pos(0.01);
-            } else if (gamepad2.left_bumper) {
-                tape_rotator_dir = 1;
-                tape_count = 0;
+            } else if (gamepad2.left_bumper ){
+                    tape_rotator_dir = 1;
+                    tape_count = 0;
             }
 
             if (tape_rotator_dir < -0.1) { // tape down
-                inc_tape_rotator(-SERVO_SCALE / 4.0);
+                inc_tape_rotator(-SERVO_SCALE/4.0);
             } else if (tape_rotator_dir > 0.1) { // arm up
-                inc_tape_rotator(SERVO_SCALE / 4.0);
+                inc_tape_rotator(SERVO_SCALE/4.0);
             }
 
             if (gamepad2.dpad_up) {
@@ -308,7 +369,7 @@ TT_TeleOp_Op extends TobotHardware_Op {
                 stop_chassis();
                 if (arm_state == ArmState.ARM_UP_FRONT) {
                     arm_back();
-                    ////sleep(1000);
+                    sleep(1000);
                 } else if (arm_state == ArmState.ARM_SCORE_MID_RED || arm_state == ArmState.ARM_SCORE_MID_BLUE ||
                         arm_state == ArmState.ARM_FRONT_DUMP || arm_state == ArmState.ARM_SCORE_HIGH_RED ||
                         arm_state == ArmState.ARM_SCORE_HIGH_BLUE) {
@@ -317,20 +378,9 @@ TT_TeleOp_Op extends TobotHardware_Op {
                     arm_up();
                 }
             }
-        } // Action.INIT
-        // write the values to the motors
-        show_telemetry();
-        motorFR.setPower(rightPower);
-        motorBR.setPower(rightPower);
-        motorFL.setPower(leftPower);
-        motorBL.setPower(leftPower);
-        motorSW.setPower(SW_power);
-        elbow.setPower(cur_arm_power);
-    }
 
-    @Override
-    public void stop() {
-        test_count = 0;
-        stop_tobot();
+        show_telemetry();
+        waitOneFullHardwareCycle();
+        }
     }
 }

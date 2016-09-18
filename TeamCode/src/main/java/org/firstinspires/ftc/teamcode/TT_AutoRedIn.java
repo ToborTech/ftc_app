@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package com.qualcomm.ftcrobotcontroller.opmodes;
+package org.firstinspires.ftc.teamcode;
 
 /**
  * Linear Tele Op Mode
@@ -37,7 +37,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-public class TT_AutoBlueIn extends TobotHardware {
+public class TT_AutoRedIn extends TobotHardware {
     // CONSTANT VALUES.
     // CONSTANT VALUES.
 
@@ -53,20 +53,27 @@ public class TT_AutoBlueIn extends TobotHardware {
 
         waitForStart();
 
-        auto_part1(false, true);
-        auto_part2(false);
+        auto_part1(true, true);
 
+        auto_part2(true);
+
+        //  StraightR(0.5,0.1);
+        //  TurnRightD(0.5,90,true);
+        //  StraightR(0.6,3.33);
         stop_tobot();
-        telemetry.addData("1. Red   = ", red_detected);
-        telemetry.addData("2. Blue  = ", blue_detected);
-        // telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
-        telemetry.addData("4. ODS / ultra = ", String.format("%.4f/%.2f", opSensor.getLightDetected(), ultra.getUltrasonicLevel()));
+        //telemetry.addData("1. Red   = ", red_detected);
+        //telemetry.addData("2. Blue  = ", blue_detected);
+        //telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
+        telemetry.addData("3. Heading go / cur", String.format("%d / %d", heading, gyro.getHeading()));
+        telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
-        telemetry.addData("7. wrist", "pos LR/UD: " + String.format("%.2f / %.2f", wristLR_pos,wristUD_pos));
+        telemetry.addData("7. wrist", "pos LR/UD: " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos ));
         telemetry.addData("8. gate", "pos: " + String.format("%.2f", gate_pos));
         telemetry.addData("9. arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 
     }
+
+
 
 }

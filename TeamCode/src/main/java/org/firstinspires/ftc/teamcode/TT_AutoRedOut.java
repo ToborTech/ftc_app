@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package com.qualcomm.ftcrobotcontroller.opmodes;
+package org.firstinspires.ftc.teamcode;
 
 /**
  * Linear Tele Op Mode
@@ -37,11 +37,11 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-public class TT_AutoRedIn extends TobotHardware {
+public class TT_AutoRedOut extends TobotHardware {
     // CONSTANT VALUES.
     // CONSTANT VALUES.
 
-    /**
+    /*
      * Constructor
      */
 
@@ -53,7 +53,7 @@ public class TT_AutoRedIn extends TobotHardware {
 
         waitForStart();
 
-        auto_part1(true, true);
+        auto_part1(true, false);
 
         auto_part2(true);
 
@@ -64,11 +64,10 @@ public class TT_AutoRedIn extends TobotHardware {
         //telemetry.addData("1. Red   = ", red_detected);
         //telemetry.addData("2. Blue  = ", blue_detected);
         //telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
-        telemetry.addData("3. Heading go / cur", String.format("%d / %d", heading, gyro.getHeading()));
         telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
-        telemetry.addData("7. wrist", "pos LR/UD: " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos ));
+        telemetry.addData("7. wrist", "pos LR/UD: " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
         telemetry.addData("8. gate", "pos: " + String.format("%.2f", gate_pos));
         telemetry.addData("9. arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 

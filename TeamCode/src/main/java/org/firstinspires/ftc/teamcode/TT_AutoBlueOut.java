@@ -29,12 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package com.qualcomm.ftcrobotcontroller.opmodes;
-
-import com.qualcomm.ftccommon.DbgLog;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
+package org.firstinspires.ftc.teamcode;
 
 /**
  * Linear Tele Op Mode
@@ -42,11 +37,11 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-public class TT_AutoRedOut extends TobotHardware {
+public class TT_AutoBlueOut extends TobotHardware {
     // CONSTANT VALUES.
     // CONSTANT VALUES.
 
-    /*
+    /**
      * Constructor
      */
 
@@ -58,9 +53,9 @@ public class TT_AutoRedOut extends TobotHardware {
 
         waitForStart();
 
-        auto_part1(true, false);
+        auto_part1(false, false);
 
-        auto_part2(true);
+        auto_part2(false);
 
         //  StraightR(0.5,0.1);
         //  TurnRightD(0.5,90,true);
@@ -72,7 +67,7 @@ public class TT_AutoRedOut extends TobotHardware {
         telemetry.addData("4. ODS   = ", opSensor.getLightDetected());
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
-        telemetry.addData("7. wrist", "pos LR/UD: " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
+        telemetry.addData("7. wrist", "pos LR / UD: " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
         telemetry.addData("8. gate", "pos: " + String.format("%.2f", gate_pos));
         telemetry.addData("9. arm_slider", "pos(dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
 
