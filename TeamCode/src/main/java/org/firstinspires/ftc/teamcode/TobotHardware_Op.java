@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package org.firstinspires.ftc.teamcode;
 
+import android.support.annotation.BoolRes;
 import android.util.Log;
 
 import com.qualcomm.ftccommon.DbgLog;
@@ -198,7 +199,7 @@ public class TobotHardware_Op extends OpMode {
   volatile double[] rollAngle = new double[2], pitchAngle = new double[2], yawAngle = new double[2];
   // LightSensor LL, LR;
 
-  BNO055IMU imu;
+  // BNO055IMU imu;
   Orientation angles;
 
   TT_Nav_old nav;
@@ -209,7 +210,8 @@ public class TobotHardware_Op extends OpMode {
   ArmState arm_state;
   Boolean use_gyro = false;
   Boolean use_encoder = true;
-  Boolean use_imu = true;
+  Boolean use_imu = false;
+  Boolean debug = false;
 
   public enum State {
     STATE_TELEOP,    // state to test teleop
@@ -281,6 +283,8 @@ public class TobotHardware_Op extends OpMode {
 		 * that the names of the devices must match the names used when you
 		 * configured your robot and created the configuration file.
 		 */
+    yawAngle[0] = rollAngle[0] = pitchAngle[0] = 0;
+
     DbgLog.msg(String.format("TOBOT-INIT Begin - 8-27"));
     v_warning_generated = false;
     v_warning_message = "Can't map; ";
@@ -486,8 +490,8 @@ public class TobotHardware_Op extends OpMode {
       // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
       // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
       // and named "imu".
-      imu = hardwareMap.get(BNO055IMU.class, "imu");
-      imu.initialize(parameters);
+      //imu = hardwareMap.get(BNO055IMU.class, "imu");
+      //imu.initialize(parameters);
 
       Log.i("FtcRobotController", "IMU Init method finished in: "
               + (-(systemTime - (systemTime = System.nanoTime()))) + " ns.");
@@ -496,17 +500,18 @@ public class TobotHardware_Op extends OpMode {
 
   @Override
   public void loop() {
+     //
+  }
 
-  }
-  public void getIMUGyroAngles(){
-    angles = imu.getAngularOrientation().toAxesReference(AxesReference.INTRINSIC).toAxesOrder(AxesOrder.ZYX);
-    yawAngle[0] = angles.firstAngle;
-    rollAngle[0] = angles.secondAngle;
-    pitchAngle[0] = angles.thirdAngle;
-  }
+  //public void getIMUGyroAngles(){
+    // angles = imu.getAngularOrientation().toAxesReference(AxesReference.INTRINSIC).toAxesOrder(AxesOrder.ZYX);
+    //yawAngle[0] = angles.firstAngle;
+    //rollAngle[0] = angles.secondAngle;
+    //pitchAngle[0] = angles.thirdAngle;
+  //}
 
   public void show_telemetry() {
-    int cur_heading = mapHeading(gyro.getHeading());
+    //int cur_heading = mapHeading(gyro.getHeading());
     telemetry.addData("0. Ch/Arm State: ", ch_action.toString() + "/" + arm_state.toString());
     //telemetry.addData("1. shoulder:", "pos= " + String.format("%.4f, dir=%.2f)", shoulder_pos, shoulder_dir));
     //telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, offset=%d", cur_arm_power, elbow_pos, elbow_pos_offset));
@@ -523,9 +528,9 @@ public class TobotHardware_Op extends OpMode {
   }
 
   public void show_heading() {
-    touch = (tSensor.isPressed()?1:0);
-    telemetry.addData("9. head/gyro/yaw/ultra/touch:", String.format("%d/%d/%.4f/%.2f/%d",
-            heading, gyro.getHeading(), yawAngle[0], ultra.getUltrasonicLevel(),touch));
+    //touch = (tSensor.isPressed()?1:0);
+    //telemetry.addData("9. head/gyro/yaw/ultra/touch:", String.format("%d/%d/%.4f/%.2f/%d",
+    //        heading, gyro.getHeading(), yawAngle[0], ultra.getUltrasonicLevel(),touch));
   }
 
   public void calibre_elbow() {
@@ -851,7 +856,7 @@ public class TobotHardware_Op extends OpMode {
       // run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
       if (!have_drive_encoders_reached(leftCnt, rightCnt) && (getRuntime() - initAutoOpTime < 5)) {
         driveTT(leftPower, rightPower);
-        show_telemetry();
+        // show_telemetry();
         //waitOneFullHardwareCycle();
       } else {
         ch_action = Action.INIT;
@@ -913,7 +918,7 @@ public class TobotHardware_Op extends OpMode {
     //while (motorFR.isBusy() || motorBL.isBusy()) {
     while (!have_drive_encoders_reached(leftCnt, rightCnt) && (getRuntime() - initAutoOpTime < 5)) {
       driveTT(leftPower, rightPower);
-      show_telemetry();
+      // show_telemetry();
       //waitOneFullHardwareCycle();
     }
     stop_chassis();

@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
@@ -46,7 +47,8 @@ public class
 TT_TeleOp_Op extends TobotHardware_Op {
     @Override
     public void loop() {
-        getIMUGyroAngles();
+        // getIMUGyroAngles();
+        if (debug) DbgLog.msg(String.format("TOBOT-loop-0"));
         Boolean hanging_there = false;
 
         if (ch_action== Action.RTURN) { // right turn state
@@ -56,7 +58,9 @@ TT_TeleOp_Op extends TobotHardware_Op {
         } else if (ch_action== Action.STRAIGHT) {
             StraightR(rightPower,0);
         } else { // main loop for detection all button
-                if (test_count == 0) {
+            if (true) {
+                ; // skip
+            } else if (test_count == 0) {
                     StraightIn(1, 90);
                     test_count++;
                     return;
@@ -78,7 +82,7 @@ TT_TeleOp_Op extends TobotHardware_Op {
 
             float left = -gamepad1.left_stick_y;
             float right = -gamepad1.right_stick_y;
-
+            if (debug) DbgLog.msg(String.format("TOBOT-loop-1"));
             elbow_pos = elbow.getCurrentPosition();
             tape_slider_pos = tape_slider.getCurrentPosition();
             tape_rotator_pos = tape_rotator.getPosition();
@@ -86,7 +90,7 @@ TT_TeleOp_Op extends TobotHardware_Op {
             elbow_dir = gamepad2.right_stick_y;
             tape_slider_dir = -gamepad2.left_stick_y;
             // tape_rotator_dir = -gamepad2.left_stick_x;
-
+            if (debug) DbgLog.msg(String.format("TOBOT-loop-2"));
             right = Range.clip(right, -1, 1);
             left = Range.clip(left, -1, 1);
 
@@ -97,7 +101,7 @@ TT_TeleOp_Op extends TobotHardware_Op {
             rightPower = (float) ((float) scaleInput(right * speedScale));
             leftPower = (float) ((float) scaleInput(left * speedScale));
 
-
+            if (debug) DbgLog.msg(String.format("TOBOT-loop-3"));
 
             if (gamepad1.b && gamepad1.x) { // stop sweeper
                 SW_power = (float) 0;
@@ -221,7 +225,7 @@ TT_TeleOp_Op extends TobotHardware_Op {
                 }
             }
             shoulder.setPosition(shoulder_pos);
-
+            if (debug) DbgLog.msg(String.format("TOBOT-loop-4"));
             if ((gamepad2.right_trigger > 0.1) && gamepad2.start) {
                 // calibre_elbow();
                 inc_wristLR_pos(-0.01);
@@ -323,12 +327,14 @@ TT_TeleOp_Op extends TobotHardware_Op {
         } // Action.INIT
         // write the values to the motors
         show_telemetry();
+        if (debug) DbgLog.msg(String.format("TOBOT-loop-5"));
         motorFR.setPower(rightPower);
         motorBR.setPower(rightPower);
         motorFL.setPower(leftPower);
         motorBL.setPower(leftPower);
         motorSW.setPower(SW_power);
         elbow.setPower(cur_arm_power);
+        if (debug) DbgLog.msg(String.format("TOBOT-loop-6"));
     }
 
     @Override
