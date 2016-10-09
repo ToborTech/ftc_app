@@ -439,6 +439,25 @@ public class TobotHardware extends LinearOpMode {
                 NAVX_DIM_I2C_PORT,
                 AHRS.DeviceDataType.kProcessedData);
 
+        double init_time = getRuntime();
+        boolean navx_ok = false;
+        while (!navx_ok && (getRuntime()-init_time<3)) { // wait for three sec to get connected
+            navx_ok = navx_device.isConnected();
+        }
+        if (navx_ok) {
+            boolean navx_cal = true;
+            while (navx_cal && (getRuntime()-init_time<5)) { // wait for 2 sec to get calibration
+                navx_cal = navx_device.isCalibrating();
+            }
+            if (navx_cal)
+                navx_ok = false;
+        }
+        if (!navx_ok) {
+            DbgLog.msg(String.format("TOBOT-INIT: NaxX IMU is not connected!"));
+        } else {
+            navx_device.zeroYaw();
+        }
+
         hardwareMap.logDevices();
         DbgLog.msg(String.format("TOBOT-INIT  end() -"));
     } // end of tobot_init

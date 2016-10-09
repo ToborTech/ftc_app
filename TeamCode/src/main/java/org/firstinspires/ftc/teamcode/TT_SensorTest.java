@@ -163,9 +163,7 @@ public class TT_SensorTest extends TobotHardware {
                 TurnLeftD(0.5, 90, true);
             }
             touch = (tSensor.isPressed()?1:0);
-            if ( ( navx_device.getUpdateCount() % 500 ) == 0 ) {
-                navx_device.zeroYaw();
-            }
+
             //show_telemetry();
             if (true) {
                 // telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
