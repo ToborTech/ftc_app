@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -38,6 +39,7 @@ import com.qualcomm.robotcore.util.Range;
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
+@TeleOp(name="TeleOp-LN", group="TT-LN-OP")
 public class TT_TeleOp extends TobotHardware {
     @Override
     public void runOpMode() throws InterruptedException {
@@ -49,7 +51,9 @@ public class TT_TeleOp extends TobotHardware {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (test_count==0) {
+            if (true) {
+                ; // skip turn testing
+            } else if (test_count==0) {
                 // StraightR(1.0, 1);
                 TurnLeftD(1, 90, true);
                 test_count ++;

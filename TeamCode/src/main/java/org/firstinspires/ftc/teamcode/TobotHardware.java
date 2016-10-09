@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package org.firstinspires.ftc.teamcode;
-
+import com.kauailabs.navx.ftc.AHRS;
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -38,10 +38,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.UltrasonicSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * TobotHardware
@@ -101,7 +103,7 @@ public class TobotHardware extends LinearOpMode {
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
-    final static int WHITE_ADA = 6000;
+    final static int WHITE_ADA = 250;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 5;
@@ -168,6 +170,13 @@ public class TobotHardware extends LinearOpMode {
     boolean red_detected = false;
 
     // variables for sensors
+      /* This is the port on the Core Device Interace Module */
+  /* in which the navX-Micro is connected.  Modify this  */
+  /* depending upon which I2C port you are using.        */
+    private final int NAVX_DIM_I2C_PORT = 4;
+
+    AHRS navx_device;
+    double yaw;
     ColorSensor coSensor;
     ColorSensor coSensor2;
     ColorSensor coAda;
@@ -187,7 +196,8 @@ public class TobotHardware extends LinearOpMode {
     // following variables are used by Chassis
     State state;
     ArmState arm_state;
-    Boolean use_gyro = true;
+    Boolean use_navx = true;
+    Boolean use_gyro = false;
     Boolean use_encoder = true;
 
     public enum State {
@@ -238,8 +248,11 @@ public class TobotHardware extends LinearOpMode {
             DbgLog.msg(p_exeception.getLocalizedMessage());
             new_sv = null;
         }
-        double pos = new_sv.getPosition();
-        new_sv.setPosition(pos);
+        DbgLog.msg(String.format("TOBOT init_servo() - %s", name));
+        // commenting out following lines as the new release since March 2016,
+        // Servo cannot get position right after initialization
+        //double pos = new_sv.getPosition();
+        //new_sv.setPosition(pos);
         return new_sv;
     }
 
@@ -250,10 +263,10 @@ public class TobotHardware extends LinearOpMode {
 		 * configured your robot and created the configuration file.
 		 */
 
+        DbgLog.msg(String.format("TOBOT-INIT Begin - 8-27"));
         v_warning_generated = false;
         v_warning_message = "Can't map; ";
 
-        gate = init_servo("gate");
         try {
             tape_slider = hardwareMap.dcMotor.get("tape_slider");
         } catch (Exception p_exeception) {
@@ -262,6 +275,8 @@ public class TobotHardware extends LinearOpMode {
             tape_slider = null;
         }
         tape_slider.setDirection(DcMotor.Direction.REVERSE);
+
+        gate = init_servo("gate");
 
         tape_rotator = init_servo("tape_rotator");
         set_tape_rotator(SLIDER_STOP);
@@ -273,9 +288,10 @@ public class TobotHardware extends LinearOpMode {
             DbgLog.msg(p_exeception.getLocalizedMessage());
             elbow = null;
         }
+
         elbow_pos = elbow.getCurrentPosition();
-        //elbow.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        //elbow.setDirection(DcMotor.Direction.REVERSE);
+        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elbow.setDirection(DcMotor.Direction.REVERSE);
 
         shoulder = init_servo("shoulder");
         shoulder_pos = SHOULDER_START;
@@ -295,6 +311,8 @@ public class TobotHardware extends LinearOpMode {
         // climberL = init_servo("climberL");
         light_sensor_sv = init_servo("light_sensor_sv");
 
+        DbgLog.msg(String.format("TOBOT-INIT  light_sensor_sv -"));
+
         set_left_climber(LEFT_CLIMBER_UP);
         set_right_climber(RIGHT_CLIMBER_UP);
         front_sv_down();
@@ -304,6 +322,10 @@ public class TobotHardware extends LinearOpMode {
 
         light_sensor_sv_pos = LIGHT_SENSOR_DOWN;
         light_sensor_sv.setPosition(light_sensor_sv_pos);
+
+
+        long systemTime = System.nanoTime();
+
 
         arm_power = 0.2;
         cur_arm_power = 0;
@@ -369,13 +391,14 @@ public class TobotHardware extends LinearOpMode {
             set_drive_modes(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
 
+
         // initialize sensores
         cdim = hardwareMap.deviceInterfaceModule.get("dim");
         coSensor = hardwareMap.colorSensor.get("co");
-        //coSensor.setI2cAddress(0x3c);
+        coSensor.setI2cAddress(I2cAddr.create8bit(0x60));
 
         coSensor2 = hardwareMap.colorSensor.get("co2");
-        //coSensor2.setI2cAddress(0x3e);
+        coSensor2.setI2cAddress(I2cAddr.create8bit(0x3c));
         //coSensor2.enableLed(true);
 
         // set the digital channel to output mode.
@@ -405,13 +428,19 @@ public class TobotHardware extends LinearOpMode {
 
         //Instantiate ToborTech Nav object
         nav = new TT_Nav_old(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
-        colorPicker = new TT_ColorPicker(coSensor);
+        colorPicker = new TT_ColorPicker(coSensor2);
         if (state == State.STATE_TELEOP && arm_state == ArmState.ARM_FRONT_DUMP) {
-            sleep(500);
+            //sleep(500);
             set_wristLR_pos(WRIST_LR_DUMP);
             set_wristUD_pos(WRIST_UD_DUMP);
         }
+
+        navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("dim"),
+                NAVX_DIM_I2C_PORT,
+                AHRS.DeviceDataType.kProcessedData);
+
         hardwareMap.logDevices();
+        DbgLog.msg(String.format("TOBOT-INIT  end() -"));
     } // end of tobot_init
 
     @Override
@@ -422,7 +451,7 @@ public class TobotHardware extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            show_telemetry();
+            //show_telemetry();
             waitOneFullHardwareCycle();
         }
     }
@@ -430,15 +459,18 @@ public class TobotHardware extends LinearOpMode {
     public void show_telemetry() {
         int cur_heading = mapHeading(gyro.getHeading());
         telemetry.addData("0. Program/Arm State: ", state.toString() + "/" + arm_state.toString());
-        telemetry.addData("1. shoulder:", "pos= " + String.format("%.4f, dir=%.2f)", shoulder_pos, shoulder_dir));
-        telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, offset=%d", cur_arm_power, elbow_pos, elbow_pos_offset));
-        telemetry.addData("3. wrist LR/UD", "pos= " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
-        telemetry.addData("4. arm_slider", "pos (dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
-        telemetry.addData("5. tape_rotator/gate", "pos= " + String.format("%.2f / %.2f", tape_rotator_pos, gate_pos));
+        //telemetry.addData("1. shoulder:", "pos= " + String.format("%.4f, dir=%.2f)", shoulder_pos, shoulder_dir));
+        //telemetry.addData("2. elbow:", "pwr= " + String.format("%.2f, pos= %d, offset=%d", cur_arm_power, elbow_pos, elbow_pos_offset));
+        //telemetry.addData("3. wrist LR/UD", "pos= " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
+        //telemetry.addData("4. arm_slider", "pos (dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
+        //telemetry.addData("5. tape_rotator/gate", "pos= " + String.format("%.2f / %.2f", tape_rotator_pos, gate_pos));
+        telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
+        telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
-        telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
-        telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
+        //telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
+        //telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
         show_heading();
+        telemetry.update();
         // Dbg.msg(String.format("Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
 	    //                   heading, cur_heading, leftPower, rightPower));
     }
@@ -899,6 +931,9 @@ public class TobotHardware extends LinearOpMode {
 
     public void TurnRightD(double power, int degree, boolean spotTurn) throws InterruptedException {
         double adjust_degree = GYRO_ROTATION_RATIO_R * (double) degree;
+        double imu_heading = 0;
+        double current_pos = 0;
+        boolean heading_cross_zero = false;
         initAutoOpTime = getRuntime();
         reset_chassis();
         //set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
@@ -919,7 +954,25 @@ public class TobotHardware extends LinearOpMode {
         rightCnt += rightEncode;
         leftPower = (float) power;
 
-        if (use_gyro) {
+        if (use_navx) {
+            current_pos = navx_device.getYaw();
+            imu_heading = current_pos + adjust_degree ;
+            if (imu_heading >= 180) {
+                imu_heading -= 360;
+                heading_cross_zero = true;
+            }
+            if (heading_cross_zero && (current_pos >= 0)) {
+                current_pos -= 360;
+            }
+            while ((current_pos <= imu_heading) && ((getRuntime() - initAutoOpTime) < 5.0)) {
+                current_pos = navx_device.getYaw();
+                if (heading_cross_zero && (current_pos >= 0)) {
+                    current_pos -= 360;
+                }
+                driveTT(leftPower, rightPower);
+            }
+
+        } else if (use_gyro) {
         // if (false) {
             initAutoOpTime = getRuntime();
             int cur_heading = gyro.getHeading();

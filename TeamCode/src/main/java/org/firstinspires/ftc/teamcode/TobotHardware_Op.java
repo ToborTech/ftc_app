@@ -416,7 +416,7 @@ public class TobotHardware_Op extends OpMode {
 
     // initialize sensores
     cdim = hardwareMap.deviceInterfaceModule.get("dim");
-    coSensor = hardwareMap.colorSensor.get("co");
+    // coSensor = hardwareMap.colorSensor.get("co");
     //coSensor.setI2cAddress(0x3c);
 
     coSensor2 = hardwareMap.colorSensor.get("co2");
@@ -450,7 +450,7 @@ public class TobotHardware_Op extends OpMode {
 
     //Instantiate ToborTech Nav object
     nav = new TT_Nav_old(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
-    colorPicker = new TT_ColorPicker(coSensor);
+    colorPicker = new TT_ColorPicker(coSensor2);
     if (state == State.STATE_TELEOP && arm_state == ArmState.ARM_FRONT_DUMP) {
       //sleep(500);
       set_wristLR_pos(WRIST_LR_DUMP);
@@ -523,6 +523,7 @@ public class TobotHardware_Op extends OpMode {
     telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
     telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
     show_heading();
+    telemetry.update();
     // Dbg.msg(String.format("Gyro heading tar/curr = %d/%d, power L/R = %.2f/%.2f",
     //                   heading, cur_heading, leftPower, rightPower));
   }

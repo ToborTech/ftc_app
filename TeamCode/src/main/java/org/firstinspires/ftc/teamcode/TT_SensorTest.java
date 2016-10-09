@@ -32,7 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
+
+import java.text.DecimalFormat;
 
 /**
  * Linear Tele Op Mode
@@ -40,7 +43,7 @@ import com.qualcomm.robotcore.util.Range;
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-
+@TeleOp(name="Sensor-Test", group="TT-LN-Op")
 public class TT_SensorTest extends TobotHardware {
 
     final static double LIGHT_THRESHOLD = 0.5;
@@ -63,7 +66,8 @@ public class TT_SensorTest extends TobotHardware {
         //colorSensor = hardwareMap.colorSensor.get("co");
         //colorSensor.enableLed(false);
         TT_ColorPicker cp = new TT_ColorPicker(coSensor);
-
+        TT_ColorPicker cp2 = new TT_ColorPicker(coSensor2);
+        boolean connected = false;
         //ls1 = hardwareMap.lightSensor.get("ll");
         //ls2 = hardwareMap.lightSensor.get("lr");
 
@@ -83,7 +87,6 @@ public class TT_SensorTest extends TobotHardware {
         speedScale = (float) 0.5;
         double red_acc = 0, blue_acc = 0, red_final = 0, blue_final = 0;
         while (opModeIsActive()) {
-
             float left = -gamepad1.left_stick_y;
             float right = -gamepad1.right_stick_y;
             right = Range.clip(right, -1, 1);
@@ -91,16 +94,24 @@ public class TT_SensorTest extends TobotHardware {
             rightPower = (float) ((float) scaleInput(right * speedScale));
             leftPower = (float) ((float) scaleInput(left * speedScale));
 
+            connected = navx_device.isConnected();
+            //telemetry.addData("1 navX-Device", connected ?
+            //        "Connected" : "Disconnected" );
+
+            if ( connected ) {
+                yaw = navx_device.getYaw();
+            }
+
             if (gamepad1.a) {
                 // if the A button is pushed on gamepad1, decrease the speed
                 // of the chassis
-                if (speedScale > 0.1)
-                    speedScale -= 0.01;
+                if (speedScale > 0.2)
+                    speedScale -= 0.001;
             } else if (gamepad1.y) {
                 // if the Y button is pushed on gamepad1, increase the speed
                 // of the chassis
                 if (speedScale < 1)
-                    speedScale += 0.01;
+                    speedScale += 0.001;
             }
 
             // write the values to the motors
@@ -152,18 +163,26 @@ public class TT_SensorTest extends TobotHardware {
                 TurnLeftD(0.5, 90, true);
             }
             touch = (tSensor.isPressed()?1:0);
-            telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
-            telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
-            telemetry.addData("3. TT Color Picker  = ", String.format("%s", cp.getColor().toString()));
-            telemetry.addData("4. Low color R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
-            telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d",coAda.alpha(),coAda.blue(),coAda.red(),coAda.green(),
-                    (coAda.alpha()+coAda.blue()+coAda.red()+coAda.green())));
-            telemetry.addData("6. White detected   = ", detectwhite);
-            telemetry.addData("7. ODS / Ultra / Touch = ", String.format("%.4f / %.4f / %d",
-                    opSensor.getLightDetected(),ultra.getUltrasonicLevel(),touch));
-            telemetry.addData("8. Heading go / cur", String.format("%d / %d", heading, gyro.getHeading()));
-
-            waitForNextHardwareCycle();
+            if ( ( navx_device.getUpdateCount() % 500 ) == 0 ) {
+                navx_device.zeroYaw();
+            }
+            //show_telemetry();
+            if (true) {
+                // telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
+                // telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
+                telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));
+                telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
+                telemetry.addData("3. color-2 R/G/B    = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
+                telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
+                        (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
+                telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
+                //telemetry.addData("7. ODS / Ultra / Touch = ", String.format("%.4f / %.4f / %d",
+                //opSensor.getLightDetected(),ultra.getUltrasonicLevel(),touch));
+                telemetry.addData("8. Heading goal / gyro / navx", String.format("%d / %d / %4.2f",
+                        heading, gyro.getHeading(),yaw));
+                telemetry.update();
+            }
         }
+        navx_device.close();
     }
 }
