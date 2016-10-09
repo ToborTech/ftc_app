@@ -305,7 +305,7 @@ public class TT_TuneUp extends TobotHardware {
                 light_sensor_sv_pos -= SERVO_SCALE;
                 if (light_sensor_sv_pos < 0.01) light_sensor_sv_pos = 0.01;
             }
-            light_sensor_sv.setPosition(light_sensor_sv_pos);
+            //light_sensor_sv.setPosition(light_sensor_sv_pos);
 
             show_telemetry();
             waitOneFullHardwareCycle();

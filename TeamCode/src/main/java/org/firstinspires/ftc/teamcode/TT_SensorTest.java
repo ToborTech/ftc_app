@@ -65,8 +65,8 @@ public class TT_SensorTest extends TobotHardware {
         //cdim = hardwareMap.deviceInterfaceModule.get("dim");
         //colorSensor = hardwareMap.colorSensor.get("co");
         //colorSensor.enableLed(false);
-        TT_ColorPicker cp = new TT_ColorPicker(coSensor);
-        TT_ColorPicker cp2 = new TT_ColorPicker(coSensor2);
+        //TT_ColorPicker cp = new TT_ColorPicker(coSensor);
+        //TT_ColorPicker cp2 = new TT_ColorPicker(coSensor2);
         boolean connected = false;
         //ls1 = hardwareMap.lightSensor.get("ll");
         //ls2 = hardwareMap.lightSensor.get("lr");
@@ -121,8 +121,8 @@ public class TT_SensorTest extends TobotHardware {
             motorBL.setPower(leftPower);
 
             count++;
-            red_acc += coSensor.red();
-            blue_acc += coSensor.blue();
+            //red_acc += coSensor.red();
+            //blue_acc += coSensor.blue();
 
             if (count == 10) {
                 red_final = red_acc;
@@ -170,11 +170,11 @@ public class TT_SensorTest extends TobotHardware {
             if (true) {
                 // telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
                 // telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
-                telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));
-                telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
-                telemetry.addData("3. color-2 R/G/B    = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
-                telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
-                        (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
+                //telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));
+                //telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
+                //telemetry.addData("3. color-2 R/G/B    = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
+                //telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
+                //        (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
                 telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
                 //telemetry.addData("7. ODS / Ultra / Touch = ", String.format("%.4f / %.4f / %d",
                 //opSensor.getLightDetected(),ultra.getUltrasonicLevel(),touch));

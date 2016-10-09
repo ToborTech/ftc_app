@@ -162,7 +162,7 @@ public class TobotHardware extends LinearOpMode {
     Servo gate;
     Servo arm_slider;
     Servo leveler;
-    Servo light_sensor_sv;
+    //Servo light_sensor_sv;
     // Servo climberL;
     // Servo climberR;
     Servo front_sv;
@@ -177,12 +177,12 @@ public class TobotHardware extends LinearOpMode {
 
     AHRS navx_device;
     double yaw;
-    ColorSensor coSensor;
-    ColorSensor coSensor2;
-    ColorSensor coAda;
+    //ColorSensor coSensor;
+    //ColorSensor coSensor2;
+    //ColorSensor coAda;
     DeviceInterfaceModule cdim;
     TouchSensor tSensor;
-    UltrasonicSensor ultra;
+    //UltrasonicSensor ultra;
     OpticalDistanceSensor opSensor;
     GyroSensor gyro;
     int heading = 360;
@@ -309,9 +309,9 @@ public class TobotHardware extends LinearOpMode {
         front_sv = init_servo("front_sv");
         // climberR = init_servo("climberR");
         // climberL = init_servo("climberL");
-        light_sensor_sv = init_servo("light_sensor_sv");
+        //light_sensor_sv = init_servo("light_sensor_sv");
 
-        DbgLog.msg(String.format("TOBOT-INIT  light_sensor_sv -"));
+        //DbgLog.msg(String.format("TOBOT-INIT  light_sensor_sv -"));
 
         set_left_climber(LEFT_CLIMBER_UP);
         set_right_climber(RIGHT_CLIMBER_UP);
@@ -321,7 +321,7 @@ public class TobotHardware extends LinearOpMode {
         gate.setPosition(gate_pos);
 
         light_sensor_sv_pos = LIGHT_SENSOR_DOWN;
-        light_sensor_sv.setPosition(light_sensor_sv_pos);
+        //light_sensor_sv.setPosition(light_sensor_sv_pos);
 
 
         long systemTime = System.nanoTime();
@@ -394,11 +394,11 @@ public class TobotHardware extends LinearOpMode {
 
         // initialize sensores
         cdim = hardwareMap.deviceInterfaceModule.get("dim");
-        coSensor = hardwareMap.colorSensor.get("co");
-        coSensor.setI2cAddress(I2cAddr.create8bit(0x60));
+        //coSensor = hardwareMap.colorSensor.get("co");
+        //coSensor.setI2cAddress(I2cAddr.create8bit(0x60));
 
-        coSensor2 = hardwareMap.colorSensor.get("co2");
-        coSensor2.setI2cAddress(I2cAddr.create8bit(0x3c));
+        //coSensor2 = hardwareMap.colorSensor.get("co2");
+        //coSensor2.setI2cAddress(I2cAddr.create8bit(0x3c));
         //coSensor2.enableLed(true);
 
         // set the digital channel to output mode.
@@ -407,7 +407,7 @@ public class TobotHardware extends LinearOpMode {
         cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
 
         // get a reference to our ColorSensor object.
-        coAda = hardwareMap.colorSensor.get("color");
+        //coAda = hardwareMap.colorSensor.get("color");
 
         // bEnabled represents the state of the LED.
         boolean bEnabled = true;
@@ -417,7 +417,7 @@ public class TobotHardware extends LinearOpMode {
 
         tSensor = hardwareMap.touchSensor.get("to");
         opSensor = hardwareMap.opticalDistanceSensor.get("op");
-        ultra = hardwareMap.ultrasonicSensor.get("ultra");
+        //ultra = hardwareMap.ultrasonicSensor.get("ultra");
 
         //LL = hardwareMap.lightSensor.get("ll");
         //LR = hardwareMap.lightSensor.get("lr");
@@ -428,7 +428,7 @@ public class TobotHardware extends LinearOpMode {
 
         //Instantiate ToborTech Nav object
         nav = new TT_Nav_old(motorFR, motorBR, motorFL, motorBL, opSensor, false); // Not using Follow line
-        colorPicker = new TT_ColorPicker(coSensor2);
+        // colorPicker = new TT_ColorPicker(coSensor2);
         if (state == State.STATE_TELEOP && arm_state == ArmState.ARM_FRONT_DUMP) {
             //sleep(500);
             set_wristLR_pos(WRIST_LR_DUMP);
@@ -464,8 +464,8 @@ public class TobotHardware extends LinearOpMode {
         //telemetry.addData("3. wrist LR/UD", "pos= " + String.format("%.2f / %.2f", wristLR_pos, wristUD_pos));
         //telemetry.addData("4. arm_slider", "pos (dir): " + String.format("%.2f (%.2f)", slider_pos, slider_dir));
         //telemetry.addData("5. tape_rotator/gate", "pos= " + String.format("%.2f / %.2f", tape_rotator_pos, gate_pos));
-        telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
-        telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
+        //telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
+        //telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
         telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         //telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
         //telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
@@ -477,8 +477,10 @@ public class TobotHardware extends LinearOpMode {
 
     public void show_heading() {
         touch = (tSensor.isPressed()?1:0);
-        telemetry.addData("9. head/gyro/ods/ultra/touch:", String.format("%d/%d/%.4f/%.2f/%d",
-                heading, gyro.getHeading(), opSensor.getLightDetected(), ultra.getUltrasonicLevel(),touch));
+        telemetry.addData("9. head/gyro/ods/touch:", String.format("%d/%d/%.4f/%d",
+                heading, gyro.getHeading(), opSensor.getLightDetected(),touch));
+        //telemetry.addData("9. head/gyro/ods/ultra/touch:", String.format("%d/%d/%.4f/%.2f/%d",
+        //        heading, gyro.getHeading(), opSensor.getLightDetected(), ultra.getUltrasonicLevel(),touch));
     }
 
     public void calibre_elbow() {
@@ -559,7 +561,7 @@ public class TobotHardware extends LinearOpMode {
         arm_slider.setPosition(SLIDER_STOP);
         arm_state = ArmState.ARM_DOWN_FRONT;
         elbow.setPower(0);
-        light_sensor_sv.setPosition(LIGHT_SENSOR_UP);
+        //light_sensor_sv.setPosition(LIGHT_SENSOR_UP);
     }
 
     void arm_back() throws InterruptedException {
@@ -1260,11 +1262,11 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public void forwardTillUltra(double us_stop_val, double power, double max_sec) throws InterruptedException {
-        double us_val = ultra.getUltrasonicLevel();
+        double us_val = 0; // ultra.getUltrasonicLevel();
         double init_time = getRuntime();
         while ((us_val < 0.1 || us_val > us_stop_val) && ((getRuntime() - init_time) < max_sec)) {
             nav.drive(TT_Nav_old.FORWARD, 0.2);
-            us_val = ultra.getUltrasonicLevel();
+            // us_val = ultra.getUltrasonicLevel();
             waitForNextHardwareCycle();
         }
         nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
@@ -1272,7 +1274,7 @@ public class TobotHardware extends LinearOpMode {
 
     public void set_light_sensor(double pos) {
         light_sensor_sv_pos = pos;
-        light_sensor_sv.setPosition(light_sensor_sv_pos);
+        //light_sensor_sv.setPosition(light_sensor_sv_pos);
     }
 
     public void goUntilWhite(double power) throws InterruptedException {
@@ -1444,7 +1446,7 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public boolean detectWhite() {
-    int cur_sum_ada_colors = coAda.alpha()+coAda.blue()+coAda.red()+coAda.green();
+    int cur_sum_ada_colors = 0; // coAda.alpha()+coAda.blue()+coAda.red()+coAda.green();
         if (cur_sum_ada_colors < WHITE_ADA) {
             return false;
         }

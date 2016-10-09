@@ -60,7 +60,7 @@ public class TT_AutoBlueIn extends TobotHardware {
         telemetry.addData("1. Red   = ", red_detected);
         telemetry.addData("2. Blue  = ", blue_detected);
         // telemetry.addData("3. LL/LR = ", String.format("%.2f/%.2f", LL.getLightDetected(), LR.getLightDetected()));
-        telemetry.addData("4. ODS / ultra = ", String.format("%.4f/%.2f", opSensor.getLightDetected(), ultra.getUltrasonicLevel()));
+        // telemetry.addData("4. ODS / ultra = ", String.format("%.4f/%.2f", opSensor.getLightDetected(), ultra.getUltrasonicLevel()));
         telemetry.addData("5. shoulder", "pos(dir): " + String.format("%.2f (%.2f)", shoulder_pos, shoulder_dir));
         telemetry.addData("6. elbow", "pwr(pos): " + String.format("%.2f (%d)", arm_power, elbow_pos));
         telemetry.addData("7. wrist", "pos LR/UD: " + String.format("%.2f / %.2f", wristLR_pos,wristUD_pos));
