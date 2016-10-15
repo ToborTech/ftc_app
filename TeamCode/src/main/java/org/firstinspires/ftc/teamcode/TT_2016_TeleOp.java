@@ -40,7 +40,7 @@ import com.qualcomm.robotcore.util.Range;
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
 @TeleOp(name="TeleOp-2016", group="TT-LN-OP")
-public class TT_2016_TeleOp extends TT_2016_Hardware {
+public class TT_2016_TeleOp extends TT_2016_HardWare {
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -159,15 +159,15 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
                 // if the A button is pushed on gamepad1, decrease the speed
                 // of the chassis
                 if (speedScale > 0.2) {
-                    speedScale -= 0.001;
-                    sleep(10);
+                    speedScale -= 0.005;
+                    sleep(5);
                 }
             } else if (gamepad1.y) {
                 // if the Y button is pushed on gamepad1, increase the speed
                 // of the chassis
                 if (speedScale < 1) {
-                    speedScale += 0.001;
-                    sleep(10);
+                    speedScale += 0.005;
+                    sleep(5);
                 }
             }
 

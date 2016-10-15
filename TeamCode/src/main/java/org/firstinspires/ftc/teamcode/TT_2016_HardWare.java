@@ -48,56 +48,19 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
-public class TT_2016_Hardware extends LinearOpMode {
+public class TT_2016_HardWare extends LinearOpMode {
 
     // CONSTANT VALUES.
-    final static double ARM_MIN_RANGE = 0.20;
-    final static double ARM_MAX_RANGE = 0.90;
     final static double THRESHOLD = 0.1;
     final static double SERVO_SCALE = 0.001;
     final static double GATE_CLOSED = 0.99;
     final static double GATE_OPEN = 0.3;
     final static double GATE_DUMP = 0.3;
-    final static double WRIST_UD_INIT = 0.20;
-    final static double WRIST_UD_UP = 0.68;
-    final static double WRIST_UD_RED_MID = 0.6;
-    final static double WRIST_UD_RED_HIGH = 0.73;
-    final static double WRIST_UD_BLUE_HIGH = 0.8;
-    final static double WRIST_UD_DUMP = 0.53;
-    final static double WRIST_LR_INIT = 0.72;
-    final static double WRIST_LR_DOWN = 0.11;
-    final static double WRIST_LR_BLUE_MID = 0.29;
-    final static double WRIST_LR_BLUE_HIGH = 0.26;
-    final static double WRIST_LR_RED_HIGH = 0.001;
-    final static double WRIST_LR_DUMP = 0.2;
-
-    final static double SHOULDER_START = 0.4885;
-    final static double SHOULDER_SCORE = 0.806;     // position to outside score position
-    final static double SHOULDER_RED_MID_SCORE = 0.52;  //position for scoring mid red zone basket
-    final static double SHOULDER_BLUE_MID_SCORE = 0.42; //position for scoring mid blue zone basket
-    final static double SHOULDER_RED_HIGH_SCORE = 0.52; //position for scoring high red zone basket
-    final static double SHOULDER_BLUE_HIGH_SCORE = 0.4480; //position for scoring high red zone basket
-    final static int ELBOW_LOW_POINT = 327;
-    final static int ELBOW_MID_POINT = 600;
-    final static int ELBOW_UP_POINT = 1260;
-    final static double SLIDER_LENGHTEN = 0.0;
-    final static double SLIDER_SHORTEN = 1.0;
-    final static double SLIDER_STOP = 0.5;
-    final static double TAPE_ROTATE_INIT = 0.5;
-    final static double TAPE_SLIDER = 0.75;
     final static double LIGHT_SENSOR_UP = 0.03;
     final static double LIGHT_SENSOR_DOWN = 0.5;
     final static double LEVELER_RIGHT = 0.36;
     final static double LEVELER_INIT = 0.14;
     final static double LEVELER_LEFT = 0.62;
-    final static double FRONT_SV_DOWN = 0.99;
-    final static double FRONT_SV_UP = 0.43;
-    final static double RIGHT_CLIMBER_UP = 0.71;
-    final static double RIGHT_CLIMBER_MID = 0.5;
-    final static double RIGHT_CLIMBER_LOW = 0.2;
-    final static double LEFT_CLIMBER_UP = 0.25;
-    final static double LEFT_CLIMBER_MID = 0.65;
-    final static double LEFT_CLIMBER_LOW = 0.8;
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
@@ -167,7 +130,7 @@ public class TT_2016_Hardware extends LinearOpMode {
     }
 
 
-    float speedScale = (float) 0.8; // controlling the speed of the chassis in teleOp state
+    float speedScale = (float) 0.5; // controlling the speed of the chassis in teleOp state
     float leftPower = 0;
     float rightPower = 0;
     float SW_power = 0;

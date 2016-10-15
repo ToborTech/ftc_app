@@ -35,19 +35,19 @@ import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
-import java.text.DecimalFormat;
-
 /**
  * Linear Tele Op Mode
  * <p>
  * Enables control of the robot via the gamepad.
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
-@TeleOp(name="Sensor-Test", group="TT-LN-Op")
-public class TT_SensorTest extends TobotHardware {
+@TeleOp(name="Sensor-Test-2016", group="TT-LN-Op")
+public class TT_2016_SensorTest extends TT_2016_HardWare {
 
     final static double LIGHT_THRESHOLD = 0.5;
 
+    //ColorSensor colorSensor;
+    //DeviceInterfaceModule cdim;
     //OpticalDistanceSensor op;
     //UltrasonicSensor   ultra;
     //ColorSensor sensorRGB;
@@ -60,23 +60,25 @@ public class TT_SensorTest extends TobotHardware {
 
         tobot_init(State.STATE_TUNEUP);
 
+        //cdim = hardwareMap.deviceInterfaceModule.get("dim");
         //colorSensor = hardwareMap.colorSensor.get("co");
         //colorSensor.enableLed(false);
-        //TT_ColorPicker cp = new TT_ColorPicker(coSensor);
-        //TT_ColorPicker cp2 = new TT_ColorPicker(coSensor2);
+        TT_ColorPicker cp = new TT_ColorPicker(coSensor);
+        TT_ColorPicker cp2 = new TT_ColorPicker(coSensor2);
         boolean connected = false;
         //ls1 = hardwareMap.lightSensor.get("ll");
         //ls2 = hardwareMap.lightSensor.get("lr");
 
         // turn on LED of light sensor.
         //ls1.enableLed(true);
-        //ls2.enableLed(true);
+        //ls2.enableLeud(true);
 
         //op = hardwareMap.opticalDistanceSensor.get("op");
         //ultra = hardwareMap.ultrasonicSensor.get("ultra");
         //sensorRGB = hardwareMap.colorSensor.get("rgb");
         //sensorRGB.enableLed(true);
         //coSensor.enableLed(true);
+        cdim.setDigitalChannelState(LED_CHANNEL, true); // enable Ada color sensor led for white line detection
 
         waitForStart();
 
@@ -92,7 +94,7 @@ public class TT_SensorTest extends TobotHardware {
             rightPower = (float) ((float) scaleInput(right * speedScale));
             leftPower = (float) ((float) scaleInput(left * speedScale));
 
-            connected = navx_device.isConnected();
+            connected = false; // navx_device.isConnected();
             //telemetry.addData("1 navX-Device", connected ?
             //        "Connected" : "Disconnected" );
 
@@ -117,14 +119,12 @@ public class TT_SensorTest extends TobotHardware {
             }
 
             // write the values to the motors
-            motorFR.setPower(rightPower);
-            motorBR.setPower(rightPower);
-            motorFL.setPower(leftPower);
-            motorBL.setPower(leftPower);
+            motorR.setPower(rightPower);
+            motorL.setPower(leftPower);
 
             count++;
-            //red_acc += coSensor.red();
-            //blue_acc += coSensor.blue();
+            red_acc += coSensor.red();
+            blue_acc += coSensor.blue();
 
             if (count == 10) {
                 red_final = red_acc;
@@ -157,32 +157,36 @@ public class TT_SensorTest extends TobotHardware {
                 DbgLog.msg("MY_DEBUG - Beginning of Left Turn 90 Degrees!");
                 TurnLeftD(0.5, 90, true);
                 sleep(5000);
-                DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
-                        gyro.getHeading(), leftPower, rightPower));
+                if (use_gyro) {
+                    DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                            gyro.getHeading(), leftPower, rightPower));
+                }
             } else if (gamepad1.dpad_right) {
                 TurnRightD(0.5, 90, true);
             } else if (gamepad1.dpad_left) {
                 TurnLeftD(0.5, 90, true);
             }
-            touch = (tSensor.isPressed()?1:0);
+            //touch = (tSensor.isPressed()?1:0);
 
             //show_telemetry();
             if (true) {
                 // telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
                 // telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
-                //telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));
-                //telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
-                //telemetry.addData("3. color-2 R/G/B    = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
-                //telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
-                //        (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
+                telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));
+                telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
+                telemetry.addData("3. color-2 R/G/B    = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
+                telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
+                        (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
                 telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
                 //telemetry.addData("7. ODS / Ultra / Touch = ", String.format("%.4f / %.4f / %d",
                 //opSensor.getLightDetected(),ultra.getUltrasonicLevel(),touch));
-                telemetry.addData("8. Heading goal / gyro / navx", String.format("%d / %d / %4.2f",
-                        heading, gyro.getHeading(),yaw));
+                //telemetry.addData("8. Heading goal / gyro / navx", String.format("%d / %d / %4.2f",
+                //        heading, gyro.getHeading(),yaw));
                 telemetry.update();
             }
         }
-        navx_device.close();
+        cdim.setDigitalChannelState(LED_CHANNEL, false);
+        if (connected)
+            navx_device.close();
     }
 }
