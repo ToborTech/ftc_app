@@ -33,10 +33,12 @@ package org.firstinspires.ftc.teamcode;
 import com.kauailabs.navx.ftc.AHRS;
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
@@ -99,7 +101,7 @@ public class TT_2016_Hardware extends LinearOpMode {
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
-    final static int WHITE_ADA = 250;
+    final static int WHITE_ADA = 9000  ;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 5;
@@ -126,6 +128,7 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     boolean blue_detected = false;
     boolean red_detected = false;
+    int detectwhite = 0;
 
     // variables for sensors
       /* This is the port on the Core Device Interace Module */
@@ -135,9 +138,9 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     AHRS navx_device;
     double yaw;
-    //ColorSensor coSensor;
-    //ColorSensor coSensor2;
-    //ColorSensor coAda;
+    ColorSensor coSensor;
+    ColorSensor coSensor2;
+    ColorSensor coAda;
     DeviceInterfaceModule cdim;
     TouchSensor tSensor;
     //UltrasonicSensor ultra;
@@ -228,7 +231,7 @@ public class TT_2016_Hardware extends LinearOpMode {
         motorR = hardwareMap.dcMotor.get("motorR");
 
 
-        motorL.setDirection(DcMotor.Direction.REVERSE);
+        motorR.setDirection(DcMotor.Direction.REVERSE);
         motorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorL.setPower(0);
@@ -251,12 +254,12 @@ public class TT_2016_Hardware extends LinearOpMode {
 
         // initialize sensores
         cdim = hardwareMap.deviceInterfaceModule.get("dim");
-        //coSensor = hardwareMap.colorSensor.get("co");
-        //coSensor.setI2cAddress(I2cAddr.create8bit(0x60));
+        coSensor = hardwareMap.colorSensor.get("co");
+        coSensor.setI2cAddress(I2cAddr.create8bit(0x60));
 
-        //coSensor2 = hardwareMap.colorSensor.get("co2");
-        //coSensor2.setI2cAddress(I2cAddr.create8bit(0x3c));
-        //coSensor2.enableLed(true);
+        coSensor2 = hardwareMap.colorSensor.get("co2");
+        coSensor2.setI2cAddress(I2cAddr.create8bit(0x3c));
+        coSensor2.enableLed(true);
 
         // set the digital channel to output mode.
         // remember, the Adafruit sensor is actually two devices.
@@ -264,7 +267,7 @@ public class TT_2016_Hardware extends LinearOpMode {
         cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
 
         // get a reference to our ColorSensor object.
-        //coAda = hardwareMap.colorSensor.get("color");
+        coAda = hardwareMap.colorSensor.get("color");
 
         // bEnabled represents the state of the LED.
         boolean bEnabled = true;
@@ -284,7 +287,7 @@ public class TT_2016_Hardware extends LinearOpMode {
         //gyro.calibrate();
 
         //Instantiate ToborTech Nav object
-        // colorPicker = new TT_ColorPicker(coSensor2);
+        colorPicker = new TT_ColorPicker(coSensor2);
         if (false) {
             navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("dim"),
                     NAVX_DIM_I2C_PORT,
@@ -329,9 +332,12 @@ public class TT_2016_Hardware extends LinearOpMode {
     public void show_telemetry() {
         //int cur_heading = mapHeading(gyro.getHeading());
         telemetry.addData("0. Program State: ", state.toString());
-        //telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
-        //telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
-        telemetry.addData("6. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
+        telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
+        telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
+        telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
+        telemetry.addData("7. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
+                        (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
+        telemetry.addData("8. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         //telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
         //telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
         //show_heading();
@@ -919,7 +925,7 @@ public class TT_2016_Hardware extends LinearOpMode {
     }
 
     public boolean detectWhite() {
-    int cur_sum_ada_colors = 0; // coAda.alpha()+coAda.blue()+coAda.red()+coAda.green();
+    int cur_sum_ada_colors = coAda.alpha()+coAda.blue()+coAda.red()+coAda.green();
         if (cur_sum_ada_colors < WHITE_ADA) {
             return false;
         }

@@ -48,9 +48,11 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
         Boolean hanging_there = false;
         int test_count = 0;
 
+
         waitForStart();
 
         // StraightIn(0.4, 10);
+        cdim.setDigitalChannelState(LED_CHANNEL, true);
 
         while (opModeIsActive()) {
             if (true) {
@@ -156,13 +158,17 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
             if (gamepad1.a) {
                 // if the A button is pushed on gamepad1, decrease the speed
                 // of the chassis
-                if (speedScale > 0.1)
-                    speedScale -= 0.01;
+                if (speedScale > 0.2) {
+                    speedScale -= 0.001;
+                    sleep(10);
+                }
             } else if (gamepad1.y) {
                 // if the Y button is pushed on gamepad1, increase the speed
                 // of the chassis
-                if (speedScale < 1)
-                    speedScale += 0.01;
+                if (speedScale < 1) {
+                    speedScale += 0.001;
+                    sleep(10);
+                }
             }
 
             if (gamepad1.right_trigger > 0.1) { // *reconfigure later*
@@ -214,8 +220,14 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
                 gamepad2.reset();
                 stop_chassis();
             }
+            if (detectWhite()) {
+                detectwhite = 1;
+            } else {
+                detectwhite = 0;
+            }
 
             show_telemetry();
         }
+        cdim.setDigitalChannelState(LED_CHANNEL, false);
     }
 }
