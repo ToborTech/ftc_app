@@ -889,6 +889,9 @@ public class TobotHardware extends LinearOpMode {
 
     public void TurnLeftD(double power, int degree, boolean spotTurn) throws InterruptedException {
         double adjust_degree = GYRO_ROTATION_RATIO_L * (double) degree;
+        double imu_heading = 0;
+        double current_pos = 0;
+        boolean heading_cross_zero = false;
         initAutoOpTime = getRuntime();
         reset_chassis();
         //set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
@@ -908,6 +911,24 @@ public class TobotHardware extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         rightPower = (float) power;
+        if (use_navx) {
+            current_pos = navx_device.getYaw();
+            imu_heading = current_pos + adjust_degree ;
+            if (imu_heading <= -180) {
+                imu_heading += 360;
+                heading_cross_zero = true;
+            }
+            if (heading_cross_zero && (current_pos <= 0)) {
+                current_pos += 360;
+            }
+            while ((current_pos >= imu_heading) && ((getRuntime() - initAutoOpTime) < 5.0)) {
+                current_pos = navx_device.getYaw();
+                if (heading_cross_zero && (current_pos <= 0)) {
+                    current_pos += 360;
+                }
+                driveTT(leftPower, rightPower);
+            }
+        }
         if (use_gyro) {
         // if (false) {
             initAutoOpTime = getRuntime();
