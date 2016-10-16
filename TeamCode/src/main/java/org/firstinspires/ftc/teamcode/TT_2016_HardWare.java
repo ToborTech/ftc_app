@@ -110,6 +110,7 @@ public class TT_2016_HardWare extends LinearOpMode {
     OpticalDistanceSensor opSensor;
     GyroSensor gyro;
     int heading = 360;
+    double imu_heading = 0;
     int touch = 0;
     // LightSensor LL, LR;
 
@@ -245,13 +246,13 @@ public class TT_2016_HardWare extends LinearOpMode {
         //LL = hardwareMap.lightSensor.get("ll");
         //LR = hardwareMap.lightSensor.get("lr");
 
-        //gyro = hardwareMap.gyroSensor.get("gyro");
+        gyro = hardwareMap.gyroSensor.get("gyro");
         // calibrate the gyro.
-        //gyro.calibrate();
+        gyro.calibrate();
 
         //Instantiate ToborTech Nav object
         colorPicker = new TT_ColorPicker(coSensor2);
-        if (false) {
+        if (true) {
             navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("dim"),
                     NAVX_DIM_I2C_PORT,
                     AHRS.DeviceDataType.kProcessedData);
@@ -363,12 +364,12 @@ public class TT_2016_HardWare extends LinearOpMode {
 
     public void driveTT(double lp, double rp) {
         //if (use_gyro == true && lp == rp) {
-        if (false) {
-            int cur_heading = mapHeading(gyro.getHeading());
-            if (cur_heading > heading) { // cook to right,  slow down left motor
+        if (use_navx) {
+            double cur_heading = navx_device.getYaw();
+            if (cur_heading > imu_heading) { // cook to right,  slow down left motor
                 if (lp > 0) lp *= 0.9;
                 else rp *= 0.9;
-            } else if (cur_heading < heading) {
+            } else if (cur_heading < imu_heading) {
                 if (lp > 0) rp *= 0.9;
                 else lp *= 0.9;
             }
@@ -403,6 +404,8 @@ public class TT_2016_HardWare extends LinearOpMode {
 
     public void TurnLeftD(double power, int degree, boolean spotTurn) throws InterruptedException {
         double adjust_degree = GYRO_ROTATION_RATIO_L * (double) degree;
+        double current_pos = 0;
+        boolean heading_cross_zero = false;
         initAutoOpTime = getRuntime();
         reset_chassis();
         //set_drive_modes(DcMotorController.RunMode.RUN_USING_ENCODERS);
@@ -422,7 +425,25 @@ public class TT_2016_HardWare extends LinearOpMode {
         leftCnt += leftEncode;
         rightCnt += rightEncode;
         rightPower = (float) power;
-        if (use_gyro) {
+        if (use_navx) {
+            current_pos = navx_device.getYaw();
+            imu_heading = current_pos + adjust_degree ;
+            if (imu_heading <= -180) {
+                imu_heading += 360;
+                heading_cross_zero = true;
+            }
+            if (heading_cross_zero && (current_pos <= 0)) {
+                current_pos += 360;
+            }
+            while ((current_pos >= imu_heading) && ((getRuntime() - initAutoOpTime) < 5.0)) {
+                current_pos = navx_device.getYaw();
+                if (heading_cross_zero && (current_pos <= 0)) {
+                    current_pos += 360;
+                }
+                driveTT(leftPower, rightPower);
+            }
+        }
+        else if (use_gyro) {
         // if (false) {
             initAutoOpTime = getRuntime();
             int cur_heading = gyro.getHeading();
@@ -466,7 +487,6 @@ public class TT_2016_HardWare extends LinearOpMode {
 
     public void TurnRightD(double power, int degree, boolean spotTurn) throws InterruptedException {
         double adjust_degree = GYRO_ROTATION_RATIO_R * (double) degree;
-        double imu_heading = 0;
         double current_pos = 0;
         boolean heading_cross_zero = false;
         initAutoOpTime = getRuntime();
