@@ -186,6 +186,7 @@ public class TobotHardware extends LinearOpMode {
     OpticalDistanceSensor opSensor;
     GyroSensor gyro;
     int heading = 360;
+    double imu_heading = 0;
     int touch = 0;
     // LightSensor LL, LR;
 
@@ -847,12 +848,12 @@ public class TobotHardware extends LinearOpMode {
 
     public void driveTT(double lp, double rp) {
         //if (use_gyro == true && lp == rp) {
-        if (false) {
+        if (use_navx) {
             int cur_heading = mapHeading(gyro.getHeading());
-            if (cur_heading > heading) { // cook to right,  slow down left motor
+            if (cur_heading > imu_heading) { // cook to right,  slow down left motor
                 if (lp > 0) lp *= 0.9;
                 else rp *= 0.9;
-            } else if (cur_heading < heading) {
+            } else if (cur_heading < imu_heading) {
                 if (lp > 0) rp *= 0.9;
                 else lp *= 0.9;
             }
@@ -889,7 +890,6 @@ public class TobotHardware extends LinearOpMode {
 
     public void TurnLeftD(double power, int degree, boolean spotTurn) throws InterruptedException {
         double adjust_degree = GYRO_ROTATION_RATIO_L * (double) degree;
-        double imu_heading = 0;
         double current_pos = 0;
         boolean heading_cross_zero = false;
         initAutoOpTime = getRuntime();
@@ -973,7 +973,6 @@ public class TobotHardware extends LinearOpMode {
 
     public void TurnRightD(double power, int degree, boolean spotTurn) throws InterruptedException {
         double adjust_degree = GYRO_ROTATION_RATIO_R * (double) degree;
-        double imu_heading = 0;
         double current_pos = 0;
         boolean heading_cross_zero = false;
         initAutoOpTime = getRuntime();
