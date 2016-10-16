@@ -58,9 +58,10 @@ public class TT_2016_HardWare extends LinearOpMode {
     final static double GATE_DUMP = 0.3;
     final static double LIGHT_SENSOR_UP = 0.03;
     final static double LIGHT_SENSOR_DOWN = 0.5;
-    final static double LEVELER_RIGHT = 0.36;
-    final static double LEVELER_INIT = 0.14;
-    final static double LEVELER_LEFT = 0.62;
+    final static double LEFT_BEACON_PRESS = 0.48;
+    final static double LEFT_BEACON_INIT = 0.05;
+    final static double RIGHT_BEACON_PRESS = 0.56;
+    final static double RIGHT_BEACON_INIT = 0.95;
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
@@ -86,7 +87,9 @@ public class TT_2016_HardWare extends LinearOpMode {
 
     // position of servos
 
-    double light_sensor_sv_pos;
+    double light_sensor_sv_pos=0;
+    double left_beacon_sv_pos=0;
+    double right_beacon_sv_pos=0;
     // amount to change the claw servo position by
 
     boolean blue_detected = false;
@@ -139,6 +142,9 @@ public class TT_2016_HardWare extends LinearOpMode {
     float currRaw = 0;
     DcMotor motorR;
     DcMotor motorL;
+    Servo light_sensor_sv;
+    Servo left_beacon_sv;
+    Servo right_beacon_sv;
     // DcMotor motorSW;
     int motorRightCurrentEncoder = 0;
     int motorLeftCurrentEncoder = 0;
@@ -176,14 +182,13 @@ public class TT_2016_HardWare extends LinearOpMode {
         v_warning_message = "Can't map; ";
 
 
-        //light_sensor_sv = init_servo("light_sensor_sv");
-
+        light_sensor_sv = init_servo("light_sensor_sv");
+        left_beacon_sv = init_servo("left_beacon_sv");
+        right_beacon_sv = init_servo("right_beacon_sv");
         //DbgLog.msg(String.format("TOBOT-INIT  light_sensor_sv -"));
-
-
-        light_sensor_sv_pos = LIGHT_SENSOR_DOWN;
-        //light_sensor_sv.setPosition(light_sensor_sv_pos);
-
+        set_light_sensor(LIGHT_SENSOR_DOWN);
+        set_left_beacon(LEFT_BEACON_INIT);
+        set_right_beacon(RIGHT_BEACON_INIT);
 
         long systemTime = System.nanoTime();
 
@@ -296,6 +301,7 @@ public class TT_2016_HardWare extends LinearOpMode {
     public void show_telemetry() {
         //int cur_heading = mapHeading(gyro.getHeading());
         telemetry.addData("0. Program State: ", state.toString());
+        // telemetry.addData("3. sv ls/l_b/r_b  = ", String.format("%.2f / %.2f / %.2f", light_sensor_sv_pos, left_beacon_sv_pos, right_beacon_sv_pos));
         telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
         telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
         telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
@@ -744,8 +750,20 @@ public class TT_2016_HardWare extends LinearOpMode {
 
     public void set_light_sensor(double pos) {
         light_sensor_sv_pos = pos;
-        //light_sensor_sv.setPosition(light_sensor_sv_pos);
+        light_sensor_sv.setPosition(light_sensor_sv_pos);
     }
+
+    public void set_left_beacon(double pos) {
+        left_beacon_sv_pos = pos;
+        left_beacon_sv.setPosition(left_beacon_sv_pos);
+    }
+
+    public void set_right_beacon(double pos) {
+        right_beacon_sv_pos = pos;
+        right_beacon_sv.setPosition(right_beacon_sv_pos);
+    }
+
+
 
     public void goUntilWhite(double power) throws InterruptedException {
         initAutoOpTime = getRuntime();

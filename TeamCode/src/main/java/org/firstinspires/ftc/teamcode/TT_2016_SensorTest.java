@@ -117,6 +117,36 @@ public class TT_2016_SensorTest extends TT_2016_HardWare {
                     sleep(5);
                 }
             }
+            if (gamepad1.dpad_down) {
+                if (light_sensor_sv_pos<1)
+                    set_light_sensor(light_sensor_sv_pos+0.005);
+                sleep(5);
+            }
+            if (gamepad1.dpad_up) {
+                if (light_sensor_sv_pos>0)
+                    set_light_sensor(light_sensor_sv_pos-0.005);
+                sleep(5);
+            }
+            if (gamepad1.dpad_right) {
+                if (left_beacon_sv_pos<1)
+                    set_left_beacon(left_beacon_sv_pos+0.005);
+                sleep(5);
+            }
+            if (gamepad1.dpad_left) {
+                if (left_beacon_sv_pos>0)
+                    set_left_beacon(left_beacon_sv_pos-0.005);
+                sleep(5);
+            }
+            if (gamepad1.x) {
+                if (right_beacon_sv_pos<1)
+                    set_right_beacon(right_beacon_sv_pos+0.005);
+                sleep(5);
+            }
+            if (gamepad1.b) {
+                if (right_beacon_sv_pos>0)
+                    set_right_beacon(right_beacon_sv_pos-0.005);
+                sleep(5);
+            }
 
             // write the values to the motors
             motorR.setPower(rightPower);
@@ -138,7 +168,9 @@ public class TT_2016_SensorTest extends TT_2016_HardWare {
             } else {
                 detectwhite = 0;
             }
-            if (gamepad1.dpad_up && gamepad1.start) {
+            if (true) { // disable the following code
+                ;
+            } else if (gamepad1.dpad_up && gamepad1.start) {
                 StraightIn(1 , 72);
             }
             else if (gamepad1.dpad_up) { // try out auto-blue
@@ -175,6 +207,7 @@ public class TT_2016_SensorTest extends TT_2016_HardWare {
                 telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));
                 telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
                 telemetry.addData("3. color-2 R/G/B    = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
+                telemetry.addData("4. sv ls/l_b/r_b  = ", String.format("%.2f / %.2f / %.2f", light_sensor_sv_pos, left_beacon_sv_pos, right_beacon_sv_pos));
                 telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
                         (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
                 telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
