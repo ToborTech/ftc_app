@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
@@ -43,6 +44,7 @@ import org.firstinspires.ftc.teamcode.TobotHardware_Op;
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
 @TeleOp(name="TeleOp-Test", group="TT-OpModes")
+@Disabled
 public class
 TT_TeleOp_Op extends TobotHardware_Op {
     @Override

@@ -42,7 +42,7 @@ import com.qualcomm.robotcore.util.Range;
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
 @TeleOp(name="Sensor-Test-2016", group="TT-LN-Op")
-public class TT_2016_SensorTest extends TT_2016_HardWare {
+public class TT_2016_SensorTest extends TT_2016_Hardware {
 
     final static double LIGHT_THRESHOLD = 0.5;
 
@@ -146,6 +146,21 @@ public class TT_2016_SensorTest extends TT_2016_HardWare {
                 if (right_beacon_sv_pos>0)
                     set_right_beacon(right_beacon_sv_pos-0.005);
                 sleep(5);
+            }
+            if (gamepad1.right_trigger > 0.1) { //
+
+                sleep(300);
+            }
+            if (gamepad1.right_bumper) { //
+                TurnRightD(0.5,90,true);
+            }
+
+            if (gamepad1.left_trigger > 0.1) { //
+
+                sleep(300);
+            }
+            if (gamepad1.left_bumper) { //
+                TurnLeftD(0.5,90,true);
             }
 
             // write the values to the motors

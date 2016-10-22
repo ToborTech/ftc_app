@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
@@ -44,6 +45,7 @@ import java.text.DecimalFormat;
  * NOTE: This op mode will not work with the NXT Motor Controllers. Use an Nxt op mode instead.
  */
 @TeleOp(name="Sensor-Test", group="TT-LN-Op")
+@Disabled
 public class TT_SensorTest extends TobotHardware {
 
     final static double LIGHT_THRESHOLD = 0.5;
@@ -166,8 +168,17 @@ public class TT_SensorTest extends TobotHardware {
             }
             touch = (tSensor.isPressed()?1:0);
 
-            //show_telemetry();
-            if (true) {
+            show_telemetry();
+            if (false) {
+                double cur_heading = 0;
+                if (use_navx){
+                    cur_heading = navx_device.getYaw();
+                }
+                else if (use_gyro){
+                    cur_heading = mapHeading(gyro.getHeading());
+                }
+                telemetry.addData("1. use NavX/ use Gyro:", String.format("%s / %s ", use_navx.toString(), use_gyro.toString()));
+                telemetry.addData("2. IMU_heading/Current heading:", String.format("%.2f/%.2f", imu_heading, cur_heading));
                 // telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
                 // telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
                 //telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));

@@ -48,7 +48,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
  * <p/>
  * Define all hardware (e.g. motors, servos, sensors) used by Tobot
  */
-public class TT_2016_HardWare extends LinearOpMode {
+public class TT_2016_Hardware extends LinearOpMode {
 
     // CONSTANT VALUES.
     final static double THRESHOLD = 0.1;
@@ -279,6 +279,7 @@ public class TT_2016_HardWare extends LinearOpMode {
                 DbgLog.msg(String.format("TOBOT-INIT: NaxX IMU is not connected!"));
             } else {
                 navx_device.zeroYaw();
+                use_navx = true;
             }
         }
         hardwareMap.logDevices();
@@ -299,8 +300,16 @@ public class TT_2016_HardWare extends LinearOpMode {
     }
 
     public void show_telemetry() {
-        //int cur_heading = mapHeading(gyro.getHeading());
+        double cur_heading = 0;
+        if (use_navx){
+            cur_heading = navx_device.getYaw();
+        }
+        else if (use_gyro){
+            cur_heading = mapHeading(gyro.getHeading());
+        }
         telemetry.addData("0. Program State: ", state.toString());
+        telemetry.addData("1. use NavX/ use Gyro:", String.format("%s / %s ", use_navx.toString(), use_gyro.toString()));
+        telemetry.addData("2. IMU_heading/Current heading:", String.format("%.2f/%.2f", imu_heading, cur_heading));
         // telemetry.addData("3. sv ls/l_b/r_b  = ", String.format("%.2f / %.2f / %.2f", light_sensor_sv_pos, left_beacon_sv_pos, right_beacon_sv_pos));
         telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
         telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
