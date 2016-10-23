@@ -215,9 +215,9 @@ public class TT_2016_SensorTest extends TT_2016_Hardware {
             }
             //touch = (tSensor.isPressed()?1:0);
 
-            //show_telemetry();
-            if (true) {
-                // telemetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
+            show_telemetry();
+            if (false) {
+                // tel9emetry.addData("1. Red  cumu. / cur = ", red_final + String.format("/ %d", coSensor.red()));
                 // telemetry.addData("2. Blue cumu. / cur = ", blue_final + String.format("/ %d", coSensor.blue()));
                 telemetry.addData("1. TT Color Picker 1/2 = ", String.format("%s / %s", cp.getColor().toString(), cp2.getColor().toString()));
                 telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
