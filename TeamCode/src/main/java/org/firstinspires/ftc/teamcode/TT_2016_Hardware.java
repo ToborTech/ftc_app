@@ -74,8 +74,8 @@ public class TT_2016_Hardware extends LinearOpMode {
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
     final static double RROBOT = 25.63;  // number of wheel turns to get chassis 360-degree turn
     final static double INCHES_PER_ROTATION = 6.67; // inches per chassis motor rotation based on 16/24 gear ratio
-    final static double GYRO_ROTATION_RATIO_L = 0.92; // 0.83; // Ratio of Gyro Sensor Left turn to prevent overshooting the turn.
-    final static double GYRO_ROTATION_RATIO_R = 0.88; // 0.84; // Ratio of Gyro Sensor Right turn to prevent overshooting the turn.
+    final static double GYRO_ROTATION_RATIO_L = 0.80; // 0.83; // Ratio of Gyro Sensor Left turn to prevent overshooting the turn.
+    final static double GYRO_ROTATION_RATIO_R = 0.85; // 0.84; // Ratio of Gyro Sensor Right turn to prevent overshooting the turn.
     int numOpLoops = 1;
 
     //
@@ -381,10 +381,10 @@ public class TT_2016_Hardware extends LinearOpMode {
         //if (use_gyro == true && lp == rp) {
         if (use_navx) {
             double cur_heading = navx_device.getYaw();
-            if (cur_heading > imu_heading) { // cook to right,  slow down left motor
+            if (cur_heading - imu_heading > 2.5) { // cook to right,  slow down left motor
                 if (lp > 0) lp *= 0.9;
                 else rp *= 0.9;
-            } else if (cur_heading < imu_heading) {
+            } else if (cur_heading - imu_heading < -2.5) {
                 if (lp > 0) rp *= 0.9;
                 else lp *= 0.9;
             }
@@ -442,7 +442,7 @@ public class TT_2016_Hardware extends LinearOpMode {
         rightPower = (float) power;
         if (use_navx) {
             current_pos = navx_device.getYaw();
-            imu_heading = current_pos + adjust_degree ;
+            imu_heading = current_pos - adjust_degree ;
             if (imu_heading <= -180) {
                 imu_heading += 360;
                 heading_cross_zero = true;
