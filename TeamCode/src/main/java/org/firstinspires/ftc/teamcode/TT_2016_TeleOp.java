@@ -204,6 +204,27 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
             if (gamepad2.a) {
 
             }
+            if (gamepad2.right_trigger > 0.1) {
+                set_gate(GATE_CLOSED);
+                sleep(5);
+            }
+            if (gamepad2.right_bumper) {
+                set_gate(GATE_OPEN);
+                sleep(100);
+                set_gate(GATE_CLOSED);
+            }
+            if (gamepad2.left_bumper) {
+                set_pusher(PUSHER_UP);
+                sleep(5);
+            }
+            if (gamepad2.left_trigger > 0.1) {
+                if (Math.abs(pusher_sv_pos-PUSHER_UP)<0.1)
+                    set_pusher(PUSHER_DOWN);
+                else
+                    set_pusher(PUSHER_EXTRA);
+                sleep(10);
+                set_pusher(PUSHER_UP);
+            }
 
 
             if (gamepad2.dpad_up) {

@@ -53,9 +53,11 @@ public class TT_2016_Hardware extends LinearOpMode {
     // CONSTANT VALUES.
     final static double THRESHOLD = 0.1;
     final static double SERVO_SCALE = 0.001;
-    final static double GATE_CLOSED = 0.99;
-    final static double GATE_OPEN = 0.3;
-    final static double GATE_DUMP = 0.3;
+    final static double PUSHER_UP = 0.14;
+    final static double PUSHER_DOWN = 0.52;
+    final static double PUSHER_EXTRA = 0.99;
+    final static double GATE_CLOSED = 0.55;
+    final static double GATE_OPEN = 0.001;
     final static double LIGHT_SENSOR_UP = 0.03;
     final static double LIGHT_SENSOR_DOWN = 0.5;
     final static double LEFT_BEACON_PRESS = 0.48;
@@ -68,12 +70,12 @@ public class TT_2016_Hardware extends LinearOpMode {
     final static int WHITE_ADA = 9000  ;
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
-    static final int LED_CHANNEL = 5;
+    static final int LED_CHANNEL = 1;
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
     final static double RROBOT = 25.63;  // number of wheel turns to get chassis 360-degree turn
-    final static double INCHES_PER_ROTATION = 6.67; // inches per chassis motor rotation based on 16/24 gear ratio
+    final static double INCHES_PER_ROTATION = 12.57; // inches per chassis motor rotation based on 16/24 gear ratio
     final static double GYRO_ROTATION_RATIO_L = 0.80; // 0.83; // Ratio of Gyro Sensor Left turn to prevent overshooting the turn.
     final static double GYRO_ROTATION_RATIO_R = 0.85; // 0.84; // Ratio of Gyro Sensor Right turn to prevent overshooting the turn.
     int numOpLoops = 1;
@@ -90,6 +92,8 @@ public class TT_2016_Hardware extends LinearOpMode {
     double light_sensor_sv_pos=0;
     double left_beacon_sv_pos=0;
     double right_beacon_sv_pos=0;
+    double gate_sv_pos=0;
+    double pusher_sv_pos=0;
     // amount to change the claw servo position by
 
     boolean blue_detected = false;
@@ -145,7 +149,8 @@ public class TT_2016_Hardware extends LinearOpMode {
     Servo light_sensor_sv;
     Servo left_beacon_sv;
     Servo right_beacon_sv;
-    // DcMotor motorSW;
+    Servo gate_sv;
+    Servo pusher_sv;
     int motorRightCurrentEncoder = 0;
     int motorLeftCurrentEncoder = 0;
     int motorRightTargetEncoder = 0;
@@ -185,10 +190,15 @@ public class TT_2016_Hardware extends LinearOpMode {
         light_sensor_sv = init_servo("light_sensor_sv");
         left_beacon_sv = init_servo("left_beacon_sv");
         right_beacon_sv = init_servo("right_beacon_sv");
+        gate_sv = init_servo("gate_sv");
+        pusher_sv = init_servo("pusher_sv");
         //DbgLog.msg(String.format("TOBOT-INIT  light_sensor_sv -"));
         set_light_sensor(LIGHT_SENSOR_DOWN);
         set_left_beacon(LEFT_BEACON_INIT);
         set_right_beacon(RIGHT_BEACON_INIT);
+        set_gate(GATE_OPEN);
+        set_pusher(PUSHER_UP);
+
 
         long systemTime = System.nanoTime();
 
@@ -317,6 +327,10 @@ public class TT_2016_Hardware extends LinearOpMode {
         telemetry.addData("7. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
                         (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
         telemetry.addData("8. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
+        telemetry.addData("9. gate/ pusher  = ", String.format("%.2f / %.2f", gate_sv_pos, pusher_sv_pos));
+        telemetry.addData("10. sv ls/l_b/r_b  = ", String.format("%.2f / %.2f / %.2f", light_sensor_sv_pos, left_beacon_sv_pos, right_beacon_sv_pos));
+
+
         //telemetry.addData("7. left  cur/tg enc:", motorBL.getCurrentPosition() + "/" + leftCnt);
         //telemetry.addData("8. right cur/tg enc:", motorBR.getCurrentPosition() + "/" + rightCnt);
         //show_heading();
@@ -760,6 +774,16 @@ public class TT_2016_Hardware extends LinearOpMode {
     public void set_light_sensor(double pos) {
         light_sensor_sv_pos = pos;
         light_sensor_sv.setPosition(light_sensor_sv_pos);
+    }
+
+    public void set_gate(double pos) {
+       gate_sv_pos = pos;
+       gate_sv.setPosition(gate_sv_pos);
+    }
+
+    public void set_pusher(double pos) {
+        pusher_sv_pos = pos;
+        pusher_sv.setPosition(pusher_sv_pos);
     }
 
     public void set_left_beacon(double pos) {

@@ -213,6 +213,29 @@ public class TT_2016_SensorTest extends TT_2016_Hardware {
             } else if (gamepad1.dpad_left) {
                 TurnLeftD(0.5, 90, true);
             }
+            if (gamepad2.dpad_left) {
+                if (gate_sv_pos>0.005)
+                    set_gate(gate_sv_pos-0.005);
+                sleep(5);
+            }
+            if (gamepad2.dpad_right) {
+                if (gate_sv_pos<0.995)
+                    set_gate(gate_sv_pos+0.005);
+                sleep(5);
+            }
+            if (gamepad2.dpad_down) {
+                if (pusher_sv_pos>0.005)
+                    set_pusher(pusher_sv_pos-0.005);
+                sleep(5);
+            }
+            if (gamepad2.dpad_up) {
+                if (pusher_sv_pos<0.995)
+                    set_pusher(pusher_sv_pos+0.005);
+                sleep(5);
+            }
+
+
+
             //touch = (tSensor.isPressed()?1:0);
 
             show_telemetry();
@@ -223,9 +246,10 @@ public class TT_2016_SensorTest extends TT_2016_Hardware {
                 telemetry.addData("2. color-1 R/G/B    = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
                 telemetry.addData("3. color-2 R/G/B    = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
                 telemetry.addData("4. sv ls/l_b/r_b  = ", String.format("%.2f / %.2f / %.2f", light_sensor_sv_pos, left_beacon_sv_pos, right_beacon_sv_pos));
-                telemetry.addData("5. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
+                telemetry.addData("5. gate/ pusher  = ", String.format("%.2f / %.2f", gate_sv_pos, pusher_sv_pos));
+                telemetry.addData("6. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
                         (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
-                telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
+                telemetry.addData("7. White detected   = ", String.format("%d",detectwhite));
                 //telemetry.addData("7. ODS / Ultra / Touch = ", String.format("%.4f / %.4f / %d",
                 //opSensor.getLightDetected(),ultra.getUltrasonicLevel(),touch));
                 //telemetry.addData("8. Heading goal / gyro / navx", String.format("%d / %d / %4.2f",
