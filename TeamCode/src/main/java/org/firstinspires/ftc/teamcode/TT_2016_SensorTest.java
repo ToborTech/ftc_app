@@ -116,15 +116,17 @@ public class TT_2016_SensorTest extends TT_2016_Hardware {
                     sleep(5);
                 }
             }
-            if (gamepad1.dpad_down) {
-                if (light_sensor_sv_pos<1)
-                    set_light_sensor(light_sensor_sv_pos+0.005);
-                sleep(5);
-            }
-            if (gamepad1.dpad_up) {
-                if (light_sensor_sv_pos>0)
-                    set_light_sensor(light_sensor_sv_pos-0.005);
-                sleep(5);
+            if (false) {
+                if (gamepad1.dpad_down) {
+                    if (light_sensor_sv_pos < 1)
+                        set_light_sensor(light_sensor_sv_pos + 0.005);
+                    sleep(5);
+                }
+                if (gamepad1.dpad_up) {
+                    if (light_sensor_sv_pos > 0)
+                        set_light_sensor(light_sensor_sv_pos - 0.005);
+                    sleep(5);
+                }
             }
             if (gamepad1.dpad_right) {
                 if (left_beacon_sv_pos<1)
@@ -189,31 +191,15 @@ public class TT_2016_SensorTest extends TT_2016_Hardware {
             } else {
                 detectwhite = 0;
             }
-            if (true) { // disable the following code
-                ;
-            } else if (gamepad1.dpad_up && gamepad1.start) {
+            if (gamepad1.dpad_up && gamepad1.start) {
                 StraightIn(1 , 72);
             }
             else if (gamepad1.dpad_up) { // try out auto-blue
-                auto_part1(false,true);
-                sleep(1000);
-                StraightIn(-0.3, 12);
-                sleep(1000);
-                TurnRightD(0.5, 90, true);
-                sleep(5000);
+                DbgLog.msg("MY_DEBUG - Beginning of Auto_Part 1 red out!");
+                auto_part1(true,false);
             } else if (gamepad1.dpad_down) { // try out auto-red
-                DbgLog.msg("MY_DEBUG - Beginning of Auto_Part 1!");
+                DbgLog.msg("MY_DEBUG - Beginning of Auto_Part 1 red in!");
                 auto_part1(true, true);
-                sleep(1000);
-                StraightIn(-0.3, 12);
-                sleep(1000);
-                DbgLog.msg("MY_DEBUG - Beginning of Left Turn 90 Degrees!");
-                TurnLeftD(0.5, 90, true);
-                sleep(5000);
-                if (use_gyro) {
-                    DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
-                            gyro.getHeading(), leftPower, rightPower));
-                }
             } else if (gamepad1.dpad_right) {
                 TurnRightD(0.5, 90, true);
             } else if (gamepad1.dpad_left) {

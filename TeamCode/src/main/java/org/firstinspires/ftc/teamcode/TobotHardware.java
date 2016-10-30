@@ -1330,9 +1330,11 @@ public class TobotHardware extends LinearOpMode {
     }
 
     public void auto_part1(boolean is_red, boolean is_in) throws InterruptedException {
+        if (use_gyro){
+            DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                    gyro.getHeading(), leftPower, rightPower));
+        }
 
-        DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
-                gyro.getHeading(), leftPower, rightPower));
 
         if (false) {  // change true to skip part1
             return;

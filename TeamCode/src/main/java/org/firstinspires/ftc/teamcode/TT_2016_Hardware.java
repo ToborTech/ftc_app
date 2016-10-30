@@ -822,50 +822,50 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     public void auto_part1(boolean is_red, boolean is_in) throws InterruptedException {
 
-        DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
-                gyro.getHeading(), leftPower, rightPower));
+        if (use_gyro) {
+            DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                    gyro.getHeading(), leftPower, rightPower));
+        }
 
         if (false) {  // change true to skip part1
             return;
         }
 
-            StraightIn(1, 51);
+            StraightIn(0.6, 34);
             //sleep(300);
 
-        DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
-                gyro.getHeading(), leftPower, rightPower));
-
-        if (is_red){
-            // StraightIn(1, 10);
-            driveTT(1,1); sleep(1500);driveTT(0,0);
-        }
-        else{
-            //StraightIn(1, 14);
-            driveTT(1, 1); sleep(1500);driveTT(0,0);
+        if (use_gyro) {
+            DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                    gyro.getHeading(), leftPower, rightPower));
         }
 
-        if (!is_in) { // move more
-            StraightIn(1, 38);
-        }
-        DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
-                gyro.getHeading(), leftPower, rightPower));
-        sleep(400);
-
-        if (is_red) {
-            TurnRightD(1, 45, true);
-            sleep(400);
-            if (is_in) {
-                StraightIn(1, 20);
+        if (is_in) {
+            if (is_red){
+                TurnRightD(0.6,35,true);
             }
-        } else {
-            TurnLeftD(1, 42, true);
-            sleep(400);
-            if (is_in) {
-                StraightIn(1, 18);
+            else {
+                TurnLeftD(0.6,45,true);
             }
         }
-        DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
-                gyro.getHeading(), leftPower, rightPower));
+        else {
+            if (is_red){
+                TurnLeftD(0.6,35,true);
+                StraightIn(0.6,29);
+                TurnRightD(0.6,85,true);
+            }
+            else {
+                TurnRightD(0.6,40,true);
+                StraightIn(0.6,26);
+                TurnLeftD(0.6,90,true);
+            }
+        }
+
+        StraightIn(0.6, 5);
+
+        if (use_gyro) {
+            DbgLog.msg(String.format("Gyro current heading = %d, power L/R = %.2f/%.2f",
+                    gyro.getHeading(), leftPower, rightPower));
+        }
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
 
