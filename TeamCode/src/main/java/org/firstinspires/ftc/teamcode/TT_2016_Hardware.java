@@ -64,15 +64,15 @@ public class TT_2016_Hardware extends LinearOpMode {
     final static double GATE_OPEN = 0.001;
     final static double LIGHT_SENSOR_UP = 0.03;
     final static double LIGHT_SENSOR_DOWN = 0.5;
-    final static double LEFT_BEACON_PRESS = 0.48;
+    final static double LEFT_BEACON_PRESS = 0.6;
     final static double LEFT_BEACON_INIT = 0.05;
-    final static double RIGHT_BEACON_PRESS = 0.56;
+    final static double RIGHT_BEACON_PRESS = 0.4;
     final static double RIGHT_BEACON_INIT = 0.95;
     final static double WHITE_MAX = 0.79;
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
     final static int WHITE_ADA = 9000  ;
-    final static double RANGE_WALL = 175.2;
+    final static double RANGE_WALL = 186.2;
 
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
@@ -80,7 +80,7 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     final static int ONE_ROTATION = 1120; // for AndyMark motor encoder one rotation
     // final static double RROBOT = 11;  // number of wheel turns to get chassis 360-degree
-    final static double RROBOT = 25.63;  // number of wheel turns to get chassis 360-degree turn
+    final static double RROBOT = 6.63;  // number of wheel turns to get chassis 360-degree turn
     final static double INCHES_PER_ROTATION = 12.57; // inches per chassis motor rotation based on 16/24 gear ratio
     final static double GYRO_ROTATION_RATIO_L = 0.80; // 0.83; // Ratio of Gyro Sensor Left turn to prevent overshooting the turn.
     final static double GYRO_ROTATION_RATIO_R = 0.85; // 0.84; // Ratio of Gyro Sensor Right turn to prevent overshooting the turn.
@@ -528,6 +528,7 @@ public class TT_2016_Hardware extends LinearOpMode {
         } else {
             run_until_encoder(leftCnt, leftPower, rightCnt, rightPower);
         }
+        driveTT(0, 0);
 
         // sleep(500);
     }
@@ -612,6 +613,7 @@ public class TT_2016_Hardware extends LinearOpMode {
             }
 
         }
+        driveTT(0, 0);
         // sleep(500);
     }
 
@@ -737,6 +739,7 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     void hit_right_button() throws InterruptedException {
         set_right_beacon(RIGHT_BEACON_PRESS);
+        sleep(500);
         bump_beacon();
         set_right_beacon(RIGHT_BEACON_INIT);
     }
@@ -751,6 +754,7 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     void hit_left_button() throws InterruptedException {
         set_left_beacon(LEFT_BEACON_PRESS);
+        sleep(500);
         bump_beacon();
         set_left_beacon(LEFT_BEACON_INIT);
     }
@@ -763,11 +767,16 @@ public class TT_2016_Hardware extends LinearOpMode {
             us_val = ultra.getUltrasonicLevel();
         }
         double init_time = getRuntime();
-        while ((us_val < 0.1 || us_val > us_stop_val) && ((getRuntime() - init_time) < max_sec)) {
+        while ((us_val > us_stop_val) && ((getRuntime() - init_time) < max_sec)) {
             driveTT(power, power);
             // us_val = ultra.getUltrasonicLevel();
+            if (use_range) {
+                us_val = rangeSensor.getDistance(DistanceUnit.CM);
+            } else if (use_ultra) {
+                us_val = ultra.getUltrasonicLevel();
+            }
         }
-        nav.drive(0, 0); // Make sure robot is stopped
+        driveTT(0, 0); // Make sure robot is stopped
     }
 
     public void set_light_sensor(double pos) {
@@ -810,9 +819,6 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     public void goUntilWall(double power) throws InterruptedException {
         initAutoOpTime = getRuntime();
-        while (!detectWall() && (getRuntime() - initAutoOpTime < 0.5)) {
-            driveTT(power, power);
-        }
         while (!detectWall() && (getRuntime() - initAutoOpTime < 2)) {
             driveTT(power, power);
         }
@@ -874,21 +880,22 @@ public class TT_2016_Hardware extends LinearOpMode {
             //goUntilWhite(0.3);
             goUntilWall(0.3);
             // StraightIn(0.5, 0.5);
-            driveTT(0.75, 0.75);
             if(is_red){
-                TurnLeftD(0.9, 90, true);
+                TurnLeftD(0.5, 81, true);
             }
             else{
-                TurnRightD(0.9, 90, true);
+                TurnRightD(0.5, 81, true);
             }
         }
-
+        sleep(500);
+        //forwardTillUltra(10, 0.25, 3);
         blue_detected = false;
         red_detected = false;
 
         if (true) {
+            //sleep(1000);
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-             forwardTillUltra(5, 0.5, 5);
+             forwardTillUltra(10, 0.25, 5);
 
             // StraightIn(0.3, 1.0);
             //hit_left_button();
@@ -899,10 +906,8 @@ public class TT_2016_Hardware extends LinearOpMode {
                 cur_co = colorPicker.getColor();
             } while (cur_co==TT_ColorPicker.Color.UNKNOWN && getRuntime()-initTime<2);
             // Detect Beacon color and hit the right side
-            boolean should_dump = false;
             if (cur_co == TT_ColorPicker.Color.BLUE) {
                 blue_detected = true;
-                should_dump = true;
                 if (is_red) {
                     hit_right_button();
                 } else {
@@ -910,7 +915,6 @@ public class TT_2016_Hardware extends LinearOpMode {
                 }
             } else if (cur_co == TT_ColorPicker.Color.RED) {
                 red_detected = true;
-                should_dump = true;
                 if (is_red) {
                     hit_left_button();
                 } else {
