@@ -196,7 +196,7 @@ public class TT_2016_Hardware extends LinearOpMode {
         set_light_sensor(LIGHT_SENSOR_DOWN);
         set_left_beacon(LEFT_BEACON_INIT);
         set_right_beacon(RIGHT_BEACON_INIT);
-        set_gate(GATE_OPEN);
+        set_gate(GATE_CLOSED);
         set_pusher(PUSHER_UP);
 
 
@@ -260,10 +260,11 @@ public class TT_2016_Hardware extends LinearOpMode {
 
         //LL = hardwareMap.lightSensor.get("ll");
         //LR = hardwareMap.lightSensor.get("lr");
-
-        gyro = hardwareMap.gyroSensor.get("gyro");
-        // calibrate the gyro.
-        gyro.calibrate();
+        if (use_gyro) {
+            gyro = hardwareMap.gyroSensor.get("gyro");
+            // calibrate the gyro.
+            gyro.calibrate();
+        }
 
         //Instantiate ToborTech Nav object
         colorPicker = new TT_ColorPicker(coSensor2);
@@ -737,8 +738,9 @@ public class TT_2016_Hardware extends LinearOpMode {
     }
 
     void hit_right_button() throws InterruptedException {
-        leveler_right();
+        set_right_beacon(RIGHT_BEACON_PRESS);
         bump_beacon();
+        set_right_beacon(RIGHT_BEACON_INIT);
     }
 
 
@@ -747,17 +749,12 @@ public class TT_2016_Hardware extends LinearOpMode {
         sleep(1000);
         driveTT(0, 0);
         StraightIn(-0.5, 3);
-        if (false) {
-            StraightIn(0.3, 1.0);
-            sleep(200);
-            StraightIn(-0.3, 1.0);
-            sleep(200);
-        }
     }
 
     void hit_left_button() throws InterruptedException {
-        leveler_left();
+        set_left_beacon(LEFT_BEACON_PRESS);
         bump_beacon();
+        set_left_beacon(LEFT_BEACON_INIT);
     }
 
     public void forwardTillUltra(double us_stop_val, double power, double max_sec) throws InterruptedException {

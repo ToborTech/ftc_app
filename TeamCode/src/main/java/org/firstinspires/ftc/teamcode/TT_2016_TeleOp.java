@@ -57,74 +57,74 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
         while (opModeIsActive()) {
             if (true) {
                 ; // skip turn testing
-            } else if (test_count==0) {
+            } else if (test_count == 0) {
                 // StraightR(1.0, 1);
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==100) {
+            } else if (test_count == 100) {
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==200) {
+            } else if (test_count == 200) {
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==300) {
+            } else if (test_count == 300) {
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==400) {
+            } else if (test_count == 400) {
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==500) {
+            } else if (test_count == 500) {
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==600) {
+            } else if (test_count == 600) {
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==700) {
+            } else if (test_count == 700) {
                 TurnLeftD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
 
-            } else if (test_count==1000) {
+            } else if (test_count == 1000) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==1100) {
+            } else if (test_count == 1100) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==1200) {
+            } else if (test_count == 1200) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==1300) {
+            } else if (test_count == 1300) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==1400) {
+            } else if (test_count == 1400) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==1500) {
+            } else if (test_count == 1500) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==1600) {
+            } else if (test_count == 1600) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
-            } else if (test_count==1700) {
+            } else if (test_count == 1700) {
                 TurnRightD(1, 90, true);
-                test_count ++;
+                test_count++;
                 continue;
             } else {
-                test_count ++;
+                test_count++;
             }
 
             float left = -gamepad1.left_stick_y;
@@ -210,45 +210,51 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
             }
             if (gamepad2.right_bumper) {
                 set_gate(GATE_OPEN);
-                sleep(100);
-                set_gate(GATE_CLOSED);
+                //sleep(2000);
+                //set_gate(GATE_CLOSED);
             }
             if (gamepad2.left_bumper) {
                 set_pusher(PUSHER_UP);
                 sleep(5);
             }
             if (gamepad2.left_trigger > 0.1) {
-                if (Math.abs(pusher_sv_pos-PUSHER_UP)<0.1)
-                    set_pusher(PUSHER_DOWN);
-                else
                     set_pusher(PUSHER_EXTRA);
-                sleep(10);
-                set_pusher(PUSHER_UP);
+                    sleep(1000);
+                    set_pusher(PUSHER_UP);
+                }
+
+
+                if (gamepad2.dpad_up) {
+                    stop_chassis();
+                    gamepad2.reset();
+                } else if (gamepad2.dpad_left) {
+                    if (Math.abs(left_beacon_sv_pos-LEFT_BEACON_INIT) < 0.1) {
+                        set_left_beacon(LEFT_BEACON_PRESS);
+                    }
+                    else {
+                        set_left_beacon(LEFT_BEACON_INIT);
+                    }
+                    sleep(500);
+                } else if (gamepad2.dpad_right) {
+                   if (Math.abs(right_beacon_sv_pos-RIGHT_BEACON_INIT) < 0.1) {
+                        set_right_beacon(RIGHT_BEACON_PRESS);
+                    }
+                    else {
+                       set_right_beacon(RIGHT_BEACON_INIT);
+                   }
+                    sleep(500);
+                } else if (gamepad2.dpad_down) {
+                    gamepad2.reset();
+                    stop_chassis();
+                }
+                if (detectWhite()) {
+                    detectwhite = 1;
+                } else {
+                    detectwhite = 0;
+                }
+
+                show_telemetry();
             }
-
-
-            if (gamepad2.dpad_up) {
-                stop_chassis();
-                gamepad2.reset();
-            } else if (gamepad2.dpad_left) {
-                // gamepad2.reset();
-                stop_chassis();
-            } else if (gamepad2.dpad_right) {
-                // gamepad2.reset();
-                stop_chassis();
-
-            } else if (gamepad2.dpad_down) {
-                gamepad2.reset();
-                stop_chassis();
-            }
-            if (detectWhite()) {
-                detectwhite = 1;
-            } else {
-                detectwhite = 0;
-            }
-
-            show_telemetry();
+            cdim.setDigitalChannelState(LED_CHANNEL, false);
         }
-        cdim.setDigitalChannelState(LED_CHANNEL, false);
     }
-}
