@@ -82,7 +82,6 @@ public class TT_2016_SensorTest extends TT_2016_Hardware {
 
         waitForStart();
 
-        int detectwhite = 0;
         int count = 0;
         speedScale = (float) 0.5;
         double red_acc = 0, blue_acc = 0, red_final = 0, blue_final = 0;
@@ -161,6 +160,13 @@ public class TT_2016_SensorTest extends TT_2016_Hardware {
             }
             if (gamepad1.left_bumper) { //
                 TurnLeftD(0.9,90,true);
+            }
+
+            if (gamepad2.dpad_left) {
+                goBeacon(true);
+            }
+            if (gamepad2.dpad_right) {
+                goBeacon(false);
             }
 
             // write the values to the motors

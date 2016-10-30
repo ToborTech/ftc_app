@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package org.firstinspires.ftc.teamcode;
 import com.kauailabs.navx.ftc.AHRS;
 import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -42,6 +43,9 @@ import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.hardware.UltrasonicSensor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * TobotHardware
@@ -68,6 +72,8 @@ public class TT_2016_Hardware extends LinearOpMode {
     final static double WHITE_MIN = 0.55;
     final static double WHITE_OP = 0.08; // optical distance sensor white color number
     final static int WHITE_ADA = 9000  ;
+    final static double RANGE_WALL = 175.2;
+
     // we assume that the LED pin of the RGB sensor is connected to
     // digital port 5 (zero indexed).
     static final int LED_CHANNEL = 1;
@@ -113,7 +119,8 @@ public class TT_2016_Hardware extends LinearOpMode {
     ColorSensor coAda;
     DeviceInterfaceModule cdim;
     TouchSensor tSensor;
-    //UltrasonicSensor ultra;
+    ModernRoboticsI2cRangeSensor rangeSensor;
+    UltrasonicSensor ultra;
     OpticalDistanceSensor opSensor;
     GyroSensor gyro;
     int heading = 360;
@@ -130,6 +137,9 @@ public class TT_2016_Hardware extends LinearOpMode {
     Boolean use_navx = false;
     Boolean use_gyro = false;
     Boolean use_encoder = true;
+    Boolean use_ultra = false;
+    Boolean use_range = true;
+    Boolean use_adacolor = false;
 
     public enum State {
         STATE_TELEOP,    // state to test teleop
@@ -240,13 +250,17 @@ public class TT_2016_Hardware extends LinearOpMode {
         coSensor2.setI2cAddress(I2cAddr.create8bit(0x3c));
         coSensor2.enableLed(true);
 
+        rangeSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "range");
+
         // set the digital channel to output mode.
         // remember, the Adafruit sensor is actually two devices.
         // It's an I2C sensor and it's also an LED that can be turned on or off.
         cdim.setDigitalChannelMode(LED_CHANNEL, DigitalChannelController.Mode.OUTPUT);
 
         // get a reference to our ColorSensor object.
-        coAda = hardwareMap.colorSensor.get("color");
+        if(use_adacolor){
+            coAda = hardwareMap.colorSensor.get("color");
+        }
 
         // bEnabled represents the state of the LED.
         boolean bEnabled = true;
@@ -256,7 +270,9 @@ public class TT_2016_Hardware extends LinearOpMode {
 
         //tSensor = hardwareMap.touchSensor.get("to");
         //opSensor = hardwareMap.opticalDistanceSensor.get("op");
-        //ultra = hardwareMap.ultrasonicSensor.get("ultra");
+        if(use_ultra) {
+            ultra = hardwareMap.ultrasonicSensor.get("ultra");
+        }
 
         //LL = hardwareMap.lightSensor.get("ll");
         //LR = hardwareMap.lightSensor.get("lr");
@@ -265,7 +281,6 @@ public class TT_2016_Hardware extends LinearOpMode {
             // calibrate the gyro.
             gyro.calibrate();
         }
-
         //Instantiate ToborTech Nav object
         colorPicker = new TT_ColorPicker(coSensor2);
         if (true) {
@@ -324,9 +339,11 @@ public class TT_2016_Hardware extends LinearOpMode {
         // telemetry.addData("3. sv ls/l_b/r_b  = ", String.format("%.2f / %.2f / %.2f", light_sensor_sv_pos, left_beacon_sv_pos, right_beacon_sv_pos));
         telemetry.addData("4. Color1 R/G/B  = ", String.format("%d / %d / %d", coSensor.red(), coSensor.green(), coSensor.blue()));
         telemetry.addData("5. Color2 R/G/B  = ", String.format("%d / %d / %d", coSensor2.red(), coSensor2.green(), coSensor2.blue()));
-        telemetry.addData("6. White detected   = ", String.format("%d",detectwhite));
-        telemetry.addData("7. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
-                        (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
+        telemetry.addData("6. White / range = ", String.format("%d / %.2f",detectwhite, rangeSensor.getDistance(DistanceUnit.CM)  ));
+        if(use_adacolor){
+            telemetry.addData("7. Ada C/B/R/G/Sum  = ", String.format("%d/%d/%d/%d/%d", coAda.alpha(), coAda.blue(), coAda.red(), coAda.green(),
+                    (coAda.alpha() + coAda.blue() + coAda.red() + coAda.green())));
+        }
         telemetry.addData("8. drive power: L=", String.format("%.2f", leftPower) + "/R=" + String.format("%.2f", rightPower));
         telemetry.addData("9. gate/ pusher  = ", String.format("%.2f / %.2f", gate_sv_pos, pusher_sv_pos));
         telemetry.addData("10. sv ls/l_b/r_b  = ", String.format("%.2f / %.2f / %.2f", light_sensor_sv_pos, left_beacon_sv_pos, right_beacon_sv_pos));
@@ -718,25 +735,6 @@ public class TT_2016_Hardware extends LinearOpMode {
         return dScale;
     }
 
-
-    void leveler_right() throws InterruptedException {
-    //    leveler_pos = LEVELER_RIGHT;
-    //    leveler.setPosition(leveler_pos);
-        sleep(500);
-    }
-
-    void leveler_left() throws InterruptedException {
-     //   leveler_pos = LEVELER_LEFT;
-     //   leveler.setPosition(leveler_pos);
-        sleep(500);
-    }
-
-    void leveler_down() throws InterruptedException {
-     //   leveler_pos = LEVELER_INIT;
-     //   leveler.setPosition(leveler_pos);
-        sleep(100);
-    }
-
     void hit_right_button() throws InterruptedException {
         set_right_beacon(RIGHT_BEACON_PRESS);
         bump_beacon();
@@ -758,14 +756,18 @@ public class TT_2016_Hardware extends LinearOpMode {
     }
 
     public void forwardTillUltra(double us_stop_val, double power, double max_sec) throws InterruptedException {
-        double us_val = 0; // ultra.getUltrasonicLevel();
+        double us_val = 0;
+        if (use_range) {
+            us_val = rangeSensor.getDistance(DistanceUnit.CM);
+        } else if (use_ultra) {
+            us_val = ultra.getUltrasonicLevel();
+        }
         double init_time = getRuntime();
         while ((us_val < 0.1 || us_val > us_stop_val) && ((getRuntime() - init_time) < max_sec)) {
-            nav.drive(TT_Nav_old.FORWARD, 0.2);
+            driveTT(power, power);
             // us_val = ultra.getUltrasonicLevel();
-            waitForNextHardwareCycle();
         }
-        nav.drive(nav.BRAKE, 0); // Make sure robot is stopped
+        nav.drive(0, 0); // Make sure robot is stopped
     }
 
     public void set_light_sensor(double pos) {
@@ -797,16 +799,26 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     public void goUntilWhite(double power) throws InterruptedException {
         initAutoOpTime = getRuntime();
-        while (!detectWhite() && (getRuntime() - initAutoOpTime < 0.5)) {
+        while ((!detectWhite() || !detectWall()) && (getRuntime() - initAutoOpTime < 0.5)) {
             driveTT(power, power);
-            waitForNextHardwareCycle();
         }
-        while (!detectWhite() && (getRuntime() - initAutoOpTime < 2)) {
+        while ((!detectWhite() || !detectWall())&& (getRuntime() - initAutoOpTime < 2)) {
             driveTT(power, power);
-            waitForNextHardwareCycle();
         }
         stop_chassis();
     }
+
+    public void goUntilWall(double power) throws InterruptedException {
+        initAutoOpTime = getRuntime();
+        while (!detectWall() && (getRuntime() - initAutoOpTime < 0.5)) {
+            driveTT(power, power);
+        }
+        while (!detectWall() && (getRuntime() - initAutoOpTime < 2)) {
+            driveTT(power, power);
+        }
+        stop_chassis();
+    }
+
 
     public void auto_part1(boolean is_red, boolean is_in) throws InterruptedException {
 
@@ -857,67 +869,26 @@ public class TT_2016_Hardware extends LinearOpMode {
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
 
-    public void auto_part2(boolean is_red) throws InterruptedException {
+    public void goBeacon (boolean is_red) throws InterruptedException {
         if (true) {
-            sleep(400);
-            goUntilWhite(-0.3);
+            //goUntilWhite(0.3);
+            goUntilWall(0.3);
             // StraightIn(0.5, 0.5);
             driveTT(0.75, 0.75);
             if(is_red){
-                sleep(500);
+                TurnLeftD(0.9, 90, true);
             }
             else{
-                sleep(500);
+                TurnRightD(0.9, 90, true);
             }
-            driveTT(0, 0);
-            sleep(400);
         }
 
         blue_detected = false;
         red_detected = false;
-        if (true) {
-            if (is_red) {
-                heading = 315;
-                TurnLeftD(1, 88, true);
-            } else { // must be blue zone
-                heading = 50;
-                TurnRightD(1, 90, true);
-                driveTT(0.75, 0.75);sleep(200);driveTT(0, 0);
-            }
-        }
-        if (use_gyro) {
-            sleep(400);
-            int cur_heading = gyro.getHeading();
-            int degree = 0;
-            int left = 0;
-            if (!is_red) {
-                use_encoder = false; // for bl zone, use time correction for now
-            }
-            if (true) {
-                if (cur_heading > heading) {
-                    degree = (int) (cur_heading - heading);
-                    TurnLeftD(1, degree, true);
-                } else if (cur_heading < heading) {
-                    degree = (int) (heading - cur_heading);
-                    TurnRightD(1, degree, true);
-                }
-            } else {
-                if (cur_heading > heading) {
-                    degree = (int) (cur_heading - heading);
-                    left = 1;
-                } else if (cur_heading < heading) {
-                    degree = (int) (heading - cur_heading);
-                }
-                telemetry.addData("8. Heading go / cur / degree (left)", String.format("%d / %d / %d (%d)", heading, cur_heading, degree, left));
-                sleep(5000);
-            }
-            if (!is_red) {
-                use_encoder = true;
-            }
-        }
+
         if (true) {
             // Follow line until optical distance sensor detect 0.2 value to the wall (about 6cm)
-             forwardTillUltra(12, 0.5, 5);
+             forwardTillUltra(5, 0.5, 5);
 
             // StraightIn(0.3, 1.0);
             //hit_left_button();
@@ -926,7 +897,6 @@ public class TT_2016_Hardware extends LinearOpMode {
             // sense color up to 2 secs
             do {
                 cur_co = colorPicker.getColor();
-                waitForNextHardwareCycle();
             } while (cur_co==TT_ColorPicker.Color.UNKNOWN && getRuntime()-initTime<2);
             // Detect Beacon color and hit the right side
             boolean should_dump = false;
@@ -949,20 +919,33 @@ public class TT_2016_Hardware extends LinearOpMode {
             } else { // unknown, better not do anything than giving the credit to the opponent
                 // doing nothing. May print out the message for debugging
             }
-            // dump two climbers
 
-            // climber_mission(true);
         }
     }
 
     public boolean detectWhite() {
-    int cur_sum_ada_colors = coAda.alpha()+coAda.blue()+coAda.red()+coAda.green();
+    int cur_sum_ada_colors = 0;
+        if(use_adacolor) {
+            cur_sum_ada_colors = coAda.alpha()+coAda.blue()+coAda.red()+coAda.green();
+        }
+
         if (cur_sum_ada_colors < WHITE_ADA) {
             return false;
         }
     //    if (opSensor.getLightDetected() < WHITE_OP) { // to-do
     //        return false;
     //    }
+        return true;
+    }
+
+    public boolean detectWall() {
+        double range = rangeSensor.getDistance(DistanceUnit.CM);
+        if (range  > RANGE_WALL) {
+            return false;
+        }
+        //    if (opSensor.getLightDetected() < WHITE_OP) { // to-do
+        //        return false;
+        //    }
         return true;
     }
 
