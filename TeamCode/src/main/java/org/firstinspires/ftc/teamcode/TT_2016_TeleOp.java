@@ -143,16 +143,30 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
             // write the values to the motors
             motorR.setPower(rightPower);
             motorL.setPower(leftPower);
-            //motorSW.setPower(SW_power);
+            sweeper.setPower(SW_power);
+            shooter.setPower(SH_power);
 
             if (gamepad1.b && gamepad1.x) { // stop sweeper
                 SW_power = (float) 0;
-                //motorSW.setPower(SW_power); // stop right away
+                sweeper.setPower(SW_power); // stop right away
                 sleep(400); // make sure other botton reset
             } else if (gamepad1.b) { // sweeper backward
                 SW_power = (float) 1.0;
+                SH_power = (float) 0;
             } else if (gamepad1.x) { // sweeper forward
                 SW_power = (float) -1.0;
+                SH_power = (float) 0;
+            }
+            if (gamepad2.b) { // shooter on
+                SW_power = (float) 0;
+                if (SH_power<0.1)
+                    SH_power = (float) 0.5;
+                else
+                    SH_power = (float) 1.0;
+                sleep(400);
+            } else if (gamepad2.x) { // shooter off
+                SW_power = (float) 0;
+                SH_power = (float) 0;
             }
             // update the speed of the chassis, or stop tape slider
             if (gamepad1.a) {
@@ -218,10 +232,10 @@ public class TT_2016_TeleOp extends TT_2016_Hardware {
                 sleep(5);
             }
             if (gamepad2.left_trigger > 0.1) {
-                    set_pusher(PUSHER_EXTRA);
-                    sleep(1000);
-                    set_pusher(PUSHER_UP);
-                }
+                set_pusher(PUSHER_EXTRA);
+                sleep(1000);
+                set_pusher(PUSHER_UP);
+            }
 
 
                 if (gamepad2.dpad_up) {

@@ -152,10 +152,13 @@ public class TT_2016_Hardware extends LinearOpMode {
     float leftPower = 0;
     float rightPower = 0;
     float SW_power = 0;
+    float SH_power = 0;
     double initAutoOpTime = 0;
     float currRaw = 0;
     DcMotor motorR;
     DcMotor motorL;
+    DcMotor sweeper;
+    DcMotor shooter;
     Servo light_sensor_sv;
     Servo left_beacon_sv;
     Servo right_beacon_sv;
@@ -218,6 +221,8 @@ public class TT_2016_Hardware extends LinearOpMode {
         // initialize chassis variables
         motorL = hardwareMap.dcMotor.get("motorL");
         motorR = hardwareMap.dcMotor.get("motorR");
+        sweeper = hardwareMap.dcMotor.get("sweeper");
+        shooter = hardwareMap.dcMotor.get("shooter");
 
 
         motorR.setDirection(DcMotor.Direction.REVERSE);
@@ -225,6 +230,11 @@ public class TT_2016_Hardware extends LinearOpMode {
         motorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorL.setPower(0);
         motorR.setPower(0);
+        sweeper.setPower(0);
+        shooter.setPower(0);
+        sweeper.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
 
         state = st;
 
@@ -629,7 +639,8 @@ public class TT_2016_Hardware extends LinearOpMode {
 
     void stop_tobot() {
         stop_chassis();
-        //motorSW.setPower(0);
+        sweeper.setPower(0);
+        shooter.setPower(0);
     }
 
     void reset_chassis() throws InterruptedException {
