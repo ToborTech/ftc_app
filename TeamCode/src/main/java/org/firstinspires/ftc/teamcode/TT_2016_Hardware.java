@@ -886,6 +886,16 @@ public class TT_2016_Hardware extends LinearOpMode {
         // driveTT(0.5,0.5); sleep(1);driveTT(0,0);
     }
 
+    public void auto_part2 (boolean is_red) throws InterruptedException{
+        if (is_red){
+            goBeacon(true);
+        }
+        else{
+            goBeacon(false);
+        }
+        // Additional Autonomous code (launch ball, second beacon, etc.) goes here
+    }
+
     public void goBeacon (boolean is_red) throws InterruptedException {
         if (true) {
             //goUntilWhite(0.3);
